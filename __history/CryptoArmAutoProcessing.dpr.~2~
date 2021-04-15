@@ -1,0 +1,14 @@
+program CryptoArmAutoProcessing;
+
+uses
+  Vcl.Forms,
+  uCryptoArmAutoprocessing in 'uCryptoArmAutoprocessing.pas' {FormName};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TFormName, FormName);
+  Application.Run;
+end.
