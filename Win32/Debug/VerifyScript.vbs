@@ -1,18 +1,18 @@
-Option Explicit 'Делает текст VBScript более строгим. Объявление переменных перед их использованием становится обязательным
+Option Explicit 'Р”РµР»Р°РµС‚ С‚РµРєСЃС‚ VBScript Р±РѕР»РµРµ СЃС‚СЂРѕРіРёРј. РћР±СЉСЏРІР»РµРЅРёРµ РїРµСЂРµРјРµРЅРЅС‹С… РїРµСЂРµРґ РёС… РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµРј СЃС‚Р°РЅРѕРІРёС‚СЃСЏ РѕР±СЏР·Р°С‚РµР»СЊРЅС‹Рј
 
-'====== Блок объявления переменных ======
+'====== Р‘Р»РѕРє РѕР±СЉСЏРІР»РµРЅРёСЏ РїРµСЂРµРјРµРЅРЅС‹С… ======
 
-Dim oPKCS7Message : Set oPKCS7Message = CreateObject("DigtCrypto.PKCS7Message") 'Создаём объект сообщения формата PKCS7 (специальный формат для работы с подписью)
+Dim oPKCS7Message : Set oPKCS7Message = CreateObject("DigtCrypto.PKCS7Message") 'РЎРѕР·РґР°С‘Рј РѕР±СЉРµРєС‚ СЃРѕРѕР±С‰РµРЅРёСЏ С„РѕСЂРјР°С‚Р° PKCS7 (СЃРїРµС†РёР°Р»СЊРЅС‹Р№ С„РѕСЂРјР°С‚ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РїРѕРґРїРёСЃСЊСЋ)
 
-Const DT_SIGNED_DATA = 2 'Криптографическое сообщение, содержащее результат формирования ЭЦП
-Const CERT_AND_SIGN = 0 'Проверка подписи и сертификата
-Const SIGN_ONLY = 1 'Проверка только подписи
-Dim oSignatures 'Объект, содержащий коллекцию из объектов подписи
-Dim oSignature 'Объект одной подписи
+Const DT_SIGNED_DATA = 2 'РљСЂРёРїС‚РѕРіСЂР°С„РёС‡РµСЃРєРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ, СЃРѕРґРµСЂР¶Р°С‰РµРµ СЂРµР·СѓР»СЊС‚Р°С‚ С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ Р­Р¦Рџ
+Const CERT_AND_SIGN = 0 'РџСЂРѕРІРµСЂРєР° РїРѕРґРїРёСЃРё Рё СЃРµСЂС‚РёС„РёРєР°С‚Р°
+Const SIGN_ONLY = 1 'РџСЂРѕРІРµСЂРєР° С‚РѕР»СЊРєРѕ РїРѕРґРїРёСЃРё
+Dim oSignatures 'РћР±СЉРµРєС‚, СЃРѕРґРµСЂР¶Р°С‰РёР№ РєРѕР»Р»РµРєС†РёСЋ РёР· РѕР±СЉРµРєС‚РѕРІ РїРѕРґРїРёСЃРё
+Dim oSignature 'РћР±СЉРµРєС‚ РѕРґРЅРѕР№ РїРѕРґРїРёСЃРё
 Dim Status
 Dim oCertificate
-Const POLICY_TYPE_NONE = 0 'Нет политики использования сертификатов
-'____ Статусы сертификата ____
+Const POLICY_TYPE_NONE = 0 'РќРµС‚ РїРѕР»РёС‚РёРєРё РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ СЃРµСЂС‚РёС„РёРєР°С‚РѕРІ
+'____ РЎС‚Р°С‚СѓСЃС‹ СЃРµСЂС‚РёС„РёРєР°С‚Р° ____
 Const VS_CORRECT = 1
 Const VS_UNSUFFICIENT_INFO = 2
 Const VS_UNCORRECT = 3
@@ -27,13 +27,13 @@ Const VS_CERTIFICATE_IN_LOCAL_CRL = 11
 Const VS_CERTIFICATE_CORRECT_BY_LOCAL_CRL = 12
 Const VS_CERTIFICATE_USING_RESTRICTED = 13
 
-Dim oProfile : Set oProfile = CreateObject("DigtCrypto.Profile") 'Создаём профиль. Только внутри него можно выбрать виды проверок сертификата с CRL
-Const CERTIFICATE_VERIFY_REV_PROV = 4 'Проверка сертификата с помощью Revocation Provider
-Const CERTIFICATE_VERIFY_ONLINE_CRL = 2 'Проверка сертификата онлайн
+Dim oProfile : Set oProfile = CreateObject("DigtCrypto.Profile") 'РЎРѕР·РґР°С‘Рј РїСЂРѕС„РёР»СЊ. РўРѕР»СЊРєРѕ РІРЅСѓС‚СЂРё РЅРµРіРѕ РјРѕР¶РЅРѕ РІС‹Р±СЂР°С‚СЊ РІРёРґС‹ РїСЂРѕРІРµСЂРѕРє СЃРµСЂС‚РёС„РёРєР°С‚Р° СЃ CRL
+Const CERTIFICATE_VERIFY_REV_PROV = 4 'РџСЂРѕРІРµСЂРєР° СЃРµСЂС‚РёС„РёРєР°С‚Р° СЃ РїРѕРјРѕС‰СЊСЋ Revocation Provider
+Const CERTIFICATE_VERIFY_ONLINE_CRL = 2 'РџСЂРѕРІРµСЂРєР° СЃРµСЂС‚РёС„РёРєР°С‚Р° РѕРЅР»Р°Р№РЅ
 
 Dim i
 
-'====== Основной блок ======
+'====== РћСЃРЅРѕРІРЅРѕР№ Р±Р»РѕРє ======
 
 Function SignatureVerify (ByVal InputFileName, ByVal InputFileNameSignature)
     oPKCS7Message.Load DT_SIGNED_DATA, InputFileNameSignature, InputFileName
@@ -42,10 +42,10 @@ Function SignatureVerify (ByVal InputFileName, ByVal InputFileNameSignature)
     For  i=0 To n-1
         Set oSignature = oSignatures.Item(i)
         Status = oSignature.Verify (SIGN_ONLY)
-        SignatureVerify = Status 'Возвращаем результат проверки       
+        SignatureVerify = Status 'Р’РѕР·РІСЂР°С‰Р°РµРј СЂРµР·СѓР»СЊС‚Р°С‚ РїСЂРѕРІРµСЂРєРё       
     Next
 
-    'Очищаем переменные
+    'РћС‡РёС‰Р°РµРј РїРµСЂРµРјРµРЅРЅС‹Рµ
     Set oSignature = Nothing
     Set oSignatures = Nothing
 End Function
@@ -57,32 +57,32 @@ Function SignatureInformation (ByVal InputFileNameSignature)
     For i=0 to n-1
         Set oSignature = oSignatures.Item(i)
 
-        'Время подписи
+        'Р’СЂРµРјСЏ РїРѕРґРїРёСЃРё
         dim sSigningTime : sSigningTime = oSignature.SigningTime
-        SignatureInformation = SignatureInformation + "Время подписи: " + CStr(sSigningTime) + vbCrLf
-        'Идентификатор ресурса подписи
+        SignatureInformation = SignatureInformation + "Р’СЂРµРјСЏ РїРѕРґРїРёСЃРё: " + CStr(sSigningTime) + vbCrLf
+        'РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ СЂРµСЃСѓСЂСЃР° РїРѕРґРїРёСЃРё
         Dim sResource : sResource = oSignature.Resource
-        SignatureInformation = SignatureInformation + "Идентификатор ресурса подписи: " + CStr(sResource) + vbCrLf
-        'Хэш алгоритм подписи
+        SignatureInformation = SignatureInformation + "РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ СЂРµСЃСѓСЂСЃР° РїРѕРґРїРёСЃРё: " + CStr(sResource) + vbCrLf
+        'РҐСЌС€ Р°Р»РіРѕСЂРёС‚Рј РїРѕРґРїРёСЃРё
         Dim sHashAlg : sHashAlg = oSignature.HashAlg
-        SignatureInformation = SignatureInformation + "Хэш алгоритм подписи: " + CStr(sHashAlg) + vbCrLf
-        'Алгоритм подписи ЭЦП
+        SignatureInformation = SignatureInformation + "РҐСЌС€ Р°Р»РіРѕСЂРёС‚Рј РїРѕРґРїРёСЃРё: " + CStr(sHashAlg) + vbCrLf
+        'РђР»РіРѕСЂРёС‚Рј РїРѕРґРїРёСЃРё Р­Р¦Рџ
         Dim sHashEncAlg : sHashEncAlg = oSignature.HashEncAlg
-        SignatureInformation = SignatureInformation + "Алгоритм подписи ЭЦП: " + CStr(sHashEncAlg) + vbCrLf
-        'Тип ЭЦП: true – отсоединённая, false – присоединённая
+        SignatureInformation = SignatureInformation + "РђР»РіРѕСЂРёС‚Рј РїРѕРґРїРёСЃРё Р­Р¦Рџ: " + CStr(sHashEncAlg) + vbCrLf
+        'РўРёРї Р­Р¦Рџ: true вЂ“ РѕС‚СЃРѕРµРґРёРЅС‘РЅРЅР°СЏ, false вЂ“ РїСЂРёСЃРѕРµРґРёРЅС‘РЅРЅР°СЏ
         Dim sDetached : sDetached = oSignature.Detached
         Dim sDetachedValue        
         if sDetached then
-            sDetachedValue = "Отсоединённая"
-        else sDetachedValue = "Присоединённая"
+            sDetachedValue = "РћС‚СЃРѕРµРґРёРЅС‘РЅРЅР°СЏ"
+        else sDetachedValue = "РџСЂРёСЃРѕРµРґРёРЅС‘РЅРЅР°СЏ"
         end if
-        SignatureInformation = SignatureInformation + "Тип ЭЦП: " + sDetachedValue + vbCrLf
-        'Номер версии протокола версии CMS
+        SignatureInformation = SignatureInformation + "РўРёРї Р­Р¦Рџ: " + sDetachedValue + vbCrLf
+        'РќРѕРјРµСЂ РІРµСЂСЃРёРё РїСЂРѕС‚РѕРєРѕР»Р° РІРµСЂСЃРёРё CMS
         Dim lCMSVersion : lCMSVersion = oSignature.CMSVersion
-        SignatureInformation = SignatureInformation + "Номер версии протокола CMS: " + CStr(lCMSVersion)
+        SignatureInformation = SignatureInformation + "РќРѕРјРµСЂ РІРµСЂСЃРёРё РїСЂРѕС‚РѕРєРѕР»Р° CMS: " + CStr(lCMSVersion)
     Next
 
-    'Очищаем переменные
+    'РћС‡РёС‰Р°РµРј РїРµСЂРµРјРµРЅРЅС‹Рµ
     Set oSignature = Nothing
     Set oSignatures = Nothing
 
@@ -94,19 +94,19 @@ Function CertificateInformation (ByVal InputFileNameSignature)
     For i=0 to n-1
         Set oSignature = oSignatures.Item(i)
 
-        'Получаем указатель на сертификат подписи
+        'РџРѕР»СѓС‡Р°РµРј СѓРєР°Р·Р°С‚РµР»СЊ РЅР° СЃРµСЂС‚РёС„РёРєР°С‚ РїРѕРґРїРёСЃРё
         Set oCertificate = oSignature.Certificate
 
-        'Свойства сертификата
-        CertificateInformation =                          "Серийный номер сертификата: " + CStr(oCertificate.SerialNumber) + vbCrLf + vbCrLf
-        CertificateInformation = CertificateInformation + "Выдан УЦ: " + CStr(oCertificate.IssuerName) + vbCrLf + vbCrLf
-        CertificateInformation = CertificateInformation + "Владелец сертификата: " + CStr(oCertificate.SubjectName) + vbCrLf + vbCrLf
-        CertificateInformation = CertificateInformation + "Действует с: " + CStr(oCertificate.ValidFrom) + vbCrLf + vbCrLf
-        CertificateInformation = CertificateInformation + "Действует по: " + CStr(oCertificate.ValidTo) + vbCrLf + vbCrLf
-        CertificateInformation = CertificateInformation + "Алгоритм ключа проверки: " + CStr(oCertificate.PublicKeyAlg)
+        'РЎРІРѕР№СЃС‚РІР° СЃРµСЂС‚РёС„РёРєР°С‚Р°
+        CertificateInformation =                          "РЎРµСЂРёР№РЅС‹Р№ РЅРѕРјРµСЂ СЃРµСЂС‚РёС„РёРєР°С‚Р°: " + CStr(oCertificate.SerialNumber) + vbCrLf + vbCrLf
+        CertificateInformation = CertificateInformation + "Р’С‹РґР°РЅ РЈР¦: " + CStr(oCertificate.IssuerName) + vbCrLf + vbCrLf
+        CertificateInformation = CertificateInformation + "Р’Р»Р°РґРµР»РµС† СЃРµСЂС‚РёС„РёРєР°С‚Р°: " + CStr(oCertificate.SubjectName) + vbCrLf + vbCrLf
+        CertificateInformation = CertificateInformation + "Р”РµР№СЃС‚РІСѓРµС‚ СЃ: " + CStr(oCertificate.ValidFrom) + vbCrLf + vbCrLf
+        CertificateInformation = CertificateInformation + "Р”РµР№СЃС‚РІСѓРµС‚ РїРѕ: " + CStr(oCertificate.ValidTo) + vbCrLf + vbCrLf
+        CertificateInformation = CertificateInformation + "РђР»РіРѕСЂРёС‚Рј РєР»СЋС‡Р° РїСЂРѕРІРµСЂРєРё: " + CStr(oCertificate.PublicKeyAlg)
     Next
 
-    'Очищаем переменные
+    'РћС‡РёС‰Р°РµРј РїРµСЂРµРјРµРЅРЅС‹Рµ
     Set oCertificate = Nothing
     Set oSignature = Nothing
     Set oSignatures = Nothing
@@ -119,46 +119,46 @@ Function CertificateVerify (ByVal InputFileNameSignature)
     For i=0 to n-1
         Set oSignature = oSignatures.Item(i)
 
-        'Получаем указатель на сертификат подписи
+        'РџРѕР»СѓС‡Р°РµРј СѓРєР°Р·Р°С‚РµР»СЊ РЅР° СЃРµСЂС‚РёС„РёРєР°С‚ РїРѕРґРїРёСЃРё
         Set oCertificate = oSignature.Certificate
 
-        'Проверка статуса сертификата
+        'РџСЂРѕРІРµСЂРєР° СЃС‚Р°С‚СѓСЃР° СЃРµСЂС‚РёС„РёРєР°С‚Р°
         oProfile.SetVerifiedCertificates CERTIFICATE_VERIFY_ONLINE_CRL, oCertificate
-        'Установим профиль в сертификат и выполним проверку
+        'РЈСЃС‚Р°РЅРѕРІРёРј РїСЂРѕС„РёР»СЊ РІ СЃРµСЂС‚РёС„РёРєР°С‚ Рё РІС‹РїРѕР»РЅРёРј РїСЂРѕРІРµСЂРєСѓ
         oCertificate.Profile = oProfile
-        Status = oCertificate.IsValid(POLICY_TYPE_NONE) 'Проверим статус сертификата
+        Status = oCertificate.IsValid(POLICY_TYPE_NONE) 'РџСЂРѕРІРµСЂРёРј СЃС‚Р°С‚СѓСЃ СЃРµСЂС‚РёС„РёРєР°С‚Р°
 
         Select Case Status
             Case VS_CORRECT
-                CertificateVerify = "Статус сертификата: " + "Корректен"
+                CertificateVerify = "РЎС‚Р°С‚СѓСЃ СЃРµСЂС‚РёС„РёРєР°С‚Р°: " + "РљРѕСЂСЂРµРєС‚РµРЅ"
             Case VS_UNSUFFICIENT_INFO
-                CertificateVerify = "Статус сертификата: " + "Статус неизвестен"
+                CertificateVerify = "РЎС‚Р°С‚СѓСЃ СЃРµСЂС‚РёС„РёРєР°С‚Р°: " + "РЎС‚Р°С‚СѓСЃ РЅРµРёР·РІРµСЃС‚РµРЅ"
             Case VS_UNCORRECT
-                CertificateVerify = "Статус сертификата: " + "Некорректен"
+                CertificateVerify = "РЎС‚Р°С‚СѓСЃ СЃРµСЂС‚РёС„РёРєР°С‚Р°: " + "РќРµРєРѕСЂСЂРµРєС‚РµРЅ"
             Case VS_INVALID_CERTIFICATE_BLOB
-                CertificateVerify = "Статус сертификата: " + "Недействительный блоб сертификата"
+                CertificateVerify = "РЎС‚Р°С‚СѓСЃ СЃРµСЂС‚РёС„РёРєР°С‚Р°: " + "РќРµРґРµР№СЃС‚РІРёС‚РµР»СЊРЅС‹Р№ Р±Р»РѕР± СЃРµСЂС‚РёС„РёРєР°С‚Р°"
             Case VS_CERTIFICATE_TIME_EXPIRIED
-                CertificateVerify = "Статус сертификата: " + "Время действия сертификата истекло или ещё не наступило"
+                CertificateVerify = "РЎС‚Р°С‚СѓСЃ СЃРµСЂС‚РёС„РёРєР°С‚Р°: " + "Р’СЂРµРјСЏ РґРµР№СЃС‚РІРёСЏ СЃРµСЂС‚РёС„РёРєР°С‚Р° РёСЃС‚РµРєР»Рѕ РёР»Рё РµС‰С‘ РЅРµ РЅР°СЃС‚СѓРїРёР»Рѕ"
             Case VS_CERTIFICATE_NO_CHAIN
-                CertificateVerify = "Статус сертификата: " + "Невозможно построить цепочку сертификации"
+                CertificateVerify = "РЎС‚Р°С‚СѓСЃ СЃРµСЂС‚РёС„РёРєР°С‚Р°: " + "РќРµРІРѕР·РјРѕР¶РЅРѕ РїРѕСЃС‚СЂРѕРёС‚СЊ С†РµРїРѕС‡РєСѓ СЃРµСЂС‚РёС„РёРєР°С†РёРё"
             Case VS_CERTIFICATE_CRL_UPDATING_ERROR
-                CertificateVerify = "Статус сертификата: " + "Ошибка обновления сертификата"
+                CertificateVerify = "РЎС‚Р°С‚СѓСЃ СЃРµСЂС‚РёС„РёРєР°С‚Р°: " + "РћС€РёР±РєР° РѕР±РЅРѕРІР»РµРЅРёСЏ СЃРµСЂС‚РёС„РёРєР°С‚Р°"
             Case VS_LOCAL_CRL_NOT_FOUND
-                CertificateVerify = "Статус сертификата: " + "Не найден локальный СОС"
+                CertificateVerify = "РЎС‚Р°С‚СѓСЃ СЃРµСЂС‚РёС„РёРєР°С‚Р°: " + "РќРµ РЅР°Р№РґРµРЅ Р»РѕРєР°Р»СЊРЅС‹Р№ РЎРћРЎ"
             Case VS_CRL_TIME_EXPIRIED
-                CertificateVerify = "Статус сертификата: " + "Истекло время действия СОС"
+                CertificateVerify = "РЎС‚Р°С‚СѓСЃ СЃРµСЂС‚РёС„РёРєР°С‚Р°: " + "РСЃС‚РµРєР»Рѕ РІСЂРµРјСЏ РґРµР№СЃС‚РІРёСЏ РЎРћРЎ"
             Case VS_CERTIFICATE_IN_CRL
-                CertificateVerify = "Статус сертификата: " + "Сертификат находится в СОС"
+                CertificateVerify = "РЎС‚Р°С‚СѓСЃ СЃРµСЂС‚РёС„РёРєР°С‚Р°: " + "РЎРµСЂС‚РёС„РёРєР°С‚ РЅР°С…РѕРґРёС‚СЃСЏ РІ РЎРћРЎ"
             Case VS_CERTIFICATE_IN_LOCAL_CRL
-                CertificateVerify = "Статус сертификата: " + "Сертификат находится в локальном СОС"
+                CertificateVerify = "РЎС‚Р°С‚СѓСЃ СЃРµСЂС‚РёС„РёРєР°С‚Р°: " + "РЎРµСЂС‚РёС„РёРєР°С‚ РЅР°С…РѕРґРёС‚СЃСЏ РІ Р»РѕРєР°Р»СЊРЅРѕРј РЎРћРЎ"
             Case VS_CERTIFICATE_CORRECT_BY_LOCAL_CRL
-                CertificateVerify = "Статус сертификата: " + "Сертификат действителен по локальному СОС"
+                CertificateVerify = "РЎС‚Р°С‚СѓСЃ СЃРµСЂС‚РёС„РёРєР°С‚Р°: " + "РЎРµСЂС‚РёС„РёРєР°С‚ РґРµР№СЃС‚РІРёС‚РµР»РµРЅ РїРѕ Р»РѕРєР°Р»СЊРЅРѕРјСѓ РЎРћРЎ"
             Case VS_CERTIFICATE_USING_RESTRICTED
-                CertificateVerify = "Статус сертификата: " + "Использование сертификата ограничено"
+                CertificateVerify = "РЎС‚Р°С‚СѓСЃ СЃРµСЂС‚РёС„РёРєР°С‚Р°: " + "РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ СЃРµСЂС‚РёС„РёРєР°С‚Р° РѕРіСЂР°РЅРёС‡РµРЅРѕ"
         End Select
     Next
 
-    'Очищаем переменные
+    'РћС‡РёС‰Р°РµРј РїРµСЂРµРјРµРЅРЅС‹Рµ
     Set oCertificate = Nothing
     Set oSignature = Nothing
     Set oSignatures = Nothing
