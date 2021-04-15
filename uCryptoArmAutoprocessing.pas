@@ -127,7 +127,7 @@ begin
 end;
 
 procedure TFormMain.Processed(InputArchiveFileName: string);
-var i, j: integer;
+var i, arrayIndex: integer;
     Archive: TZipFile;
     SigFilesArray: array of string;
     NotSigFile: string;
@@ -137,11 +137,14 @@ begin
     Archive.Open(DirectoryRoot + InputArchiveFileName, zmRead);
     Archive.ExtractAll(DirectoryRoot);
 
+    arrayIndex := 0;
     for i := 0 to Archive.FileCount-1 do
       begin
         if LowerCase(Copy(Archive.FileName[i], length(Archive.FileName[i])-3, 4)) = '.sig' then
           begin
-            SigFilesArray[i] := Archive.FileName[i];
+            SetLength(SigFilesArray, arrayIndex + 1);
+            SigFilesArray[arrayIndex] := Archive.FileName[i];
+            arrayIndex := arrayIndex + 1;
           end
         else
           begin
