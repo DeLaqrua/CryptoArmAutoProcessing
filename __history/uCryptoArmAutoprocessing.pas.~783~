@@ -20,7 +20,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
-    procedure EditPathChange(Sender: TObject);
 
   private
     { Private declarations }
@@ -45,6 +44,8 @@ var
 implementation
 
 {$R *.dfm}
+
+//90098709870978879
 
 procedure TFormMain.FormCreate(Sender: TObject);
 var ScriptFile: TextFile;
@@ -128,7 +129,7 @@ begin
 end;
 
 procedure TFormMain.Processed(InputArchiveFileName: string);
-var i: integer;
+var i, j: integer;
     Archive: TZipFile;
     SigFilesArray: array of string;
     NotSigFile: string;
@@ -310,12 +311,6 @@ begin
     Result := InputDirectory + '\'
   else
     Result := InputDirectory;
-end;
-
-procedure TFormMain.EditPathChange(Sender: TObject);
-begin
-  DirectoryRoot := CorrectPath(EditPath.Text);
-  UpdateDirectories(DirectoryRoot);
 end;
 
 procedure TFormMain.UpdateDirectories(InputDirectoryRoot: string);

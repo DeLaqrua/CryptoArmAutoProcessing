@@ -45,8 +45,6 @@ implementation
 
 {$R *.dfm}
 
-//90098709870978879
-
 procedure TFormMain.FormCreate(Sender: TObject);
 var ScriptFile: TextFile;
     Script, LineScript: String;
