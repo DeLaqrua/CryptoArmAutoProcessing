@@ -2,7 +2,7 @@ object FormMain: TFormMain
   Left = 0
   Top = 0
   Caption = 'FormMain'
-  ClientHeight = 502
+  ClientHeight = 514
   ClientWidth = 852
   Color = clBlack
   Font.Charset = DEFAULT_CHARSET
@@ -14,7 +14,7 @@ object FormMain: TFormMain
   OnCreate = FormCreate
   DesignSize = (
     852
-    502)
+    514)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelPath: TLabel
@@ -39,7 +39,7 @@ object FormMain: TFormMain
     Width = 32
     Height = 32
     ControlData = {
-      2143341208000000ED030000ED030000D2F1594E010000001400000010270000
+      2143341208000000ED030000ED030000D2F1594E010000001400000030750000
       01000000}
   end
   object ButtonManualProcessing: TButton
@@ -61,7 +61,7 @@ object FormMain: TFormMain
     Left = 8
     Top = 192
     Width = 836
-    Height = 302
+    Height = 314
     Alignment = taCenter
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = DEFAULT_CHARSET
@@ -72,6 +72,7 @@ object FormMain: TFormMain
     ParentFont = False
     ScrollBars = ssBoth
     TabOrder = 2
+    ExplicitHeight = 302
   end
   object EditPath: TEdit
     Left = 231

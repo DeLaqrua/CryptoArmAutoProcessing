@@ -41,7 +41,7 @@ Function SignatureVerify (ByVal InputFileName, ByVal InputFileNameSignature)
     Dim n : n = oSignatures.Count
     For  i=0 To n-1
         Set oSignature = oSignatures.Item(i)
-        Status = oSignature.Verify (SIGN_ONLY)
+        Status = oSignature.Verify (CERT_AND_SIGN)
         SignatureVerify = Status 'Возвращаем результат проверки       
     Next
 
