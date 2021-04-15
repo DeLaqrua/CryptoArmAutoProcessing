@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.OleCtrls, MSScriptControl_TLB,
-  Vcl.StdCtrls, ActiveX, frxClass, System.Zip, Vcl.FileCtrl, System.Masks;
+  Vcl.StdCtrls, ActiveX, frxClass, System.Zip, Vcl.FileCtrl, System.Masks, DateUtils;
 
 type
   TFormMain = class(TForm)
@@ -24,16 +24,17 @@ type
   private
     { Private declarations }
   public
-    function SignatureVerify(InputFileName, InputFileNameSignature: string): string;
-    function CheckErrorsWithinArchive(InputArchiveFileName: string): boolean;
-    function CorrectPath(InputDirectory: string): string;
-    function CheckFileName(InputFileName: string): boolean;
+    function SignatureVerify(inputFileName, inputFileNameSignature: string): string;
+    function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
+    function CorrectPath(inputDirectory: string): string;
+    function CheckFileName(inputFileName: string): boolean;
 
-    procedure UpdateDirectories(InputDirectoryRoot: string);
+    procedure UpdateDirectories(inputDirectoryRoot: string);
     procedure SortErrorFiles;
-    procedure MoveFilesToErrors(InputFileName: string);
+    procedure MoveFilesToErrors(inputFileName: string);
 
-    procedure Processed(InputArchiveFileName: string);
+    procedure Processed(inputArchiveFileName: string);
+    procedure MoveFilesToProcessed(inputArchiveFileName, inputNotSigFile: string; inputSigFilesArray: array of string);
   end;
 
 var
@@ -126,7 +127,7 @@ begin
     end;
 end;
 
-procedure TFormMain.Processed(InputArchiveFileName: string);
+procedure TFormMain.Processed(inputArchiveFileName: string);
 var i, arrayIndex: integer;
     Archive: TZipFile;
     SigFilesArray: array of string;
@@ -134,7 +135,7 @@ var i, arrayIndex: integer;
 begin
   Archive := TZipFile.Create;
   try
-    Archive.Open(DirectoryRoot + InputArchiveFileName, zmRead);
+    Archive.Open(DirectoryRoot + inputArchiveFileName, zmRead);
     Archive.ExtractAll(DirectoryRoot);
 
     arrayIndex := 0;
@@ -157,22 +158,24 @@ begin
     Archive.Free;
   end;
 
-  for i := 0 to High(SigFilesArray) do
+  {for i := 0 to High(SigFilesArray) do
     begin
       MemoLog.Lines.Add( SignatureVerify(DirectoryRoot + NotSigFile, DirectoryRoot + SigFilesArray[i]) );
-    end;
+    end;}
+
+  MoveFilesToProcessed(inputArchiveFileName, NotSigFile, SigFilesArray);
 
 end;
 
-function TFormMain.SignatureVerify (InputFileName, InputFileNameSignature: string): string;
+function TFormMain.SignatureVerify (inputFileName, inputFileNameSignature: string): string;
 var VArr, ResultFromVB: Variant;
     ResultDescription: string;
     FunctionParameters: PSafeArray;
 begin
   try
     VArr:=VarArrayCreate([0, 1], varVariant);
-    VArr[0] := InputFileName;
-    VArr[1] := InputFileNameSignature;
+    VArr[0] := inputFileName;
+    VArr[1] := inputFileNameSignature;
 
     FunctionParameters := PSafeArray(TVarData(VArr).VArray);
 
@@ -210,21 +213,21 @@ begin
     end;
 end;
 
-function TFormMain.CheckFileName(InputFileName: string): boolean;
+function TFormMain.CheckFileName(inputFileName: string): boolean;
 begin
   Result := False;
 
-  if MatchesMask(InputFileName, 'SH_*_*_*.zip') or
-     MatchesMask(InputFileName, 'SHO_*_*_*.zip') or
-     MatchesMask(InputFileName, 'MSHO_*_*_*.zip') or
-     MatchesMask(InputFileName, 'MSH_*_*_*.zip') or
-     MatchesMask(InputFileName, 'MSMP_*_*_*.zip') or
-     MatchesMask(InputFileName, 'SMP_*_*_*.zip') then
+  if MatchesMask(inputFileName, 'SH_*_*_*.zip') or
+     MatchesMask(inputFileName, 'SHO_*_*_*.zip') or
+     MatchesMask(inputFileName, 'MSHO_*_*_*.zip') or
+     MatchesMask(inputFileName, 'MSH_*_*_*.zip') or
+     MatchesMask(inputFileName, 'MSMP_*_*_*.zip') or
+     MatchesMask(inputFileName, 'SMP_*_*_*.zip') then
     Result := True;
 
 end;
 
-function TFormMain.CheckErrorsWithinArchive(InputArchiveFileName: string): boolean;
+function TFormMain.CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
 var i, Counter: integer;
     Archive: TZipFile;
 begin
@@ -234,7 +237,7 @@ begin
 
   Archive := TZipFile.Create;
   try
-    Archive.Open(DirectoryRoot + InputArchiveFileName, zmRead);
+    Archive.Open(DirectoryRoot + inputArchiveFileName, zmRead);
 
     Counter := 0;
     //Проверка на количество файлов, прилагаемых в zip-архиве для подписания. По регламенту в архиве должен быть 1 файл для подписания.
@@ -246,7 +249,7 @@ begin
     if Counter <> 1 then
       begin
         Result := True;
-        DescriptionErrorArchive := 'В zip-архиве "' + InputArchiveFileName + '" более одного файла для подписания.';
+        DescriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" более одного файла для подписания.';
       end;
 
     //Проверка на количество подписей. Если в zip-архиве подписи отсутствуют, то в мусор.
@@ -259,7 +262,7 @@ begin
     if Counter = 0 then
       begin
         Result := True;
-        DescriptionErrorArchive := 'В zip-архиве "' + InputArchiveFileName + '" отсутствуют файлы-подписи с расширением ".sig"';
+        DescriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствуют файлы-подписи с расширением ".sig"';
       end;
 
     Archive.Close;
@@ -269,7 +272,23 @@ begin
 
 end;
 
-procedure TFormMain.MoveFilesToErrors(InputFileName: string);
+procedure TFormMain.MoveFilesToProcessed(inputArchiveFileName: string; inputNotSigFile: string; inputSigFilesArray: array of string);
+var DirectoryFrom, DirectoryTo: string;
+    MO: string;
+    pointerDirectoryFrom, pointerDirectoryTo: PWideChar;
+    Year, Month: integer;
+begin
+  Year := YearOf(Date);
+  Month := MonthOf(Date);
+  MO := Copy(inputArchiveFileName, '_', 6);
+
+  DirectoryFrom := DirectoryRoot + inputArchiveFileName;
+  DirectoryTo := DirectoryProcessed + Year + '\' + Month + '\' + MO + ExtractFileName(inputArchiveFileName);
+  pointerDirectoryFrom := Addr(DirectoryFrom[1]);
+  pointerDirectoryTo := Addr(DirectoryTo[1]);
+end;
+
+procedure TFormMain.MoveFilesToErrors(inputFileName: string);
 var DirectoryFrom, DirectoryTo: string;
     pointerDirectoryFrom, pointerDirectoryTo: PWideChar;
     i: integer;
@@ -277,8 +296,8 @@ begin
   if System.SysUtils.DirectoryExists(DirectoryErrors) = False then
     System.SysUtils.ForceDirectories(DirectoryErrors);
 
-  DirectoryFrom := DirectoryRoot + InputFileName;
-  DirectoryTo := DirectoryErrors + InputFileName;
+  DirectoryFrom := DirectoryRoot + inputFileName;
+  DirectoryTo := DirectoryErrors + inputFileName;
   pointerDirectoryFrom := Addr(DirectoryFrom[1]);
   pointerDirectoryTo := Addr(DirectoryTo[1]);
 
@@ -301,20 +320,20 @@ begin
   MoveFile(pointerDirectoryFrom, pointerDirectoryTo);
 end;
 
-function TFormMain.CorrectPath(InputDirectory: string): string;
+function TFormMain.CorrectPath(inputDirectory: string): string;
 begin
-  if Pos('/', InputDirectory) <> 0 then
+  if Pos('/', inputDirectory) <> 0 then
     begin
-      InputDirectory := StringReplace(InputDirectory, '/', '\', [rfReplaceAll]);
+      inputDirectory := StringReplace(inputDirectory, '/', '\', [rfReplaceAll]);
     end;
 
-  if InputDirectory[length(InputDirectory)] <> '\' then
-    Result := InputDirectory + '\'
+  if inputDirectory[length(inputDirectory)] <> '\' then
+    Result := inputDirectory + '\'
   else
-    Result := InputDirectory;
+    Result := inputDirectory;
 end;
 
-procedure TFormMain.UpdateDirectories(InputDirectoryRoot: string);
+procedure TFormMain.UpdateDirectories(inputDirectoryRoot: string);
 begin
   DirectoryErrors := DirectoryRoot + 'Errors';
   DirectoryErrors := CorrectPath(DirectoryErrors);

@@ -72,7 +72,6 @@ object FormMain: TFormMain
     ParentFont = False
     ScrollBars = ssBoth
     TabOrder = 2
-    ExplicitHeight = 302
   end
   object EditPath: TEdit
     Left = 231
