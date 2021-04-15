@@ -44,7 +44,7 @@ var
 implementation
 
 {$R *.dfm}
-
+//Hello GitHub
 procedure TFormMain.FormCreate(Sender: TObject);
 var ScriptFile: TextFile;
     Script, LineScript: String;
