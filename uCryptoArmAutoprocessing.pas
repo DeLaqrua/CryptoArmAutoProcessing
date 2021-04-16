@@ -104,7 +104,7 @@ begin
 
                 if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
                   System.SysUtils.ForceDirectories(DirectoryOutput);
-                responceTextFileName := DirectoryOutput + 'response_' + Copy(SearchResult.Name, 1, Length(SearchResult.Name)-4) + '.txt';
+                responceTextFileName := DirectoryOutput + 'response_' + StringReplace(SearchResult.Name, ExtractFileExt(SearchResult.Name), '', [rfIgnoreCase]) + '.txt';
                 i := 0;
                 while FileExists(responceTextFileName) do
                   begin
@@ -141,7 +141,7 @@ begin
     arrayIndex := 0;
     for i := 0 to Archive.FileCount-1 do
       begin
-        if LowerCase(Copy(Archive.FileName[i], length(Archive.FileName[i])-3, 4)) = '.sig' then
+        if LowerCase(ExtractFileExt(Archive.FileName[i])) = '.sig' then
           begin
             SetLength(SigFilesArray, arrayIndex + 1);
             SigFilesArray[arrayIndex] := Archive.FileName[i];
@@ -203,7 +203,7 @@ begin
   if FindFirst(DirectoryRoot + '*.*', faNormal, SearchResult) = 0 then
     begin
       repeat
-        if (LowerCase(Copy(SearchResult.Name, length(SearchResult.Name)-3, 4)) <> '.zip') or
+        if (LowerCase(ExtractFileExt(SearchResult.Name)) <> '.zip') or
            (CheckFileName(SearchResult.Name) = false) then
           begin
             MoveFilesToErrors(SearchResult.Name);
@@ -243,7 +243,7 @@ begin
     //Проверка на количество файлов, прилагаемых в zip-архиве для подписания. По регламенту в архиве должен быть 1 файл для подписания.
     for i := 0 to Archive.FileCount-1 do
       begin
-        if LowerCase(Copy(Archive.FileName[i], length(Archive.FileName[i])-3, 4)) <> '.sig' then
+        if LowerCase(ExtractFileExt(Archive.FileName[i])) <> '.sig' then
           Counter := Counter + 1;
       end;
     if Counter <> 1 then
@@ -256,7 +256,7 @@ begin
     Counter := 0;
     for i := 0 to Archive.FileCount-1 do
       begin
-        if LowerCase(Copy(Archive.FileName[i], length(Archive.FileName[i])-3, 4)) = '.sig' then
+        if LowerCase(ExtractFileExt(Archive.FileName[i])) = '.sig' then
           counter := Counter + 1;
       end;
     if Counter = 0 then
@@ -273,51 +273,93 @@ begin
 end;
 
 procedure TFormMain.MoveFilesToProcessed(inputArchiveFileName: string; inputNotSigFile: string; inputSigFilesArray: array of string);
-var DirectoryFrom, DirectoryTo: string;
+var DirectoryFrom, DirectoryTo, fileDirectoryFrom, fileDirectoryTo: string;
     MO: string;
-    pointerDirectoryFrom, pointerDirectoryTo: PWideChar;
+    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
     Year, Month: integer;
+    i, indexArray: integer;
 begin
   Year := YearOf(Date);
   Month := MonthOf(Date);
-  MO := Copy(inputArchiveFileName, '_', 6);
+  MO := Copy(inputArchiveFileName, AnsiPos('_', inputArchiveFileName) + 1, 6);
 
-  DirectoryFrom := DirectoryRoot + inputArchiveFileName;
-  DirectoryTo := DirectoryProcessed + Year + '\' + Month + '\' + MO + ExtractFileName(inputArchiveFileName);
-  pointerDirectoryFrom := Addr(DirectoryFrom[1]);
-  pointerDirectoryTo := Addr(DirectoryTo[1]);
+  DirectoryFrom := DirectoryRoot;
+
+  DirectoryTo := DirectoryProcessed + IntToStr(Year) + '\' + IntToStr(Month) + '\' + MO + '\' +
+                 StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
+  if System.SysUtils.DirectoryExists(DirectoryTo) then
+    begin
+      i := 0;
+      while System.SysUtils.DirectoryExists(DirectoryTo) do
+        begin
+          i := i+1;
+          if i = 1 then
+            begin
+              Insert(' (' + IntToStr(i) + ')', DirectoryTo, Length(DirectoryTo));
+            end
+          else
+            begin
+              DirectoryTo := StringReplace(DirectoryTo, ' (' + IntToStr(i-1) +')', ' (' + IntToStr(i) + ')', []);
+            end;
+        end;
+      System.SysUtils.ForceDirectories(DirectoryTo);
+    end
+  else
+    System.SysUtils.ForceDirectories(DirectoryTo);
+
+  fileDirectoryFrom := DirectoryFrom + inputArchiveFileName;
+  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+  fileDirectoryTo := DirectoryTo + inputArchiveFileName;
+  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+
+  fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
+  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+  fileDirectoryTo := DirectoryTo + inputNotSigFile;
+  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+
+  For indexArray := 0 to High(inputSigFilesArray) do
+    begin
+      fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[indexArray];
+      pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+      fileDirectoryTo := DirectoryTo + inputSigFilesArray[indexArray];
+      pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
+      MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+    end;
+
 end;
 
 procedure TFormMain.MoveFilesToErrors(inputFileName: string);
-var DirectoryFrom, DirectoryTo: string;
-    pointerDirectoryFrom, pointerDirectoryTo: PWideChar;
+var fileDirectoryFrom, fileDirectoryTo: string;
+    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
     i: integer;
 begin
   if System.SysUtils.DirectoryExists(DirectoryErrors) = False then
     System.SysUtils.ForceDirectories(DirectoryErrors);
 
-  DirectoryFrom := DirectoryRoot + inputFileName;
-  DirectoryTo := DirectoryErrors + inputFileName;
-  pointerDirectoryFrom := Addr(DirectoryFrom[1]);
-  pointerDirectoryTo := Addr(DirectoryTo[1]);
+  fileDirectoryFrom := DirectoryRoot + inputFileName;
+  fileDirectoryTo := DirectoryErrors + inputFileName;
+  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
 
   i := 0;
-  while FileExists(DirectoryTo) do
+  while FileExists(fileDirectoryTo) do
     begin
       i := i+1;
       if i = 1 then
         begin
-          Insert(' (' + IntToStr(i) + ')', DirectoryTo, Length(DirectoryTo)-3);
-          pointerDirectoryTo := Addr(DirectoryTo[1]);
+          Insert(' (' + IntToStr(i) + ')', fileDirectoryTo, Length(fileDirectoryTo)-3);
+          pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
         end
       else
         begin
-          DirectoryTo := StringReplace(DirectoryTo, ' (' + IntToStr(i-1) + ')', ' (' + IntToStr(i) + ')', []);
-          pointerDirectoryTo := Addr(DirectoryTo[1]);
+          fileDirectoryTo := StringReplace(fileDirectoryTo, ' (' + IntToStr(i-1) + ')', ' (' + IntToStr(i) + ')', []);
+          pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
         end;
     end;
 
-  MoveFile(pointerDirectoryFrom, pointerDirectoryTo);
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
 end;
 
 function TFormMain.CorrectPath(inputDirectory: string): string;
