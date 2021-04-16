@@ -11,6 +11,8 @@ Dim oSignatures 'Объект, содержащий коллекцию из об
 Dim oSignature 'Объект одной подписи
 Dim Status
 Dim oCertificate
+Dim oCertificates 'Коллекция сертификатов. Переменная создана только для того, чтобы поместить в неё
+                  'один сертификат. Без коллекции нельзя настроить профиль
 Const POLICY_TYPE_NONE = 0 'Нет политики использования сертификатов
 '____ Статусы сертификата ____
 Const VS_CORRECT = 1
@@ -87,6 +89,7 @@ Function SignatureInformation (ByVal InputFileNameSignature)
     Set oSignatures = Nothing
 
 End Function
+
 Function CertificateInformation (ByVal InputFileNameSignature)
     oPKCS7Message.Load DT_SIGNED_DATA, InputFileNameSignature, ""
     Set oSignatures = oPKCS7Message.Signatures
@@ -112,6 +115,7 @@ Function CertificateInformation (ByVal InputFileNameSignature)
     Set oSignatures = Nothing
 
 End Function
+
 Function CertificateVerify (ByVal InputFileNameSignature)
     oPKCS7Message.Load DT_SIGNED_DATA, InputFileNameSignature, ""
     Set oSignatures = oPKCS7Message.Signatures
@@ -121,9 +125,9 @@ Function CertificateVerify (ByVal InputFileNameSignature)
 
         'Получаем указатель на сертификат подписи
         Set oCertificate = oSignature.Certificate
-
+        oCertificates.Add oSignature.Certificate
         'Проверка статуса сертификата
-        oProfile.SetVerifiedCertificates CERTIFICATE_VERIFY_ONLINE_CRL, oCertificate
+        oProfile.SetVerifiedCertificates CERTIFICATE_VERIFY_ONLINE_CRL, oCertificates
         'Установим профиль в сертификат и выполним проверку
         oCertificate.Profile = oProfile
         Status = oCertificate.IsValid(POLICY_TYPE_NONE) 'Проверим статус сертификата
