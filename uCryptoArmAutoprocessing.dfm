@@ -117,8 +117,8 @@ object FormMain: TFormMain
       'begin'
       ''
       'end.')
-    Left = 248
-    Top = 112
+    Left = 80
+    Top = 208
     Datasets = <>
     Variables = <>
     Style = <>
@@ -7823,8 +7823,8 @@ object FormMain: TFormMain
       'begin'
       ''
       'end.')
-    Left = 96
-    Top = 112
+    Left = 80
+    Top = 264
     Datasets = <>
     Variables = <>
     Style = <>
