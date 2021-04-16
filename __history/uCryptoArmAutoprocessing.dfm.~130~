@@ -758,24 +758,26 @@ object FormMain: TFormMain
     Height = 29
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
-    Font.Height = -17
+    Font.Height = -16
     Font.Name = 'Tahoma'
     Font.Style = []
-    MaxLength = 1
+    MaxLength = 2
     MaxValue = 59
     MinValue = 0
     ParentFont = False
     TabOrder = 5
     Value = 0
+    OnChange = SpinEditMinChange
+    OnKeyPress = SpinEditMinKeyPress
   end
   object SpinEditSec: TSpinEdit
     Left = 317
     Top = 132
     Width = 57
-    Height = 31
+    Height = 29
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
-    Font.Height = -17
+    Font.Height = -16
     Font.Name = 'Tahoma'
     Font.Style = []
     MaxValue = 59

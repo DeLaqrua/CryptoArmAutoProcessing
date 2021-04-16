@@ -36,7 +36,6 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure SpeedButtonStopMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure SpinEditMinChange(Sender: TObject);
     procedure SpinEditMinKeyPress(Sender: TObject; var Key: Char);
 
   private
@@ -436,21 +435,10 @@ begin
   SpeedButtonStop.Glyph.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'Icons\Stop.bmp');
 end;
 
-procedure TFormMain.SpinEditMinChange(Sender: TObject);
-begin
-  if SpinEditMin.Text = '' then
-    SpinEditMin.Text := '0';
-end;
-
 procedure TFormMain.SpinEditMinKeyPress(Sender: TObject; var Key: Char);
-var SS: ShortString;
 begin
-  SS := SpinEditMin.Text;
-  MemoLog.Lines.Add('Short String: ' + SS);
-  MemoLog.Lines.Add('Позиция курсора: ' + IntToStr(SpinEditMin.SelStart));
-  Delete(SS, SpinEditMin.SelStart+1, 1);
-  MemoLog.Lines.Add('Обновлённый Short String: ' + SS);
-  SpinEditMin.Text := SS;
+  {SpinEditMin.Text := StringReplace(SpinEditMin.Text, SpinEditMin.Text[SpinEditMin.SelStart+1], Key, []);
+  SpinEditMin.SelStart := SpinEditMin.SelStart + 1;}
 end;
 
 end.

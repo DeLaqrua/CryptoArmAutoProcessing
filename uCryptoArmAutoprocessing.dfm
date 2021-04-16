@@ -767,7 +767,6 @@ object FormMain: TFormMain
     ParentFont = False
     TabOrder = 5
     Value = 0
-    OnChange = SpinEditMinChange
     OnKeyPress = SpinEditMinKeyPress
   end
   object SpinEditSec: TSpinEdit
