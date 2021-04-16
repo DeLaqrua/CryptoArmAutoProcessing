@@ -5,7 +5,8 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.OleCtrls, MSScriptControl_TLB,
-  Vcl.StdCtrls, ActiveX, frxClass, System.Zip, Vcl.FileCtrl, System.Masks, DateUtils;
+  Vcl.StdCtrls, ActiveX, frxClass, System.Zip, Vcl.FileCtrl, System.Masks, DateUtils,
+  Vcl.Buttons, Vcl.Samples.Spin;
 
 type
   TFormMain = class(TForm)
@@ -17,9 +18,26 @@ type
     LabelPath: TLabel;
     EditPath: TEdit;
     ButtonPath: TButton;
+    SpeedButtonPlay: TSpeedButton;
+    SpeedButtonStop: TSpeedButton;
+    LabelAutoProcessing: TLabel;
+    LabelMin: TLabel;
+    LabelSec: TLabel;
+    SpinEditMin: TSpinEdit;
+    SpinEditSec: TSpinEdit;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
+    procedure SpeedButtonPlayMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure SpeedButtonPlayMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure SpeedButtonStopMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure SpeedButtonStopMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure SpinEditMinChange(Sender: TObject);
+    procedure SpinEditMinKeyPress(Sender: TObject; var Key: Char);
 
   private
     { Private declarations }
@@ -392,6 +410,42 @@ procedure TFormMain.ButtonPathClick(Sender: TObject);
 begin
   if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditPath.Text := DirectoryRoot;
+end;
+
+procedure TFormMain.SpeedButtonPlayMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  SpeedButtonPlay.Glyph.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'Icons\PlayPush.bmp');
+end;
+
+procedure TFormMain.SpeedButtonPlayMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  SpeedButtonPlay.Glyph.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'Icons\Play.bmp');
+end;
+
+procedure TFormMain.SpeedButtonStopMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  SpeedButtonStop.Glyph.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'Icons\StopPush.bmp');
+end;
+
+procedure TFormMain.SpeedButtonStopMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  SpeedButtonStop.Glyph.LoadFromFile(ExtractFilePath(ParamStr(0)) + 'Icons\Stop.bmp');
+end;
+
+procedure TFormMain.SpinEditMinChange(Sender: TObject);
+begin
+  if SpinEditMin.Text = '' then
+    SpinEditMin.Text := '0';
+end;
+
+procedure TFormMain.SpinEditMinKeyPress(Sender: TObject; var Key: Char);
+begin
+  SpinEditMin.Text := StringReplace(SpinEditMin.Text, SpinEditMin.Text[SpinEditMin.SelStart+1], Key, []);
+  SpinEditMin.SelStart := SpinEditMin.SelStart + 1;
 end;
 
 end.
