@@ -335,6 +335,7 @@ object FormMain: TFormMain
       B9B9B9ACACACA6A6A6AFAFAFBCBCBCD0D0D0E4E4E4F4F4F4FDFDFDFFFFFFFFFF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
+    OnClick = SpeedButtonPlayClick
     OnMouseDown = SpeedButtonPlayMouseDown
     OnMouseUp = SpeedButtonPlayMouseUp
   end
@@ -640,10 +641,11 @@ object FormMain: TFormMain
       5E5E5E595959585858616161707070929292BCBCBCDEDEDEF6F6F6FEFEFEFFFF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
+    OnClick = SpeedButtonStopClick
     OnMouseDown = SpeedButtonStopMouseDown
     OnMouseUp = SpeedButtonStopMouseUp
   end
-  object LabelAutoProcessing: TLabel
+  object LabelAutoProcessingInterval: TLabel
     Left = 47
     Top = 135
     Width = 148
@@ -680,6 +682,20 @@ object FormMain: TFormMain
     Font.Height = -14
     Font.Name = 'Tahoma'
     Font.Style = []
+    ParentFont = False
+  end
+  object LabelAutoProcessingState: TLabel
+    Left = 592
+    Top = 160
+    Width = 252
+    Height = 17
+    AutoSize = False
+    Caption = #1040#1074#1090#1086#1087#1088#1086#1094#1077#1089#1089#1080#1085#1075' '#1085#1077' '#1079#1072#1087#1091#1097#1077#1085
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -14
+    Font.Name = 'Tahoma'
+    Font.Style = [fsItalic]
     ParentFont = False
   end
   object ScriptControlVB: TScriptControl
@@ -756,7 +772,6 @@ object FormMain: TFormMain
     Top = 132
     Width = 57
     Height = 29
-    AutoSelect = False
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -16
@@ -768,7 +783,7 @@ object FormMain: TFormMain
     ParentFont = False
     TabOrder = 5
     Value = 0
-    OnChange = SpinEditMinChange
+    OnKeyPress = SpinEditMinKeyPress
   end
   object SpinEditSec: TSpinEdit
     Left = 317
@@ -780,11 +795,13 @@ object FormMain: TFormMain
     Font.Height = -16
     Font.Name = 'Tahoma'
     Font.Style = []
+    MaxLength = 2
     MaxValue = 59
     MinValue = 0
     ParentFont = False
     TabOrder = 6
     Value = 0
+    OnKeyPress = SpinEditSecKeyPress
   end
   object frxReportProtocolConfirmed: TfrxReport
     Version = '4.14'
@@ -16184,5 +16201,16 @@ object FormMain: TFormMain
           #1055#1088#1086#1090#1086#1082#1086#1083' '#1089#1086#1079#1076#1072#1085)
       end
     end
+  end
+  object TimerAutoProcessingState: TTimer
+    Enabled = False
+    OnTimer = TimerAutoProcessingStateTimer
+    Left = 720
+    Top = 8
+  end
+  object TimerAutoProcessing: TTimer
+    OnTimer = TimerAutoProcessingTimer
+    Left = 592
+    Top = 8
   end
 end

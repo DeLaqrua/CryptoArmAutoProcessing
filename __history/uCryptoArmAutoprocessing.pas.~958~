@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.OleCtrls, MSScriptControl_TLB,
   Vcl.StdCtrls, ActiveX, frxClass, System.Zip, Vcl.FileCtrl, System.Masks, DateUtils,
-  Vcl.Buttons, Vcl.Samples.Spin;
+  Vcl.Buttons, Vcl.Samples.Spin, Vcl.ExtCtrls;
 
 type
   TFormMain = class(TForm)
@@ -20,11 +20,14 @@ type
     ButtonPath: TButton;
     SpeedButtonPlay: TSpeedButton;
     SpeedButtonStop: TSpeedButton;
-    LabelAutoProcessing: TLabel;
+    LabelAutoProcessingInterval: TLabel;
     LabelMin: TLabel;
     LabelSec: TLabel;
     SpinEditMin: TSpinEdit;
     SpinEditSec: TSpinEdit;
+    TimerAutoProcessingState: TTimer;
+    LabelAutoProcessingState: TLabel;
+    TimerAutoProcessing: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -37,6 +40,11 @@ type
     procedure SpeedButtonStopMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure SpinEditMinKeyPress(Sender: TObject; var Key: Char);
+    procedure SpinEditSecKeyPress(Sender: TObject; var Key: Char);
+    procedure SpeedButtonPlayClick(Sender: TObject);
+    procedure SpeedButtonStopClick(Sender: TObject);
+    procedure TimerAutoProcessingStateTimer(Sender: TObject);
+    procedure TimerAutoProcessingTimer(Sender: TObject);
 
   private
     { Private declarations }
@@ -411,6 +419,42 @@ begin
     EditPath.Text := DirectoryRoot;
 end;
 
+procedure TFormMain.SpeedButtonPlayClick(Sender: TObject);
+begin
+  TimerAutoProcessingState.Enabled := True;
+  LabelAutoProcessingState.Caption := 'Автопроцессинг запущен';
+
+  if (SpinEditSec.Value > 59) or
+     (SpinEditSec.Value < 0) or
+     (SpinEditMin.Value < 0) then
+    ShowMessage('Неверно указаны Минуты/Секунды')
+  else
+    begin
+      TimerAutoProcessing.Interval :=;
+      TimerAutoProcessing.Enabled := True;
+    end;
+end;
+
+procedure TFormMain.SpeedButtonStopClick(Sender: TObject);
+begin
+  TimerAutoProcessingState.Enabled := False;
+  LabelAutoProcessingState.Caption := 'Автопроцессинг не запущен';
+
+  TimerAutoProcessing.Enabled := False;
+end;
+
+procedure TFormMain.TimerAutoProcessingStateTimer(Sender: TObject);
+begin
+  LabelAutoProcessingState.Caption := LabelAutoProcessingState.Caption + '.';
+  if LabelAutoProcessingState.Caption = 'Автопроцессинг запущен....' then
+    LabelAutoProcessingState.Caption := 'Автопроцессинг запущен';
+end;
+
+procedure TFormMain.TimerAutoProcessingTimer(Sender: TObject);
+begin
+  ButtonManualProcessingClick(Self);
+end;
+
 procedure TFormMain.SpeedButtonPlayMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
@@ -437,7 +481,12 @@ end;
 
 procedure TFormMain.SpinEditMinKeyPress(Sender: TObject; var Key: Char);
 begin
-  SpinEditMin.Text[1] := Key;
+  SpinEditMin.SelLength := 1;
+end;
+
+procedure TFormMain.SpinEditSecKeyPress(Sender: TObject; var Key: Char);
+begin
+  SpinEditSec.SelLength := 1;
 end;
 
 end.
