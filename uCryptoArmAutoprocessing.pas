@@ -125,7 +125,7 @@ begin
       if FindFirst(DirectoryRoot + '*.*', faNormal, SearchResult) = 0 then
         begin
           repeat
-            if CheckFileName(SearchResult.Name) and CheckErrorsWithinArchive(SearchResult.Name)then
+            if CheckFileName(SearchResult.Name) and CheckErrorsWithinArchive(SearchResult.Name) then
               begin
                 MoveFilesToErrors(SearchResult.Name);
 
@@ -235,6 +235,7 @@ begin
            (CheckFileName(SearchResult.Name) = false) then
           begin
             MoveFilesToErrors(SearchResult.Name);
+            MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  Неверное имя файла "' + SearchResult.Name + '"' + #13#10);
           end;
       until FindNext(SearchResult) <> 0;
       FindClose(SearchResult);
@@ -253,7 +254,6 @@ begin
      MatchesMask(inputFileName, 'SMP_*_*_*.zip') then
     begin
       Result := True;
-      MemoLog.Lines.Add( DateToStr(Now) + ' ' + ' ' + TimeToStr(Now) + 'Неверное имя файла "' + InputFileName + '"');
     end;
 
 end;
@@ -281,7 +281,7 @@ begin
       begin
         Result := True;
         DescriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" более одного файла для подписания.';
-        MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + ' ' + DescriptionErrorArchive);
+        MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + DescriptionErrorArchive + #13#10);
       end;
 
     //Проверка на количество подписей. Если в zip-архиве подписи отсутствуют, то в мусор.
@@ -295,7 +295,7 @@ begin
       begin
         Result := True;
         DescriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствуют файлы-подписи с расширением ".sig"';
-        MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + ' ' + DescriptionErrorArchive);
+        MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + DescriptionErrorArchive + #13#10);
       end;
 
     Archive.Close;

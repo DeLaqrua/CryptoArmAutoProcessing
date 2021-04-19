@@ -735,7 +735,8 @@ object FormMain: TFormMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    ScrollBars = ssBoth
+    ReadOnly = True
+    ScrollBars = ssVertical
     TabOrder = 2
   end
   object EditPath: TEdit
