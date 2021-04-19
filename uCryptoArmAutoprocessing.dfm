@@ -2,7 +2,7 @@ object FormMain: TFormMain
   Left = 0
   Top = 0
   Caption = 'FormMain'
-  ClientHeight = 540
+  ClientHeight = 595
   ClientWidth = 852
   Color = clBlack
   Font.Charset = DEFAULT_CHARSET
@@ -14,7 +14,7 @@ object FormMain: TFormMain
   OnCreate = FormCreate
   DesignSize = (
     852
-    540)
+    595)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelPath: TLabel
@@ -726,7 +726,7 @@ object FormMain: TFormMain
     Left = 8
     Top = 200
     Width = 836
-    Height = 332
+    Height = 387
     Alignment = taCenter
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = DEFAULT_CHARSET
@@ -801,7 +801,7 @@ object FormMain: TFormMain
     MinValue = 0
     ParentFont = False
     TabOrder = 6
-    Value = 0
+    Value = 5
     OnChange = SpinEditSecChange
     OnKeyPress = SpinEditSecKeyPress
   end

@@ -251,7 +251,10 @@ begin
      MatchesMask(inputFileName, 'MSH_*_*_*.zip') or
      MatchesMask(inputFileName, 'MSMP_*_*_*.zip') or
      MatchesMask(inputFileName, 'SMP_*_*_*.zip') then
-    Result := True;
+    begin
+      Result := True;
+      MemoLog.Lines.Add( DateToStr(Now) + ' ' + ' ' + TimeToStr(Now) + 'Неверное имя файла "' + InputFileName + '"');
+    end;
 
 end;
 
@@ -278,6 +281,7 @@ begin
       begin
         Result := True;
         DescriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" более одного файла для подписания.';
+        MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + ' ' + DescriptionErrorArchive);
       end;
 
     //Проверка на количество подписей. Если в zip-архиве подписи отсутствуют, то в мусор.
@@ -291,6 +295,7 @@ begin
       begin
         Result := True;
         DescriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствуют файлы-подписи с расширением ".sig"';
+        MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + ' ' + DescriptionErrorArchive);
       end;
 
     Archive.Close;
@@ -423,17 +428,18 @@ end;
 
 procedure TFormMain.SpeedButtonPlayClick(Sender: TObject);
 begin
-  TimerAutoProcessingState.Enabled := True;
-  LabelAutoProcessingState.Caption := 'Автопроцессинг запущен';
-
   if (SpinEditSec.Value > 59) or
      (SpinEditSec.Value < 0) or
-     (SpinEditMin.Value < 0) then
+     (SpinEditMin.Value < 0) or
+     ( (SpinEditSec.Value = 0) and (SpinEditMin.Value = 0) ) then
     ShowMessage('Неверно указаны Минуты/Секунды')
   else
     begin
       TimerAutoProcessing.Interval := SpinEditMin.Value * 60000 + SpinEditSec.Value * 1000;
       TimerAutoProcessing.Enabled := True;
+
+      TimerAutoProcessingState.Enabled := True;
+      LabelAutoProcessingState.Caption := 'Автопроцессинг запущен';
     end;
 end;
 
