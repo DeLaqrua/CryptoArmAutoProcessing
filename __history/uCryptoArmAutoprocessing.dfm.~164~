@@ -3,7 +3,7 @@ object FormMain: TFormMain
   Top = 0
   Caption = 'FormMain'
   ClientHeight = 595
-  ClientWidth = 852
+  ClientWidth = 798
   Color = clBlack
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWhite
@@ -13,7 +13,7 @@ object FormMain: TFormMain
   OldCreateOrder = False
   OnCreate = FormCreate
   DesignSize = (
-    852
+    798
     595)
   PixelsPerInch = 96
   TextHeight = 13
@@ -34,7 +34,7 @@ object FormMain: TFormMain
     WordWrap = True
   end
   object SpeedButtonPlay: TSpeedButton
-    Left = 425
+    Left = 424
     Top = 112
     Width = 73
     Height = 65
@@ -340,7 +340,7 @@ object FormMain: TFormMain
     OnMouseUp = SpeedButtonPlayMouseUp
   end
   object SpeedButtonStop: TSpeedButton
-    Left = 504
+    Left = 424
     Top = 112
     Width = 73
     Height = 65
@@ -641,6 +641,7 @@ object FormMain: TFormMain
       5E5E5E595959585858616161707070929292BCBCBCDEDEDEF6F6F6FEFEFEFFFF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
+    Visible = False
     OnClick = SpeedButtonStopClick
     OnMouseDown = SpeedButtonStopMouseDown
     OnMouseUp = SpeedButtonStopMouseUp
@@ -685,7 +686,7 @@ object FormMain: TFormMain
     ParentFont = False
   end
   object LabelAutoProcessingState: TLabel
-    Left = 592
+    Left = 536
     Top = 160
     Width = 252
     Height = 17
@@ -699,7 +700,7 @@ object FormMain: TFormMain
     ParentFont = False
   end
   object ScriptControlVB: TScriptControl
-    Left = 812
+    Left = 756
     Top = 8
     Width = 32
     Height = 32
@@ -708,7 +709,7 @@ object FormMain: TFormMain
       01000000}
   end
   object ButtonManualProcessing: TButton
-    Left = 591
+    Left = 535
     Top = 112
     Width = 170
     Height = 33
@@ -725,7 +726,7 @@ object FormMain: TFormMain
   object MemoLog: TMemo
     Left = 8
     Top = 200
-    Width = 836
+    Width = 782
     Height = 387
     Alignment = taCenter
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -735,13 +736,15 @@ object FormMain: TFormMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    ScrollBars = ssBoth
+    ReadOnly = True
+    ScrollBars = ssVertical
     TabOrder = 2
+    ExplicitWidth = 813
   end
   object EditPath: TEdit
     Left = 216
     Top = 54
-    Width = 369
+    Width = 305
     Height = 27
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -753,7 +756,7 @@ object FormMain: TFormMain
     Text = 'E:\Proba\AutoProcessingFiles\'
   end
   object ButtonPath: TButton
-    Left = 591
+    Left = 536
     Top = 54
     Width = 170
     Height = 27
@@ -801,7 +804,7 @@ object FormMain: TFormMain
     MinValue = 0
     ParentFont = False
     TabOrder = 6
-    Value = 0
+    Value = 5
     OnChange = SpinEditSecChange
     OnKeyPress = SpinEditSecKeyPress
   end
@@ -813,8 +816,8 @@ object FormMain: TFormMain
     PreviewOptions.Zoom = 1.000000000000000000
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
-    ReportOptions.CreateDate = 44291.654172835650000000
-    ReportOptions.LastChange = 44291.655324027780000000
+    ReportOptions.CreateDate = 44291.654172835700000000
+    ReportOptions.LastChange = 44291.655324027800000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -8519,8 +8522,8 @@ object FormMain: TFormMain
     PreviewOptions.Zoom = 1.000000000000000000
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
-    ReportOptions.CreateDate = 44291.656067256950000000
-    ReportOptions.LastChange = 44291.675594884260000000
+    ReportOptions.CreateDate = 44291.656067256900000000
+    ReportOptions.LastChange = 44306.678556273150000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -16176,16 +16179,16 @@ object FormMain: TFormMain
         4BE5549253F5524BE5549253F5524BE5549253F5524BE5549253F5524BE55492
         53F5524BE5549253F5524BE5549253FFD9}
       object SysMemo1: TfrxSysMemoView
-        Left = 396.850650000000000000
+        Left = 411.968770000000000000
         Top = 113.385900000000000000
-        Width = 94.488250000000000000
+        Width = 68.031540000000000000
         Height = 18.897650000000000000
         ShowHint = False
         Memo.UTF8W = (
           '[DATE]')
       end
       object SysMemo2: TfrxSysMemoView
-        Left = 498.897960000000000000
+        Left = 480.000310000000000000
         Top = 113.385900000000000000
         Width = 94.488250000000000000
         Height = 18.897650000000000000
@@ -16193,27 +16196,50 @@ object FormMain: TFormMain
         Memo.UTF8W = (
           '[TIME]')
       end
-      object Memo1: TfrxMemoView
-        Left = 275.905690000000000000
+      object MemoProtocolCreate: TfrxMemoView
+        Left = 291.023810000000000000
         Top = 113.385900000000000000
-        Width = 109.606370000000000000
+        Width = 113.385900000000000000
         Height = 18.897650000000000000
         ShowHint = False
         Memo.UTF8W = (
-          #1055#1088#1086#1090#1086#1082#1086#1083' '#1089#1086#1079#1076#1072#1085)
+          #1055#1088#1086#1090#1086#1082#1086#1083' '#1089#1086#1079#1076#1072#1085':')
+      end
+      object MemoNotSigFile: TfrxMemoView
+        Left = 86.929190000000000000
+        Top = 204.094620000000000000
+        Width = 132.283550000000000000
+        Height = 18.897650000000000000
+        ShowHint = False
+        Memo.UTF8W = (
+          #1048#1089#1093#1086#1076#1085#1099#1081' '#1076#1086#1082#1091#1084#1077#1085#1090':')
+      end
+      object MemoNotSigFileName: TfrxMemoView
+        Left = 86.929190000000000000
+        Top = 230.551330000000000000
+        Width = 317.480520000000000000
+        Height = 18.897650000000000000
+        ShowHint = False
+      end
+      object MemoNotSigFileDateCreate: TfrxMemoView
+        Left = 86.929190000000000000
+        Top = 253.228510000000000000
+        Width = 317.480520000000000000
+        Height = 18.897650000000000000
+        ShowHint = False
       end
     end
   end
   object TimerAutoProcessingState: TTimer
     Enabled = False
     OnTimer = TimerAutoProcessingStateTimer
-    Left = 720
+    Left = 664
     Top = 8
   end
   object TimerAutoProcessing: TTimer
     Enabled = False
     OnTimer = TimerAutoProcessingTimer
-    Left = 592
+    Left = 536
     Top = 8
   end
 end

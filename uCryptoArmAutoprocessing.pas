@@ -110,8 +110,28 @@ var SearchResult: TSearchRec;
     responceTextFile: TextFile;
     responceTextFileName: string;
     i: integer;
-begin
 
+    FileDateTime: TDateTime;
+    NotSigFileName, NotSigFileDateCreate, NotSigFileSize: string;
+    frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
+begin
+  NotSigFileName := 'E:\Proba\AutoProcessingFiles\SH_830009_83008.xls';
+  NotSigFileDateCreate := DateTimeToStr( FileDateToDateTime(FileAge(NotSigFileName)) );
+  NotSigFileSize := IntToStr(FileSize(NotSigFileName));
+
+  frxNotSigFileName := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileName'));
+  frxNotSigFileName.Memo.Text := ExtractFileName(NotSigFileName);
+
+  frxNotSigFileDateCreate := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileDateCreate'));
+  frxNotSigFileDateCreate.Memo.Text := NotSigFileDateCreate;
+
+
+  frxNotSigFileSize := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileSize'));
+  frxNotSigFileSize.Memo.Text := NotSigFileSize;
+
+  frxReportProtocolNotConfirmed.ShowReport(true);
+
+{
   DirectoryRoot := CorrectPath(EditPath.Text);
   if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
     ShowMessage('Проверьте путь к директории. Папки не существует.')
@@ -152,7 +172,7 @@ begin
         end;
 
     end;
-
+}
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -428,6 +448,9 @@ end;
 
 procedure TFormMain.SpeedButtonPlayClick(Sender: TObject);
 begin
+  SpeedButtonPlay.Visible := False;
+  SpeedButtonStop.Visible := True;
+
   if (SpinEditSec.Value > 59) or
      (SpinEditSec.Value < 0) or
      (SpinEditMin.Value < 0) or
@@ -445,6 +468,9 @@ end;
 
 procedure TFormMain.SpeedButtonStopClick(Sender: TObject);
 begin
+  SpeedButtonStop.Visible := False;
+  SpeedButtonPlay.Visible := True;
+
   TimerAutoProcessingState.Enabled := False;
   LabelAutoProcessingState.Caption := 'Автопроцессинг не запущен';
 

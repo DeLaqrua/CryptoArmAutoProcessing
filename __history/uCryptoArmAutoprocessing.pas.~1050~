@@ -110,8 +110,27 @@ var SearchResult: TSearchRec;
     responceTextFile: TextFile;
     responceTextFileName: string;
     i: integer;
-begin
 
+    NotSigFileName, NotSigFileDateCreate, NotSigFileSize: string;
+    frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
+begin
+  NotSigFileName := 'E:\Proba\AutoProcessingFiles\SH_830009_83008.xls';
+  NotSigFileDateCreate := DateToStr(FileTime(NotSigFileName));
+//  NotSigFileSize := IntToStr(FileSize(NotSigFileName));
+
+  frxNotSigFileName := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileName'));
+  frxNotSigFileName.Memo.Text := ExtractFileName(NotSigFileName);
+
+  frxNotSigFileDateCreate := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileDateCreate'));
+  frxNotSigFileDateCreate.Memo.Text := NotSigFileDateCreate;
+
+
+//  frxNotSigFileSize := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileSize'));
+//  frxNotSigFileSize.Memo.Text := NotSigFileSize;
+
+  frxReportProtocolNotConfirmed.ShowReport(true);
+
+{
   DirectoryRoot := CorrectPath(EditPath.Text);
   if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
     ShowMessage('Проверьте путь к директории. Папки не существует.')
@@ -152,7 +171,7 @@ begin
         end;
 
     end;
-
+}
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -235,6 +254,7 @@ begin
            (CheckFileName(SearchResult.Name) = false) then
           begin
             MoveFilesToErrors(SearchResult.Name);
+            MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  Неверное имя файла "' + SearchResult.Name + '"' + #13#10);
           end;
       until FindNext(SearchResult) <> 0;
       FindClose(SearchResult);
@@ -253,7 +273,7 @@ begin
      MatchesMask(inputFileName, 'SMP_*_*_*.zip') then
     begin
       Result := True;
-    end
+    end;
 
 end;
 
@@ -280,7 +300,7 @@ begin
       begin
         Result := True;
         DescriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" более одного файла для подписания.';
-        MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + ' ' + DescriptionErrorArchive);
+        MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + DescriptionErrorArchive + #13#10);
       end;
 
     //Проверка на количество подписей. Если в zip-архиве подписи отсутствуют, то в мусор.
@@ -294,7 +314,7 @@ begin
       begin
         Result := True;
         DescriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствуют файлы-подписи с расширением ".sig"';
-        MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + ' ' + DescriptionErrorArchive);
+        MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + DescriptionErrorArchive + #13#10);
       end;
 
     Archive.Close;
@@ -427,6 +447,9 @@ end;
 
 procedure TFormMain.SpeedButtonPlayClick(Sender: TObject);
 begin
+  SpeedButtonPlay.Visible := False;
+  SpeedButtonStop.Visible := True;
+
   if (SpinEditSec.Value > 59) or
      (SpinEditSec.Value < 0) or
      (SpinEditMin.Value < 0) or
@@ -444,6 +467,9 @@ end;
 
 procedure TFormMain.SpeedButtonStopClick(Sender: TObject);
 begin
+  SpeedButtonStop.Visible := False;
+  SpeedButtonPlay.Visible := True;
+
   TimerAutoProcessingState.Enabled := False;
   LabelAutoProcessingState.Caption := 'Автопроцессинг не запущен';
 
