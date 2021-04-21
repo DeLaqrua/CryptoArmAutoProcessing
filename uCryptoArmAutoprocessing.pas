@@ -112,12 +112,16 @@ var SearchResult: TSearchRec;
     i: integer;
 
     FileDateTime: TDateTime;
-    NotSigFileName, NotSigFileDateCreate, NotSigFileSize: string;
+    NotSigFileSize: Smallint;
+    NotSigFileName, NotSigFileDateCreate: string;
     frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
 begin
   NotSigFileName := 'E:\Proba\AutoProcessingFiles\SH_830009_83008.xls';
-  NotSigFileDateCreate := DateTimeToStr( FileDateToDateTime(FileAge(NotSigFileName)) );
-  NotSigFileSize := IntToStr(FileSize(NotSigFileName));
+
+  FileAge(NotSigFileName, FileDateTime, True);
+  NotSigFileDateCreate := DateTimeToStr(FileDateTime);
+
+//  NotSigFileSize := FileSize(NotSigFileName);
 
   frxNotSigFileName := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileName'));
   frxNotSigFileName.Memo.Text := ExtractFileName(NotSigFileName);
@@ -126,8 +130,8 @@ begin
   frxNotSigFileDateCreate.Memo.Text := NotSigFileDateCreate;
 
 
-  frxNotSigFileSize := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileSize'));
-  frxNotSigFileSize.Memo.Text := NotSigFileSize;
+//  frxNotSigFileSize := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileSize'));
+//  frxNotSigFileSize.Memo.Text := NotSigFileSize;
 
   frxReportProtocolNotConfirmed.ShowReport(true);
 
