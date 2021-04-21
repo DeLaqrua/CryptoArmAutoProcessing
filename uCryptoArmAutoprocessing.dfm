@@ -8522,7 +8522,7 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44307.623197291670000000
+    ReportOptions.LastChange = 44307.725783240740000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -16177,6 +16177,16 @@ object FormMain: TFormMain
         9253F5524BE5549253F5524BE5549253F5524BE5549253F5524BE5549253F552
         4BE5549253F5524BE5549253F5524BE5549253F5524BE5549253F5524BE55492
         53F5524BE5549253F5524BE5549253FFD9}
+      object GradientBackground: TfrxGradientView
+        Left = 94.488250000000000000
+        Top = 442.205010000000000000
+        Width = 623.622450000000000000
+        Height = 506.457020000000000000
+        ShowHint = False
+        EndColor = clSilver
+        Style = gsHorizontal
+        Color = 14737632
+      end
       object SysMemo1: TfrxSysMemoView
         Left = 411.968770000000000000
         Top = 113.385900000000000000
@@ -16314,14 +16324,14 @@ object FormMain: TFormMain
       end
       object MemoCertificateInformation: TfrxMemoView
         Left = 94.488250000000000000
-        Top = 427.086890000000000000
+        Top = 449.764070000000000000
         Width = 612.283860000000000000
-        Height = 136.063080000000000000
+        Height = 291.023810000000000000
         ShowHint = False
       end
       object MemoNotConfirmed: TfrxMemoView
         Left = 94.488250000000000000
-        Top = 593.386210000000000000
+        Top = 767.244590000000000000
         Width = 211.653680000000000000
         Height = 18.897650000000000000
         ShowHint = False
@@ -16336,14 +16346,14 @@ object FormMain: TFormMain
       end
       object MemoSignatureInformation: TfrxMemoView
         Left = 94.488250000000000000
-        Top = 612.283860000000000000
+        Top = 786.142240000000000000
         Width = 612.283860000000000000
         Height = 136.063080000000000000
         ShowHint = False
       end
       object MemoSignatureStatus: TfrxMemoView
         Left = 94.488250000000000000
-        Top = 570.709030000000000000
+        Top = 744.567410000000000000
         Width = 612.283860000000000000
         Height = 18.897650000000000000
         ShowHint = False
@@ -16353,16 +16363,6 @@ object FormMain: TFormMain
         Font.Name = 'Arial'
         Font.Style = []
         ParentFont = False
-      end
-      object Gradient1: TfrxGradientView
-        Left = 94.488250000000000000
-        Top = 419.527830000000000000
-        Width = 623.622450000000000000
-        Height = 336.378170000000000000
-        ShowHint = False
-        EndColor = clSilver
-        Style = gsHorizontal
-        Color = 14737632
       end
     end
   end

@@ -53,6 +53,7 @@ type
   public
     function SignatureVerify(inputFileName, inputFileNameSignature: string; out ResultDescription: string): integer;
     function SignatureInformation(InputFileNameSignature: string): string;
+    function CertificateInformation(InputFileNameSignature: string): string;
     function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
     function CorrectPath(inputDirectory: string): string;
     function CheckFileName(inputFileName: string): boolean;
@@ -118,8 +119,10 @@ var SearchResult: TSearchRec;
     SigFile: File of Byte;
     NotSigFileName, NotSigFileDateCreate, NotSigFileSize: string;
     SigFileName, SigFileDateCreate, SigFileSize: string;
+    SigStatus, SigInformation, CertInformation: string;
     frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
     frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
+    frxSigStatus, frxSigInformation, frxCertInformation: TfrxMemoView;
 begin
   NotSigFileName := 'E:\Proba\AutoProcessingFiles\SH_830009_83008.xls';
   SigFileName := 'E:\Proba\AutoProcessingFiles\SH_830009_83008.xls.SiG';
@@ -153,6 +156,17 @@ begin
   frxNotSigFileSize.Memo.Text := NotSigFileSize;
   frxSigFileSize := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoSigFileSize'));
   frxSigFileSize.Memo.Text := SigFileSize;
+
+  CertInformation := CertificateInformation(SigFileName);
+  SignatureVerify(NotSigFileName, SigFileName, SigStatus);
+  SigInformation := SignatureInformation(SigFileName);
+
+  frxCertInformation := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoCertificateInformation'));
+  frxCertInformation.Memo.Text := CertInformation;
+  frxSigStatus := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoSignatureStatus'));
+  frxSigStatus.Memo.Text := SigStatus;
+  frxSigInformation := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoSignatureInformation'));
+  frxSigInformation.Memo.Text := SigInformation;
 
   frxReportProtocolNotConfirmed.ShowReport(true);
 
@@ -241,7 +255,7 @@ begin
 end;
 
 function TFormMain.SignatureVerify (inputFileName, inputFileNameSignature: string; out ResultDescription: string): integer;
-var VArr, ResultFromVB: Variant;
+var VArr, ResultFromVBS: Variant;
     FunctionParameters: PSafeArray;
 begin
   try
@@ -251,8 +265,8 @@ begin
 
     FunctionParameters := PSafeArray(TVarData(VArr).VArray);
 
-    ResultFromVB := ScriptControlVB.Run('SignatureVerify', FunctionParameters);
-    case ResultFromVB of
+    ResultFromVBS := ScriptControlVB.Run('SignatureVerify', FunctionParameters);
+    case ResultFromVBS of
       1 : ResultDescription := 'Успех';
       3 : ResultDescription := 'Подпись некорректна или к ней нет доверия';
     else ResultDescription := 'Статус не определён';
@@ -263,7 +277,47 @@ begin
     MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
   end;
 
-  Result := ResultDescription;
+  Result := ResultFromVBS;
+end;
+
+function TFormMain.SignatureInformation(InputFileNameSignature: string): string;
+var VArr, ResultFromVBS: Variant;
+    FunctionParameters: PSafeArray;
+begin
+  try
+    VArr:=VarArrayCreate([0, 0], varVariant);
+    VArr[0] := inputFileNameSignature;
+
+    FunctionParameters := PSafeArray(TVarData(VArr).VArray);
+
+    ResultFromVBS := ScriptControlVB.Run('SignatureInformation', FunctionParameters);
+
+  except
+    on E: Exception do
+    MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
+  end;
+
+  Result := ResultFromVBS;
+end;
+
+function TFormMain.CertificateInformation(InputFileNameSignature: string): string;
+var VArr, ResultFromVBS: Variant;
+    FunctionParameters: PSafeArray;
+begin
+  try
+    VArr:=VarArrayCreate([0, 0], varVariant);
+    VArr[0] := inputFileNameSignature;
+
+    FunctionParameters := PSafeArray(TVarData(VArr).VArray);
+
+    ResultFromVBS := ScriptControlVB.Run('CertificateInformation', FunctionParameters);
+
+  except
+    on E: Exception do
+    MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
+  end;
+
+  Result := ResultFromVBS;
 end;
 
 procedure TFormMain.SortErrorFiles;

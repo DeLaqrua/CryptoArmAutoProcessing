@@ -808,7 +808,7 @@ object FormMain: TFormMain
     OnKeyPress = SpinEditSecKeyPress
   end
   object frxReportProtocolConfirmed: TfrxReport
-    Version = '4.14'
+    Version = '4.15.11'
     DotMatrixReport = False
     IniFile = '\Software\Fast Reports'
     PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick]
@@ -8514,7 +8514,7 @@ object FormMain: TFormMain
     end
   end
   object frxReportProtocolNotConfirmed: TfrxReport
-    Version = '4.14'
+    Version = '4.15.11'
     DotMatrixReport = False
     IniFile = '\Software\Fast Reports'
     PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick]
@@ -8522,7 +8522,7 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44307.470609849540000000
+    ReportOptions.LastChange = 44307.724300185180000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -16177,6 +16177,16 @@ object FormMain: TFormMain
         9253F5524BE5549253F5524BE5549253F5524BE5549253F5524BE5549253F552
         4BE5549253F5524BE5549253F5524BE5549253F5524BE5549253F5524BE55492
         53F5524BE5549253F5524BE5549253FFD9}
+      object GradientBackground: TfrxGradientView
+        Left = 94.488250000000000000
+        Top = 442.205010000000000000
+        Width = 623.622450000000000000
+        Height = 464.882190000000000000
+        ShowHint = False
+        EndColor = clSilver
+        Style = gsHorizontal
+        Color = 14737632
+      end
       object SysMemo1: TfrxSysMemoView
         Left = 411.968770000000000000
         Top = 113.385900000000000000
@@ -16311,6 +16321,48 @@ object FormMain: TFormMain
         Width = 257.008040000000000000
         Height = 18.897650000000000000
         ShowHint = False
+      end
+      object MemoCertificateInformation: TfrxMemoView
+        Left = 94.488250000000000000
+        Top = 449.764070000000000000
+        Width = 612.283860000000000000
+        Height = 253.228510000000000000
+        ShowHint = False
+      end
+      object MemoNotConfirmed: TfrxMemoView
+        Left = 94.488250000000000000
+        Top = 729.449290000000000000
+        Width = 211.653680000000000000
+        Height = 18.897650000000000000
+        ShowHint = False
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -13
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        Memo.UTF8W = (
+          #1055#1054#1044#1055#1048#1057#1068' '#1053#1045' '#1055#1054#1044#1058#1042#1045#1056#1046#1044#1045#1053#1040)
+        ParentFont = False
+      end
+      object MemoSignatureInformation: TfrxMemoView
+        Left = 94.488250000000000000
+        Top = 748.346940000000000000
+        Width = 612.283860000000000000
+        Height = 136.063080000000000000
+        ShowHint = False
+      end
+      object MemoSignatureStatus: TfrxMemoView
+        Left = 94.488250000000000000
+        Top = 706.772110000000000000
+        Width = 612.283860000000000000
+        Height = 18.897650000000000000
+        ShowHint = False
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -13
+        Font.Name = 'Arial'
+        Font.Style = []
+        ParentFont = False
       end
     end
   end
