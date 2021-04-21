@@ -739,7 +739,6 @@ object FormMain: TFormMain
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 2
-    ExplicitWidth = 813
   end
   object EditPath: TEdit
     Left = 216
@@ -809,7 +808,7 @@ object FormMain: TFormMain
     OnKeyPress = SpinEditSecKeyPress
   end
   object frxReportProtocolConfirmed: TfrxReport
-    Version = '4.14'
+    Version = '4.15.11'
     DotMatrixReport = False
     IniFile = '\Software\Fast Reports'
     PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick]
@@ -8515,7 +8514,7 @@ object FormMain: TFormMain
     end
   end
   object frxReportProtocolNotConfirmed: TfrxReport
-    Version = '4.14'
+    Version = '4.15.11'
     DotMatrixReport = False
     IniFile = '\Software\Fast Reports'
     PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick]
@@ -8523,7 +8522,7 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44306.695027025460000000
+    ReportOptions.LastChange = 44307.623197291670000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -16229,14 +16228,14 @@ object FormMain: TFormMain
       end
       object MemoNotSigFileDateCreate: TfrxMemoView
         Left = 136.063080000000000000
-        Top = 249.448980000000000000
+        Top = 245.669450000000000000
         Width = 264.567100000000000000
         Height = 18.897650000000000000
         ShowHint = False
       end
       object MemoNotSigFileCreate: TfrxMemoView
         Left = 86.929190000000000000
-        Top = 249.448980000000000000
+        Top = 245.669450000000000000
         Width = 49.133890000000000000
         Height = 18.897650000000000000
         ShowHint = False
@@ -16245,7 +16244,7 @@ object FormMain: TFormMain
       end
       object MemoNotSigSize: TfrxMemoView
         Left = 86.929190000000000000
-        Top = 272.126160000000000000
+        Top = 264.567100000000000000
         Width = 52.913420000000000000
         Height = 18.897650000000000000
         ShowHint = False
@@ -16253,11 +16252,117 @@ object FormMain: TFormMain
           #1056#1072#1079#1084#1077#1088)
       end
       object MemoNotSigFileSize: TfrxMemoView
-        Left = 136.063080000000000000
-        Top = 272.126160000000000000
-        Width = 264.567100000000000000
+        Left = 139.842610000000000000
+        Top = 264.567100000000000000
+        Width = 260.787570000000000000
         Height = 18.897650000000000000
         ShowHint = False
+      end
+      object MemoSigFile: TfrxMemoView
+        Left = 408.189240000000000000
+        Top = 204.094620000000000000
+        Width = 139.842610000000000000
+        Height = 18.897650000000000000
+        ShowHint = False
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Arial'
+        Font.Style = [fsItalic]
+        Memo.UTF8W = (
+          #1060#1072#1081#1083' '#1087#1086#1076#1087#1080#1089#1080':')
+        ParentFont = False
+      end
+      object MemoSigFileName: TfrxMemoView
+        Left = 408.189240000000000000
+        Top = 226.771800000000000000
+        Width = 309.921460000000000000
+        Height = 18.897650000000000000
+        ShowHint = False
+      end
+      object MemoSigFileDateCreate: TfrxMemoView
+        Left = 457.323130000000000000
+        Top = 245.669450000000000000
+        Width = 260.787570000000000000
+        Height = 18.897650000000000000
+        ShowHint = False
+      end
+      object MemoSigFileCreate: TfrxMemoView
+        Left = 408.189240000000000000
+        Top = 245.669450000000000000
+        Width = 49.133890000000000000
+        Height = 18.897650000000000000
+        ShowHint = False
+        Memo.UTF8W = (
+          #1057#1086#1079#1076#1072#1085)
+      end
+      object MemoSigSize: TfrxMemoView
+        Left = 408.189240000000000000
+        Top = 264.567100000000000000
+        Width = 52.913420000000000000
+        Height = 18.897650000000000000
+        ShowHint = False
+        Memo.UTF8W = (
+          #1056#1072#1079#1084#1077#1088)
+      end
+      object MemoSigFileSize: TfrxMemoView
+        Left = 461.102660000000000000
+        Top = 264.567100000000000000
+        Width = 257.008040000000000000
+        Height = 18.897650000000000000
+        ShowHint = False
+      end
+      object MemoCertificateInformation: TfrxMemoView
+        Left = 94.488250000000000000
+        Top = 427.086890000000000000
+        Width = 612.283860000000000000
+        Height = 136.063080000000000000
+        ShowHint = False
+      end
+      object MemoNotConfirmed: TfrxMemoView
+        Left = 94.488250000000000000
+        Top = 593.386210000000000000
+        Width = 211.653680000000000000
+        Height = 18.897650000000000000
+        ShowHint = False
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -13
+        Font.Name = 'Arial'
+        Font.Style = [fsBold]
+        Memo.UTF8W = (
+          #1055#1054#1044#1055#1048#1057#1068' '#1053#1045' '#1055#1054#1044#1058#1042#1045#1056#1046#1044#1045#1053#1040)
+        ParentFont = False
+      end
+      object MemoSignatureInformation: TfrxMemoView
+        Left = 94.488250000000000000
+        Top = 612.283860000000000000
+        Width = 612.283860000000000000
+        Height = 136.063080000000000000
+        ShowHint = False
+      end
+      object MemoSignatureStatus: TfrxMemoView
+        Left = 94.488250000000000000
+        Top = 570.709030000000000000
+        Width = 612.283860000000000000
+        Height = 18.897650000000000000
+        ShowHint = False
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -13
+        Font.Name = 'Arial'
+        Font.Style = []
+        ParentFont = False
+      end
+      object Gradient1: TfrxGradientView
+        Left = 94.488250000000000000
+        Top = 419.527830000000000000
+        Width = 623.622450000000000000
+        Height = 336.378170000000000000
+        ShowHint = False
+        EndColor = clSilver
+        Style = gsHorizontal
+        Color = 14737632
       end
     end
   end

@@ -5,8 +5,8 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.OleCtrls, MSScriptControl_TLB,
-  Vcl.StdCtrls, ActiveX, frxClass, System.Zip, Vcl.FileCtrl, System.Masks, DateUtils,
-  Vcl.Buttons, Vcl.Samples.Spin, Vcl.ExtCtrls;
+  Vcl.StdCtrls, ActiveX, System.Zip, Vcl.FileCtrl, System.Masks, DateUtils,
+  Vcl.Buttons, Vcl.Samples.Spin, Vcl.ExtCtrls, frxClass, frxGradient;
 
 type
   TFormMain = class(TForm)
@@ -51,7 +51,9 @@ type
   private
     { Private declarations }
   public
-    function SignatureVerify(inputFileName, inputFileNameSignature: string): string;
+    function SignatureVerify(inputFileName, inputFileNameSignature: string; out ResultDescription: string): integer;
+    function SignatureInformation(InputFileNameSignature: string): string;
+    function CertificateInformation(InputFileNameSignature: string): string;
     function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
     function CorrectPath(inputDirectory: string): string;
     function CheckFileName(inputFileName: string): boolean;
@@ -111,27 +113,47 @@ var SearchResult: TSearchRec;
     responceTextFileName: string;
     i: integer;
 
-    FileDateTime: TDateTime;
-    NotSigFileSize: Smallint;
-    NotSigFileName, NotSigFileDateCreate: string;
+    NotSigFileDateTime: TDateTime;
+    SigFileDateTime: TDateTime;
+    NotSigFile: File of Byte;
+    SigFile: File of Byte;
+    NotSigFileName, NotSigFileDateCreate, NotSigFileSize: string;
+    SigFileName, SigFileDateCreate, SigFileSize: string;
     frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
+    frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
 begin
   NotSigFileName := 'E:\Proba\AutoProcessingFiles\SH_830009_83008.xls';
+  SigFileName := 'E:\Proba\AutoProcessingFiles\SH_830009_83008.xls.SiG';
 
-  FileAge(NotSigFileName, FileDateTime, True);
-  NotSigFileDateCreate := DateTimeToStr(FileDateTime);
+  FileAge(NotSigFileName, NotSigFileDateTime, True);
+  NotSigFileDateCreate := DateTimeToStr(NotSigFileDateTime);
+  FileAge(SigFileName, SigFileDateTime, True);
+  SigFileDateCreate := DateTimeToStr(SigFileDateTime);
 
-//  NotSigFileSize := FileSize(NotSigFileName);
+  AssignFile(NotSigFile, NotSigFileName);
+  reset(NotSigFile);
+  NotSigFileSize := IntToStr(FileSize(NotSigFile)) + ' байт';
+  CloseFile(NotSigFile);
+  AssignFile(SigFile, SigFileName);
+  reset(SigFile);
+  SigFileSize := IntToStr(FileSize(SigFile)) + ' байт';
+  CloseFile(SigFile);
 
   frxNotSigFileName := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileName'));
   frxNotSigFileName.Memo.Text := ExtractFileName(NotSigFileName);
+  frxSigFileName := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoSigFileName'));
+  frxSigFileName.Memo.Text := ExtractFileName(SigFileName);
 
   frxNotSigFileDateCreate := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileDateCreate'));
   frxNotSigFileDateCreate.Memo.Text := NotSigFileDateCreate;
+  frxSigFileDateCreate := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoSigFileDateCreate'));
+  frxSigFileDateCreate.Memo.Text := SigFileDateCreate;
 
 
-//  frxNotSigFileSize := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileSize'));
-//  frxNotSigFileSize.Memo.Text := NotSigFileSize;
+  frxNotSigFileSize := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileSize'));
+  frxNotSigFileSize.Memo.Text := NotSigFileSize;
+  frxSigFileSize := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoSigFileSize'));
+  frxSigFileSize.Memo.Text := SigFileSize;
 
   frxReportProtocolNotConfirmed.ShowReport(true);
 
@@ -219,9 +241,8 @@ begin
 
 end;
 
-function TFormMain.SignatureVerify (inputFileName, inputFileNameSignature: string): string;
-var VArr, ResultFromVB: Variant;
-    ResultDescription: string;
+function TFormMain.SignatureVerify (inputFileName, inputFileNameSignature: string; out ResultDescription: string): integer;
+var VArr, ResultFromVBS: Variant;
     FunctionParameters: PSafeArray;
 begin
   try
@@ -231,8 +252,8 @@ begin
 
     FunctionParameters := PSafeArray(TVarData(VArr).VArray);
 
-    ResultFromVB := ScriptControlVB.Run('SignatureVerify', FunctionParameters);
-    case ResultFromVB of
+    ResultFromVBS := ScriptControlVB.Run('SignatureVerify', FunctionParameters);
+    case ResultFromVBS of
       1 : ResultDescription := 'Успех';
       3 : ResultDescription := 'Подпись некорректна или к ней нет доверия';
     else ResultDescription := 'Статус не определён';
@@ -243,7 +264,47 @@ begin
     MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
   end;
 
-  Result := ResultDescription;
+  Result := ResultFromVBS;
+end;
+
+function TFormMain.SignatureInformation(InputFileNameSignature: string): string;
+var VArr, ResultFromVBS: Variant;
+    FunctionParameters: PSafeArray;
+begin
+  try
+    VArr:=VarArrayCreate([0, 0], varVariant);
+    VArr[0] := inputFileNameSignature;
+
+    FunctionParameters := PSafeArray(TVarData(VArr).VArray);
+
+    ResultFromVBS := ScriptControlVB.Run('SignatureInformation', FunctionParameters);
+
+  except
+    on E: Exception do
+    MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
+  end;
+
+  Result := ResultFromVBS;
+end;
+
+function TFormMain.CertificateInformation(InputFileNameSignature: string): string;
+var VArr, ResultFromVBS: Variant;
+    FunctionParameters: PSafeArray;
+begin
+  try
+    VArr:=VarArrayCreate([0, 0], varVariant);
+    VArr[0] := inputFileNameSignature;
+
+    FunctionParameters := PSafeArray(TVarData(VArr).VArray);
+
+    ResultFromVBS := ScriptControlVB.Run('CertificateInformation', FunctionParameters);
+
+  except
+    on E: Exception do
+    MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
+  end;
+
+  Result := ResultFromVBS;
 end;
 
 procedure TFormMain.SortErrorFiles;
