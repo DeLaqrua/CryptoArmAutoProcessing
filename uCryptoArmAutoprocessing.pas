@@ -123,6 +123,7 @@ var SearchResult: TSearchRec;
     frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
     frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
     frxSigStatus, frxSigInformation, frxCertInformation: TfrxMemoView;
+    frxGradient: TfrxGradientView;
 begin
   NotSigFileName := 'E:\Proba\AutoProcessingFiles\SH_830009_83008.xls';
   SigFileName := 'E:\Proba\AutoProcessingFiles\SH_830009_83008.xls.SiG';
@@ -168,6 +169,11 @@ begin
   frxSigStatus.Memo.Text := SigStatus;
   frxSigInformation := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoSignatureInformation'));
   frxSigInformation.Memo.Text := SigInformation;
+
+  frxGradient := TfrxGradientView(frxReportProtocolNotConfirmed.FindObject('GradientBackground'));
+  frxGradient.Height := 300;
+
+  frxSigFileName.Memo.Text := FloatToStr(frxGradient.Height);
 
   frxReportProtocolNotConfirmed.ShowReport(true);
 

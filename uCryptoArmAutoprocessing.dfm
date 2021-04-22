@@ -700,7 +700,7 @@ object FormMain: TFormMain
     ParentFont = False
   end
   object ScriptControlVB: TScriptControl
-    Left = 756
+    Left = 737
     Top = 8
     Width = 32
     Height = 32
@@ -8522,7 +8522,7 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44307.725783240740000000
+    ReportOptions.LastChange = 44308.373786122680000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -16179,24 +16179,24 @@ object FormMain: TFormMain
         53F5524BE5549253F5524BE5549253FFD9}
       object GradientBackground: TfrxGradientView
         Left = 94.488250000000000000
-        Top = 442.205010000000000000
+        Top = 445.984540000000000000
         Width = 623.622450000000000000
-        Height = 506.457020000000000000
+        Height = 502.677490000000000000
         ShowHint = False
         EndColor = clSilver
         Style = gsHorizontal
         Color = 14737632
       end
-      object SysMemo1: TfrxSysMemoView
+      object SysMemoDate: TfrxSysMemoView
         Left = 411.968770000000000000
         Top = 113.385900000000000000
-        Width = 68.031540000000000000
+        Width = 68.031540000000010000
         Height = 18.897650000000000000
         ShowHint = False
         Memo.UTF8W = (
           '[DATE]')
       end
-      object SysMemo2: TfrxSysMemoView
+      object SysMemoTime: TfrxSysMemoView
         Left = 480.000310000000000000
         Top = 113.385900000000000000
         Width = 94.488250000000000000
@@ -16326,12 +16326,13 @@ object FormMain: TFormMain
         Left = 94.488250000000000000
         Top = 449.764070000000000000
         Width = 612.283860000000000000
-        Height = 291.023810000000000000
+        Height = 22.677180000000000000
         ShowHint = False
+        StretchMode = smActualHeight
       end
       object MemoNotConfirmed: TfrxMemoView
         Left = 94.488250000000000000
-        Top = 767.244590000000000000
+        Top = 510.236550000000000000
         Width = 211.653680000000000000
         Height = 18.897650000000000000
         ShowHint = False
@@ -16346,14 +16347,16 @@ object FormMain: TFormMain
       end
       object MemoSignatureInformation: TfrxMemoView
         Left = 94.488250000000000000
-        Top = 786.142240000000000000
+        Top = 532.913730000000000000
         Width = 612.283860000000000000
-        Height = 136.063080000000000000
+        Height = 22.677180000000000000
+        GroupIndex = 1
         ShowHint = False
+        StretchMode = smActualHeight
       end
       object MemoSignatureStatus: TfrxMemoView
         Left = 94.488250000000000000
-        Top = 744.567410000000000000
+        Top = 487.559370000000000000
         Width = 612.283860000000000000
         Height = 18.897650000000000000
         ShowHint = False
@@ -16369,13 +16372,13 @@ object FormMain: TFormMain
   object TimerAutoProcessingState: TTimer
     Enabled = False
     OnTimer = TimerAutoProcessingStateTimer
-    Left = 664
+    Left = 648
     Top = 8
   end
   object TimerAutoProcessing: TTimer
     Enabled = False
     OnTimer = TimerAutoProcessingTimer
-    Left = 536
+    Left = 528
     Top = 8
   end
 end

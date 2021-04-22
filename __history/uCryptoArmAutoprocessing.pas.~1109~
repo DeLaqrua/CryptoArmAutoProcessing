@@ -119,8 +119,10 @@ var SearchResult: TSearchRec;
     SigFile: File of Byte;
     NotSigFileName, NotSigFileDateCreate, NotSigFileSize: string;
     SigFileName, SigFileDateCreate, SigFileSize: string;
+    SigStatus, SigInformation, CertInformation: string;
     frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
     frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
+    frxSigStatus, frxSigInformation, frxCertInformation: TfrxMemoView;
 begin
   NotSigFileName := 'E:\Proba\AutoProcessingFiles\SH_830009_83008.xls';
   SigFileName := 'E:\Proba\AutoProcessingFiles\SH_830009_83008.xls.SiG';
@@ -154,6 +156,18 @@ begin
   frxNotSigFileSize.Memo.Text := NotSigFileSize;
   frxSigFileSize := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoSigFileSize'));
   frxSigFileSize.Memo.Text := SigFileSize;
+
+  CertInformation := CertificateInformation(SigFileName);
+  SignatureVerify(NotSigFileName, SigFileName, SigStatus);
+  SigStatus := 'Статус проверки подписи: ' + SigStatus;
+  SigInformation := SignatureInformation(SigFileName);
+
+  frxCertInformation := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoCertificateInformation'));
+  frxCertInformation.Memo.Text := CertInformation;
+  frxSigStatus := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoSignatureStatus'));
+  frxSigStatus.Memo.Text := SigStatus;
+  frxSigInformation := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoSignatureInformation'));
+  frxSigInformation.Memo.Text := SigInformation;
 
   frxReportProtocolNotConfirmed.ShowReport(true);
 
