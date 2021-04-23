@@ -63,9 +63,6 @@ Function SignatureInformation (ByVal InputFileNameSignature)
         'Время подписи
         dim sSigningTime : sSigningTime = oSignature.SigningTime
         SignatureInformation = SignatureInformation + "Время подписи: " + CStr(sSigningTime) + vbCrLf
-        'Идентификатор ресурса подписи
-        Dim sResource : sResource = oSignature.Resource
-        SignatureInformation = SignatureInformation + "Идентификатор ресурса подписи: " + CStr(sResource) + vbCrLf
         'Хэш алгоритм подписи
         Dim sHashAlg : sHashAlg = oSignature.HashAlg
         SignatureInformation = SignatureInformation + "Хэш алгоритм подписи: " + CStr(sHashAlg) + vbCrLf
@@ -106,8 +103,7 @@ Function CertificateInformation (ByVal InputFileNameSignature)
         CertificateInformation = CertificateInformation + "Выдан УЦ: " + CStr(oCertificate.IssuerName) + vbCrLf + vbCrLf
         CertificateInformation = CertificateInformation + "Владелец сертификата: " + CStr(oCertificate.SubjectName) + vbCrLf + vbCrLf
         CertificateInformation = CertificateInformation + "Действует с: " + CStr(oCertificate.ValidFrom) + vbCrLf + vbCrLf
-        CertificateInformation = CertificateInformation + "Действует по: " + CStr(oCertificate.ValidTo) + vbCrLf + vbCrLf
-        CertificateInformation = CertificateInformation + "Алгоритм ключа проверки: " + CStr(oCertificate.PublicKeyAlg)
+        CertificateInformation = CertificateInformation + "Действует по: " + CStr(oCertificate.ValidTo)
     Next
 
     'Очищаем переменные

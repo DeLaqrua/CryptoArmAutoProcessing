@@ -6,7 +6,8 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.OleCtrls, MSScriptControl_TLB,
   Vcl.StdCtrls, ActiveX, System.Zip, Vcl.FileCtrl, System.Masks, DateUtils,
-  Vcl.Buttons, Vcl.Samples.Spin, Vcl.ExtCtrls, frxClass, frxGradient;
+  Vcl.Buttons, Vcl.Samples.Spin, Vcl.ExtCtrls, frxClass, frxGradient,
+  frxExportPDF;
 
 type
   TFormMain = class(TForm)
@@ -58,6 +59,8 @@ type
     function CorrectPath(inputDirectory: string): string;
     function CheckFileName(inputFileName: string): boolean;
 
+    procedure CreateProtocol(inputFileName: string; inputFileNameSignature: array of string; directoryExport: string);
+
     procedure UpdateDirectories(inputDirectoryRoot: string);
     procedure SortErrorFiles;
     procedure MoveFilesToErrors(inputFileName: string);
@@ -66,10 +69,28 @@ type
     procedure MoveFilesToProcessed(inputArchiveFileName, inputNotSigFile: string; inputSigFilesArray: array of string);
   end;
 
+  TSignatureFile = class(TObject)
+    Name: string;
+    DateCreate: string;
+    Size: string;
+    SignatureInformation: string;
+    CertificateInformation: string;
+    VerifyStatus: integer;
+    VerifyStatusDesctiption: string;
+  end;
+
+  TNotSignatureFile = class(TObject)
+    Name: string;
+    DateCreate: string;
+    Size: string;
+  end;
+
 var
   FormMain: TFormMain;
 var
   DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, DescriptionErrorArchive: string;
+const
+  SIGN_CORRECT = 1;
 
 implementation
 
@@ -105,6 +126,66 @@ begin
       Exit;
     end;
 
+end;
+
+procedure TFormMain.CreateProtocol(inputFileName: string; inputFileNameSignature: array of string; directoryExport);
+var SignatureFiles: array of TSignatureFile;
+    NotSignatureFile: TNotSignatureFile;
+
+    NotSigFileDateTime, SigFileDateTime: TDateTime;
+    NotSigFile, SigFile: File of Byte;
+
+    i: integer;
+
+    frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
+    frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
+    frxSigStatus, frxSigInformation, frxCertInformation: TfrxMemoView;
+begin
+  NotSignatureFile := TNotSignatureFile.Create;
+  NotSignatureFile.Name := inputFileName;
+
+  FileAge(NotSignatureFile.Name, NotSigFileDateTime, True);
+  NotSignatureFile.DateCreate := DateTimeToStr(NotSigFileDateTime);
+
+  AssignFile(NotSigFile, NotSignatureFile.Name);
+  reset(NotSigFile);
+  NotSignatureFile.Size := IntToStr(FileSize(NotSigFile) + ' байт');
+  CloseFile(NotSigFile);
+
+  SetLength(SignatureFiles, Length(InputFileNameSignature));
+  for i := 0 to High(SignatureFiles) do
+    begin
+      SignatureFiles[i] := TSignatureFile.Create;
+      SignatureFiles[i].Name := inputFileNameSignature[i];
+
+      FileAge(SignatureFiles[i].Name, SigFileDateTime, True);
+      SignatureFiles[i].DateCreate := ;
+    end;
+
+  for i := 0 to High(ArraySignaturesAttributes) do
+    begin
+      SetLength(ArraySignaturesAttributes[i], 5);
+      //В элементе с индексом 0 хранится Дата создания подписи;
+      //1 – Размер файла-подписи; 2 – Информация о сертификате;
+      //3 – Информация о подписи, 4 – Статус проверки подписи.
+      //В будущем переделаю многомерный массив в массив из объекта для удобства чтения
+      FileAge(inputFileNameSignature[i], SigFileDateTime);
+      ArraySignaturesAttributes[i,0] := DateTimeToStr(SigFileDateTime);
+
+      AssignFile(SigFile, inputFileNameSignature[i]);
+      reset(SigFile);
+      ArraySignaturesAttributes[i,1] := IntToStr(FileSize(SigFile)) + ' байт';
+      CloseFile(SigFile);
+
+      ArraySignaturesAttributes[i,2] := CertificateInformation(inputFileNameSignature[i]);
+
+      ArraySignaturesAttributes[i,3] := SignatureInformation(inputFileNameSignature[i]);
+
+      SigStatus := SignatureVerify(inputFileName, inputFileNameSignature[i], SigStatusDescription);
+      ArraySignaturesAttributes[i,4] := 'Статус проверки подписи: ' + SigStatusDescription;
+
+
+    end;
 end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
@@ -245,11 +326,6 @@ begin
   finally
     Archive.Free;
   end;
-
-  {for i := 0 to High(SigFilesArray) do
-    begin
-      MemoLog.Lines.Add( SignatureVerify(DirectoryRoot + NotSigFile, DirectoryRoot + SigFilesArray[i]) );
-    end;}
 
   MoveFilesToProcessed(inputArchiveFileName, NotSigFile, SigFilesArray);
 
@@ -419,6 +495,7 @@ begin
 
   DirectoryTo := DirectoryProcessed + IntToStr(Year) + '\' + IntToStr(Month) + '\' + MO + '\' +
                  StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
+  //Проверяем существует ли директория с таким же названием
   if System.SysUtils.DirectoryExists(DirectoryTo) then
     begin
       i := 0;
@@ -438,7 +515,10 @@ begin
     end
   else
     System.SysUtils.ForceDirectories(DirectoryTo);
+  //Создаём протокол
+  //////////////////////////////////////////////////
 
+  //Переносим файлы
   fileDirectoryFrom := DirectoryFrom + inputArchiveFileName;
   pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
   fileDirectoryTo := DirectoryTo + inputArchiveFileName;
