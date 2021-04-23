@@ -137,6 +137,8 @@ var SignatureFiles: array of TSignatureFile;
 
     i: integer;
 
+    frxReportTypeProtocol: TfrxReport;
+
     frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
     frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
     frxSigStatus, frxSigInformation, frxCertInformation: TfrxMemoView;
@@ -170,32 +172,34 @@ begin
 
       SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
 
-      SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name);
-    end;
+      SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
+      SignatureFiles[i].VerifyStatusDesctiption := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
 
-  for i := 0 to High(ArraySignaturesAttributes) do
-    begin
-      SetLength(ArraySignaturesAttributes[i], 5);
-      //В элементе с индексом 0 хранится Дата создания подписи;
-      //1 – Размер файла-подписи; 2 – Информация о сертификате;
-      //3 – Информация о подписи, 4 – Статус проверки подписи.
-      //В будущем переделаю многомерный массив в массив из объекта для удобства чтения
-      FileAge(inputFileNameSignature[i], SigFileDateTime);
-      ArraySignaturesAttributes[i,0] := DateTimeToStr(SigFileDateTime);
+      if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
+        frxReportTypeProtocol := frxReportProtocolConfirmed
+      else
+        frxReportTypeProtocol := frxReportProtocolNotConfirmed;
 
-      AssignFile(SigFile, inputFileNameSignature[i]);
-      reset(SigFile);
-      ArraySignaturesAttributes[i,1] := IntToStr(FileSize(SigFile)) + ' байт';
-      CloseFile(SigFile);
+      frxNotSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileName'));
+      frxNotSigFileName.Memo.Text := ExtractFileName(NotSignatureFile.Name);
+      frxSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileName'));
+      frxSigFileName.Memo.Text := ExtractFileName(SignatureFiles[i].Name);
 
-      ArraySignaturesAttributes[i,2] := CertificateInformation(inputFileNameSignature[i]);
+      frxNotSigFileDateCreate := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileDateCreate'));
+      frxNotSigFileDateCreate.Memo.Text := NotSignatureFile.DateCreate;
+      frxSigFileDateCreate := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileDateCreate'));
+      frxSigFileDateCreate.Memo.Text := SignatureFiles[i].DateCreate;
 
-      ArraySignaturesAttributes[i,3] := SignatureInformation(inputFileNameSignature[i]);
+      frxNotSigFileSize := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileSize'));
+      frxNotSigFileSize.Memo.Text := NotSignatureFile.Size;
 
-      SigStatus := SignatureVerify(inputFileName, inputFileNameSignature[i], SigStatusDescription);
-      ArraySignaturesAttributes[i,4] := 'Статус проверки подписи: ' + SigStatusDescription;
+      frxCertInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoCertificateInformation'));
+      frxCertInformation.Memo.Text := CertificateInformation(SignatureFiles[i].Name);
 
+      frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
 
+      frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
+      frxSigInformation.Memo.Text := SignatureInformation(SignatureFiles[i].Name);
     end;
 end;
 
