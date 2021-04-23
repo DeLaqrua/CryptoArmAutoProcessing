@@ -59,7 +59,10 @@ type
     function CorrectPath(inputDirectory: string): string;
     function CheckFileName(inputFileName: string): boolean;
 
-    procedure CreateProtocol(inputFileName: string; inputFileNameSignature: array of string; directoryExport: string);
+    procedure CreateProtocol(inputFileName: string;
+                             inputFileNameSignature: array of string;
+                             directoryExport: string;
+                             inputOriginalArchiveFileName: string);
 
     procedure UpdateDirectories(inputDirectoryRoot: string);
     procedure SortErrorFiles;
@@ -128,147 +131,13 @@ begin
 
 end;
 
-procedure TFormMain.CreateProtocol(inputFileName: string; inputFileNameSignature: array of string; directoryExport);
-var SignatureFiles: array of TSignatureFile;
-    NotSignatureFile: TNotSignatureFile;
-
-    NotSigFileDateTime, SigFileDateTime: TDateTime;
-    NotSigFile, SigFile: File of Byte;
-
-    i: integer;
-
-    frxReportTypeProtocol: TfrxReport;
-
-    frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
-    frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
-    frxSigStatus, frxSigInformation, frxCertInformation: TfrxMemoView;
-begin
-  NotSignatureFile := TNotSignatureFile.Create;
-  NotSignatureFile.Name := inputFileName;
-
-  FileAge(NotSignatureFile.Name, NotSigFileDateTime, True);
-  NotSignatureFile.DateCreate := DateTimeToStr(NotSigFileDateTime);
-
-  AssignFile(NotSigFile, NotSignatureFile.Name);
-  reset(NotSigFile);
-  NotSignatureFile.Size := IntToStr(FileSize(NotSigFile) + ' байт');
-  CloseFile(NotSigFile);
-
-  SetLength(SignatureFiles, Length(InputFileNameSignature));
-  for i := 0 to High(SignatureFiles) do
-    begin
-      SignatureFiles[i] := TSignatureFile.Create;
-      SignatureFiles[i].Name := inputFileNameSignature[i];
-
-      FileAge(SignatureFiles[i].Name, SigFileDateTime, True);
-      SignatureFiles[i].DateCreate := DateTimeToStr(SigFileDateTime);
-
-      AssignFile(SigFile, SignatureFiles[i].Name);
-      reset(SigFile);
-      SignatureFiles[i].Size := IntToStr(FileSize(SigFile)) + ' байт';
-      CloseFile(SigFile);
-
-      SignatureFiles[i].CertificateInformation := CertificateInformation(SignatureFiles[i].Name);
-
-      SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
-
-      SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
-      SignatureFiles[i].VerifyStatusDesctiption := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
-
-      if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
-        frxReportTypeProtocol := frxReportProtocolConfirmed
-      else
-        frxReportTypeProtocol := frxReportProtocolNotConfirmed;
-
-      frxNotSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileName'));
-      frxNotSigFileName.Memo.Text := ExtractFileName(NotSignatureFile.Name);
-      frxSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileName'));
-      frxSigFileName.Memo.Text := ExtractFileName(SignatureFiles[i].Name);
-
-      frxNotSigFileDateCreate := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileDateCreate'));
-      frxNotSigFileDateCreate.Memo.Text := NotSignatureFile.DateCreate;
-      frxSigFileDateCreate := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileDateCreate'));
-      frxSigFileDateCreate.Memo.Text := SignatureFiles[i].DateCreate;
-
-      frxNotSigFileSize := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileSize'));
-      frxNotSigFileSize.Memo.Text := NotSignatureFile.Size;
-
-      frxCertInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoCertificateInformation'));
-      frxCertInformation.Memo.Text := CertificateInformation(SignatureFiles[i].Name);
-
-      frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
-      frxSigStatus.Memo.Text := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
-
-      frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
-      frxSigInformation.Memo.Text := SignatureInformation(SignatureFiles[i].Name);
-    end;
-end;
-
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
     responceTextFile: TextFile;
     responceTextFileName: string;
     i: integer;
-
-    NotSigFileDateTime: TDateTime;
-    SigFileDateTime: TDateTime;
-    NotSigFile: File of Byte;
-    SigFile: File of Byte;
-    NotSigFileName, NotSigFileDateCreate, NotSigFileSize: string;
-    SigFileName, SigFileDateCreate, SigFileSize: string;
-    SigStatus, SigInformation, CertInformation: string;
-    frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
-    frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
-    frxSigStatus, frxSigInformation, frxCertInformation: TfrxMemoView;
 begin
-  NotSigFileName := 'E:\Proba\AutoProcessingFiles\SH_830009_83008.xls';
-  SigFileName := 'E:\Proba\AutoProcessingFiles\SH_830009_83008.xls.SiG';
 
-  FileAge(NotSigFileName, NotSigFileDateTime, True);
-  NotSigFileDateCreate := DateTimeToStr(NotSigFileDateTime);
-  FileAge(SigFileName, SigFileDateTime, True);
-  SigFileDateCreate := DateTimeToStr(SigFileDateTime);
-
-  AssignFile(NotSigFile, NotSigFileName);
-  reset(NotSigFile);
-  NotSigFileSize := IntToStr(FileSize(NotSigFile)) + ' байт';
-  CloseFile(NotSigFile);
-  AssignFile(SigFile, SigFileName);
-  reset(SigFile);
-  SigFileSize := IntToStr(FileSize(SigFile)) + ' байт';
-  CloseFile(SigFile);
-
-  frxNotSigFileName := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileName'));
-  frxNotSigFileName.Memo.Text := ExtractFileName(NotSigFileName);
-  frxSigFileName := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoSigFileName'));
-  frxSigFileName.Memo.Text := ExtractFileName(SigFileName);
-
-  frxNotSigFileDateCreate := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileDateCreate'));
-  frxNotSigFileDateCreate.Memo.Text := NotSigFileDateCreate;
-  frxSigFileDateCreate := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoSigFileDateCreate'));
-  frxSigFileDateCreate.Memo.Text := SigFileDateCreate;
-
-
-  frxNotSigFileSize := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoNotSigFileSize'));
-  frxNotSigFileSize.Memo.Text := NotSigFileSize;
-  frxSigFileSize := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoSigFileSize'));
-  frxSigFileSize.Memo.Text := SigFileSize;
-
-  CertInformation := CertificateInformation(SigFileName);
-  SignatureVerify(NotSigFileName, SigFileName, SigStatus);
-  SigStatus := 'Статус проверки подписи: ' + SigStatus;
-  SigInformation := SignatureInformation(SigFileName);
-
-  frxCertInformation := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoCertificateInformation'));
-  frxCertInformation.Memo.Text := CertInformation;
-  frxSigStatus := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoSignatureStatus'));
-  frxSigStatus.Memo.Text := SigStatus;
-  frxSigInformation := TfrxMemoView(frxReportProtocolNotConfirmed.FindObject('MemoSignatureInformation'));
-  frxSigInformation.Memo.Text := SigInformation;
-
-  frxReportProtocolNotConfirmed.ShowReport(true);
-
-{
   DirectoryRoot := CorrectPath(EditPath.Text);
   if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
     ShowMessage('Проверьте путь к директории. Папки не существует.')
@@ -309,7 +178,7 @@ begin
         end;
 
     end;
-}
+
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -345,6 +214,104 @@ begin
 
   MoveFilesToProcessed(inputArchiveFileName, NotSigFile, SigFilesArray);
 
+end;
+
+procedure TFormMain.CreateProtocol(inputFileName: string;
+                                   inputFileNameSignature: array of string;
+                                   directoryExport: string;
+                                   inputOriginalArchiveFileName: string);
+var SignatureFiles: array of TSignatureFile;
+    NotSignatureFile: TNotSignatureFile;
+
+    NotSigFileDateTime, SigFileDateTime: TDateTime;
+    NotSigFile, SigFile: File of Byte;
+
+    i: integer;
+
+    frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
+    frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
+    frxSigStatus, frxSigInformation, frxCertInformation: TfrxMemoView;
+
+    frxReportTypeProtocol: TfrxReport;
+    ProtocolName: string;
+    frxPDFexport: TfrxPDFExport;
+begin
+  NotSignatureFile := TNotSignatureFile.Create;
+  NotSignatureFile.Name := inputFileName;
+
+  FileAge(NotSignatureFile.Name, NotSigFileDateTime, True);
+  NotSignatureFile.DateCreate := DateTimeToStr(NotSigFileDateTime);
+
+  AssignFile(NotSigFile, NotSignatureFile.Name);
+  reset(NotSigFile);
+  NotSignatureFile.Size := IntToStr(FileSize(NotSigFile)) + ' байт';
+  CloseFile(NotSigFile);
+
+  SetLength(SignatureFiles, Length(InputFileNameSignature));
+  for i := 0 to High(SignatureFiles) do
+    begin
+      SignatureFiles[i] := TSignatureFile.Create;
+      SignatureFiles[i].Name := inputFileNameSignature[i];
+
+      FileAge(SignatureFiles[i].Name, SigFileDateTime, True);
+      SignatureFiles[i].DateCreate := DateTimeToStr(SigFileDateTime);
+
+      AssignFile(SigFile, SignatureFiles[i].Name);
+      reset(SigFile);
+      SignatureFiles[i].Size := IntToStr(FileSize(SigFile)) + ' байт';
+      CloseFile(SigFile);
+
+      SignatureFiles[i].CertificateInformation := CertificateInformation(SignatureFiles[i].Name);
+
+      SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
+
+      SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
+      SignatureFiles[i].VerifyStatusDesctiption := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
+
+      if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
+        begin
+          frxReportTypeProtocol := frxReportProtocolConfirmed;
+          ProtocolName := directoryExport + 'ProtocolConfirmed_';
+        end
+      else
+        begin
+          frxReportTypeProtocol := frxReportProtocolNotConfirmed;
+          ProtocolName := directoryExport + 'ProtocolNotConfirmed_';
+        end;
+      frxNotSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileName'));
+      frxNotSigFileName.Memo.Text := ExtractFileName(NotSignatureFile.Name);
+      frxSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileName'));
+      frxSigFileName.Memo.Text := ExtractFileName(SignatureFiles[i].Name);
+
+      frxNotSigFileDateCreate := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileDateCreate'));
+      frxNotSigFileDateCreate.Memo.Text := NotSignatureFile.DateCreate;
+      frxSigFileDateCreate := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileDateCreate'));
+      frxSigFileDateCreate.Memo.Text := SignatureFiles[i].DateCreate;
+
+      frxNotSigFileSize := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileSize'));
+      frxNotSigFileSize.Memo.Text := NotSignatureFile.Size;
+
+      frxCertInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoCertificateInformation'));
+      frxCertInformation.Memo.Text := CertificateInformation(SignatureFiles[i].Name);
+
+      frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
+      frxSigStatus.Memo.Text := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
+
+      frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
+      frxSigInformation.Memo.Text := SignatureInformation(SignatureFiles[i].Name);
+
+      frxReportTypeProtocol.PrepareReport();
+      frxPDFexport := TfrxPDFExport.Create(self);
+      frxPDFexport.PageNumbers := '1';
+      frxPDFexport.Compressed := True;
+      frxPDFexport.Background := True;
+      frxPDFexport.PrintOptimized := False;
+      frxPDFexport.OpenAfterExport := False;
+      frxPDFexport.ShowProgress := False;
+      frxPDFexport.ShowDialog := False;
+      frxPDFexport.FileName := ProtocolName + Copy(inputOriginalArchiveFileName, 1, Length(inputOriginalArchiveFileName)-4) + '.pdf';
+      frxReportTypeProtocol.Export(frxPDFexport);
+    end;
 end;
 
 function TFormMain.SignatureVerify (inputFileName, inputFileNameSignature: string; out ResultDescription: string): integer;

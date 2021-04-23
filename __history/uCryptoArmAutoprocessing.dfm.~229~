@@ -816,7 +816,7 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44308.421385057870000000
+    ReportOptions.LastChange = 44308.421385057900000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -8711,7 +8711,7 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44308.406293599540000000
+    ReportOptions.LastChange = 44308.406293599500000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
