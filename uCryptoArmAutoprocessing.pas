@@ -128,7 +128,7 @@ begin
 
 end;
 
-procedure TFormMain.CreateProtocol(inputFileName: string; inputFileNameSignature: array of string; directoryExport);
+procedure TFormMain.CreateProtocol(inputFileName: string; inputFileNameSignature: array of string; directoryExport: string);
 var SignatureFiles: array of TSignatureFile;
     NotSignatureFile: TNotSignatureFile;
 
@@ -151,7 +151,7 @@ begin
 
   AssignFile(NotSigFile, NotSignatureFile.Name);
   reset(NotSigFile);
-  NotSignatureFile.Size := IntToStr(FileSize(NotSigFile) + ' байт');
+  NotSignatureFile.Size := IntToStr(FileSize(NotSigFile)) + ' байт';
   CloseFile(NotSigFile);
 
   SetLength(SignatureFiles, Length(InputFileNameSignature));
@@ -214,17 +214,14 @@ var SearchResult: TSearchRec;
 
     NotSigFile: string;
     SigFileOne: string;
-    SigFileTwo: string;
     SigArray: array of string;
 begin
-  NotSigFile := 'E:\Proba\AutoProcessingFiles\SH_830009_83008.xls';
-  SigFileOne := 'E:\Proba\AutoProcessingFiles\SH_830009_83008.xls.SiG';
-  SigFileTwo := 'E:\Proba\AutoProcessingFiles\SH_830009_83008_.sig';
+  NotSigFile := 'E:\Proba\AutoProcessingFiles\SH_830080_83001.xls';
+  SigFileOne := 'E:\Proba\AutoProcessingFiles\SH_830080_83001.xls.sig';
 
-  SetLength(SigArray, 2);
+  SetLength(SigArray, 1);
 
   SigArray[0] := SigFileOne;
-  SigArray[1] := SigFileTwo;
 
   CreateProtocol(NotSigFile, SigArray, 'E:\Proba\AutoProcessingFiles\Processed');
 

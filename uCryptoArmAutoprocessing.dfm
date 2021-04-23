@@ -16569,27 +16569,4 @@ object FormMain: TFormMain
     Left = 528
     Top = 8
   end
-  object TfrxPDFExport
-    UseFileCache = True
-    ShowProgress = True
-    OverwritePrompt = False
-    DataOnly = False
-    PrintOptimized = False
-    Outline = False
-    Background = False
-    HTMLTags = True
-    Quality = 95
-    Author = 'FastReport'
-    Subject = 'FastReport PDF export'
-    ProtectionFlags = [ePrint, eModify, eCopy, eAnnot]
-    HideToolbar = False
-    HideMenubar = False
-    HideWindowUI = False
-    FitWindow = False
-    CenterWindow = False
-    PrintScaling = False
-    CheckboxAsShape = False
-    Left = 80
-    Top = 320
-  end
 end
