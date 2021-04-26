@@ -816,7 +816,7 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44309.702829780100000000
+    ReportOptions.LastChange = 44312.586743252310000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -8314,7 +8314,7 @@ object FormMain: TFormMain
         EAA497CAA924A7EAA497CAA924A7EAA497CAA924A7EAA497CAA924A7EAA497CA
         A924A7EAA497CAA924A7EAA497CAA924A7EAA497CAA924A7EAA497CAA924A7EA
         A497CAA924A7EAA497CAA924A7EAA497CAA924A7FFD9}
-      object Gradient1: TfrxGradientView
+      object GradientBackground: TfrxGradientView
         Left = 94.488250000000000000
         Top = 438.425480000000000000
         Width = 623.622450000000000000
@@ -8529,7 +8529,7 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44309.703240185180000000
+    ReportOptions.LastChange = 44312.587129571760000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -15991,7 +15991,7 @@ object FormMain: TFormMain
         A924A7EAA497CAA924A7EAA497CAA924A7EAA497CAA924A7EAA497CAA924A7EA
         A497CAA924A7EAA497CAA924A7EAA497CAA924A7EAA497CAA924A7EAA497CAA9
         24A7EAA497CAA924A7FFD9}
-      object Gradient1: TfrxGradientView
+      object GradientBackground: TfrxGradientView
         Left = 94.488250000000000000
         Top = 438.425480000000000000
         Width = 623.622450000000000000

@@ -250,6 +250,7 @@ begin
   CloseFile(NotSigFile);
 
   SetLength(SignatureFiles, Length(InputFileNameSignature));
+  MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '"' + #13#10);
   for i := 0 to High(SignatureFiles) do
     begin
       SignatureFiles[i] := TSignatureFile.Create;
@@ -265,12 +266,12 @@ begin
 
       SignatureFiles[i].CertificateInformation := CertificateInformation(SignatureFiles[i].Name);
 
-      SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
+//      SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
 
-      SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
-      SignatureFiles[i].VerifyStatusDesctiption := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
+{      SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
+      SignatureFiles[i].VerifyStatusDesctiption := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;}
 
-      if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
+{      if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
         begin
           frxReportTypeProtocol := frxReportProtocolConfirmed;
           ProtocolName := 'ProtocolConfirmed_';
@@ -292,12 +293,15 @@ begin
 
       frxNotSigFileSize := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileSize'));
       frxNotSigFileSize.Memo.Text := NotSignatureFile.Size;
+      frxSigFileSize := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileSize'));
+      frxSigFileSize.Memo.Text := SignatureFiles[i].Size;
 
       frxCertInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoCertificateInformation'));
       frxCertInformation.Memo.Text := CertificateInformation(SignatureFiles[i].Name);
 
       frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
       frxSigStatus.Memo.Text := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
+      MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". Статус проверки: ' + SignatureFiles[i].VerifyStatusDesctiption + #13#10);
 
       frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
       frxSigInformation.Memo.Text := SignatureInformation(SignatureFiles[i].Name);
@@ -312,10 +316,10 @@ begin
       frxPDFexport.ShowProgress := False;
       frxPDFexport.ShowDialog := False;
 
-      frxPDFexport.FileName := directoryExport + ProtocolName + Copy(inputOriginalArchiveFileName, 1, Length(inputOriginalArchiveFileName)-4) + '.pdf';
+      frxPDFexport.FileName := directoryExport + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
       frxReportTypeProtocol.Export(frxPDFexport);
-      frxPDFexport.FileName := directoryOutput + ProtocolName + Copy(inputOriginalArchiveFileName, 1, Length(inputOriginalArchiveFileName)-4) + '.pdf';
-      frxReportTypeProtocol.Export(frxPDFexport);
+      frxPDFexport.FileName := directoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+      frxReportTypeProtocol.Export(frxPDFexport);}
     end;
 end;
 
@@ -561,6 +565,8 @@ begin
     end;
 
   MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+
+  TimerAutoProcessing.Enabled := True;
 end;
 
 function TFormMain.CorrectPath(inputDirectory: string): string;
@@ -635,6 +641,7 @@ end;
 procedure TFormMain.TimerAutoProcessingTimer(Sender: TObject);
 begin
   ButtonManualProcessingClick(Self);
+  TimerAutoProcessing.Enabled := False;
 end;
 
 procedure TFormMain.SpeedButtonPlayMouseDown(Sender: TObject;
