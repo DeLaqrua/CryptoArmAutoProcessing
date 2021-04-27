@@ -155,6 +155,7 @@ begin
             if CheckFileName(SearchResult.Name) and CheckErrorsWithinArchive(SearchResult.Name) then
               begin
                 MoveFilesToErrors(SearchResult.Name);
+                MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + DescriptionErrorArchive + #13#10);
 
                 if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
                   System.SysUtils.ForceDirectories(DirectoryOutput);
@@ -266,12 +267,12 @@ begin
 
       SignatureFiles[i].CertificateInformation := CertificateInformation(SignatureFiles[i].Name);
 
-//      SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
+      SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
 
-{      SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
-      SignatureFiles[i].VerifyStatusDesctiption := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;}
+      SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
+      SignatureFiles[i].VerifyStatusDesctiption := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
 
-{      if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
+      if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
         begin
           frxReportTypeProtocol := frxReportProtocolConfirmed;
           ProtocolName := 'ProtocolConfirmed_';
@@ -319,7 +320,7 @@ begin
       frxPDFexport.FileName := directoryExport + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
       frxReportTypeProtocol.Export(frxPDFexport);
       frxPDFexport.FileName := directoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
-      frxReportTypeProtocol.Export(frxPDFexport);}
+      frxReportTypeProtocol.Export(frxPDFexport);
     end;
 end;
 
@@ -429,7 +430,6 @@ function TFormMain.CheckErrorsWithinArchive(inputArchiveFileName: string): boole
 var i, Counter: integer;
     Archive: TZipFile;
 begin
-  DescriptionErrorArchive := '';
 
   Result := False;
 
@@ -448,7 +448,6 @@ begin
       begin
         Result := True;
         DescriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" более одного файла для подписания.';
-        MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + DescriptionErrorArchive + #13#10);
       end;
 
     //Проверка на количество подписей. Если в zip-архиве подписи отсутствуют, то в мусор.
@@ -462,7 +461,16 @@ begin
       begin
         Result := True;
         DescriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствуют файлы-подписи с расширением ".sig"';
-        MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + DescriptionErrorArchive + #13#10);
+      end;
+
+    //Проверка на правильность имён файлов внутри zip-архива
+    for i := 0 to Archive.FileCount-1 do
+      begin
+        if Not MatchesMask( Archive.FileName[i], Copy(inputArchiveFileName, 1, AnsiPos('_', inputArchiveFileName)) + '_' + '*' + '_' + '*' ) then
+          begin
+            Result := True;
+            DescriptionErrorArchive := 'Файлы внутри zip-архива "' + inputArchiveFileName + '" не соответствуют его названию' + '      ТЕСТ' + Copy(inputArchiveFileName, 1, AnsiPos('_', inputArchiveFileName));
+          end;
       end;
 
     Archive.Close;
