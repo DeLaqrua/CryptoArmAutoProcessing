@@ -2,12 +2,12 @@ Option Explicit 'Делает текст VBScript более строгим. Объявление переменных пере
 
 '====== Блок объявления переменных ======
 
-Dim oPKCS7Message : Set oPKCS7Message = CreateObject("DigtCrypto.PKCS7Message") 'Создаём объект сообщения формата PKCS7 (специальный формат для работы с подписью)
+Dim oPKCS7Message 'Создаём объект сообщения формата PKCS7 (специальный формат для работы с подписью)
 
 Const DT_SIGNED_DATA = 2 'Криптографическое сообщение, содержащее результат формирования ЭЦП
 Const CERT_AND_SIGN = 0 'Проверка подписи и сертификата
 Const SIGN_ONLY = 1 'Проверка только подписи
-Dim oSignatures 'Объект, содержащий коллекцию из объектов подписи
+Dim oSignatures 'Объект, содержащий коллекцию из объектов подписи (внутри файла *.sig может быть несколько подписей)
 Dim oSignature 'Объект одной подписи
 Dim Status
 Dim oCertificate
@@ -39,6 +39,7 @@ Dim i
 '====== Основной блок ======
 
 Function SignatureVerify (ByVal InputFileName, ByVal InputFileNameSignature)
+    Set oPKCS7Message = CreateObject("DigtCrypto.PKCS7Message")
     oPKCS7Message.Load DT_SIGNED_DATA, InputFileNameSignature, InputFileName
     Set oSignatures = oPKCS7Message.Signatures
     Dim n : n = oSignatures.Count
@@ -51,9 +52,11 @@ Function SignatureVerify (ByVal InputFileName, ByVal InputFileNameSignature)
     'Очищаем переменные
     Set oSignature = Nothing
     Set oSignatures = Nothing
+    Set oPKCS7Message = Nothing
 End Function
 
 Function SignatureInformation (ByVal InputFileNameSignature)
+    Set oPKCS7Message = CreateObject("DigtCrypto.PKCS7Message")
     oPKCS7Message.Load DT_SIGNED_DATA, InputFileNameSignature, ""
     Set oSignatures = oPKCS7Message.Signatures
     Dim n : n = oSignatures.Count
@@ -85,10 +88,11 @@ Function SignatureInformation (ByVal InputFileNameSignature)
     'Очищаем переменные
     Set oSignature = Nothing
     Set oSignatures = Nothing
-
+    Set oPKCS7Message = Nothing
 End Function
 
 Function CertificateInformation (ByVal InputFileNameSignature)
+    Set oPKCS7Message = CreateObject("DigtCrypto.PKCS7Message")
     oPKCS7Message.Load DT_SIGNED_DATA, InputFileNameSignature, ""
     Set oSignatures = oPKCS7Message.Signatures
     Dim n : n = oSignatures.Count
@@ -110,10 +114,11 @@ Function CertificateInformation (ByVal InputFileNameSignature)
     Set oCertificate = Nothing
     Set oSignature = Nothing
     Set oSignatures = Nothing
-
+    Set oPKCS7Message = Nothing
 End Function
 
 Function CertificateVerify (ByVal InputFileNameSignature)
+    Set oPKCS7Message = CreateObject("DigtCrypto.PKCS7Message")
     oPKCS7Message.Load DT_SIGNED_DATA, InputFileNameSignature, ""
     Set oSignatures = oPKCS7Message.Signatures
     Dim n : n = oSignatures.Count
@@ -164,5 +169,5 @@ Function CertificateVerify (ByVal InputFileNameSignature)
     Set oCertificate = Nothing
     Set oSignature = Nothing
     Set oSignatures = Nothing
-
+    Set oPKCS7Message = Nothing
 End Function

@@ -266,12 +266,12 @@ begin
 
       SignatureFiles[i].CertificateInformation := CertificateInformation(SignatureFiles[i].Name);
 
-//      SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
+      SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
 
-{      SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
-      SignatureFiles[i].VerifyStatusDesctiption := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;}
+      SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
+      SignatureFiles[i].VerifyStatusDesctiption := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
 
-{      if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
+      if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
         begin
           frxReportTypeProtocol := frxReportProtocolConfirmed;
           ProtocolName := 'ProtocolConfirmed_';
@@ -319,7 +319,7 @@ begin
       frxPDFexport.FileName := directoryExport + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
       frxReportTypeProtocol.Export(frxPDFexport);
       frxPDFexport.FileName := directoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
-      frxReportTypeProtocol.Export(frxPDFexport);}
+      frxReportTypeProtocol.Export(frxPDFexport);
     end;
 end;
 
