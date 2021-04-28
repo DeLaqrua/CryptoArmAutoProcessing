@@ -569,25 +569,11 @@ begin
     System.SysUtils.ForceDirectories(DirectoryErrors);
 
   fileDirectoryFrom := DirectoryRoot + inputFileName;
-  fileDirectoryTo := DirectoryErrors + inputFileName;
   pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
 
-  i := 0;
-  while FileExists(fileDirectoryTo) do
-    begin
-      i := i+1;
-      if i = 1 then
-        begin
-          Insert(' (' + IntToStr(i) + ')', fileDirectoryTo, Length(fileDirectoryTo)-3);
-          pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-        end
-      else
-        begin
-          fileDirectoryTo := StringReplace(fileDirectoryTo, ' (' + IntToStr(i-1) + ')', ' (' + IntToStr(i) + ')', []);
-          pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-        end;
-    end;
+  fileDirectoryTo := DirectoryErrors + inputFileName;
+  fileDirectoryTo := ifFileExistsRename(fileDirectoryTo);
+  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
 
   MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
 
