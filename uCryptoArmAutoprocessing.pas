@@ -140,7 +140,6 @@ procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
     responceTextFile: TextFile;
     responceTextFileName: string;
-    i: integer;
 begin
 
   DirectoryRoot := CorrectPath(EditPath.Text);
@@ -164,15 +163,7 @@ begin
                 if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
                   System.SysUtils.ForceDirectories(DirectoryOutput);
                 responceTextFileName := DirectoryOutput + 'response_' + StringReplace(SearchResult.Name, ExtractFileExt(SearchResult.Name), '', [rfIgnoreCase]) + '.txt';
-                i := 0;
-                while FileExists(responceTextFileName) do
-                  begin
-                    i := i+1;
-                    if i = 1 then
-                      Insert(' (' + IntToStr(i) + ')', responceTextFileName, Length(responceTextFileName)-3)
-                    else
-                      responceTextFileName := StringReplace(responceTextFileName, ' (' + IntToStr(i-1) + ')', ' (' + IntToStr(i) + ')', []);
-                  end;
+                responceTextFileName := ifFileExistsRename(responceTextFileName);
                 AssignFile(responceTextFile, responceTextFileName);
                 ReWrite(responceTextFile);
                 WriteLn(responceTextFile, DescriptionErrorArchive);
@@ -331,6 +322,8 @@ end;
 function TFormMain.ifFileExistsRename(inputFileName: string): string;
 var counterName: integer;
 begin
+  result := inputFileName;
+
   counterName := 0;
   while FileExists(inputFileName) do
     begin
