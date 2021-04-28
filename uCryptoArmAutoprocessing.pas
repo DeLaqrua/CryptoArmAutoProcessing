@@ -229,7 +229,8 @@ var SignatureFiles: array of TSignatureFile;
     NotSigFileDateTime, SigFileDateTime: TDateTime;
     NotSigFile, SigFile: File of Byte;
 
-    i: integer;
+    i, counterName: integer;
+    newProtocolName:string;
 
     frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
     frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
@@ -298,14 +299,14 @@ begin
       frxSigFileSize.Memo.Text := SignatureFiles[i].Size;
 
       frxCertInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoCertificateInformation'));
-      frxCertInformation.Memo.Text := CertificateInformation(SignatureFiles[i].Name);
+      frxCertInformation.Memo.Text := SignatureFiles[i].CertificateInformation;
 
       frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
       frxSigStatus.Memo.Text := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
       MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". Статус проверки: ' + SignatureFiles[i].VerifyStatusDesctiption + #13#10);
 
       frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
-      frxSigInformation.Memo.Text := SignatureInformation(SignatureFiles[i].Name);
+      frxSigInformation.Memo.Text := SignatureFiles[i].SignatureInformation;
 
       frxReportTypeProtocol.PrepareReport();
       frxPDFexport := TfrxPDFExport.Create(self);
@@ -320,6 +321,24 @@ begin
       frxPDFexport.FileName := directoryExport + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
       frxReportTypeProtocol.Export(frxPDFexport);
       frxPDFexport.FileName := directoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+      {//Проверка существует ли в папке output файл с таким же названием
+      //Если существует, название меняется
+      counterName := 0;
+      newProtocolName:= frxPDFexport.FileName;
+      while FileExists(newProtocolName) do
+        begin
+          counterName := counterName+1;
+          if counterName = 1 then
+            begin
+              Insert(' (' + IntToStr(i) + ')', newProtocolName, Length(newProtocolName)-3);
+              frxPDFExport.FileName := newProtocolName
+            end
+          else
+            begin
+              newProtocolName := StringReplace(newProtocolName, ' (' + IntToStr(i-1) + ')', ' (' + IntToStr(i) + ')', []);
+              frxPDFExport.FileName := newProtocolName;
+            end;
+        end;}
       frxReportTypeProtocol.Export(frxPDFexport);
     end;
 end;
