@@ -29,6 +29,8 @@ type
     TimerAutoProcessingState: TTimer;
     LabelAutoProcessingState: TLabel;
     TimerAutoProcessing: TTimer;
+    frxPDFExportProtocol: TfrxPDFExport;
+    frxReportTypeProtocol: TfrxReport;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -59,7 +61,7 @@ type
     function CorrectPath(inputDirectory: string): string;
     function CheckFileName(inputFileName: string): boolean;
 
-    function ifFileExistsRename(inputFileName: string): string;
+    function ifFilesExistsRename(inputFileName: string): string;
 
     procedure CreateProtocol(inputFileName: string;
                              inputFileNameSignature: array of string;
@@ -231,15 +233,14 @@ var SignatureFiles: array of TSignatureFile;
     NotSigFileDateTime, SigFileDateTime: TDateTime;
     NotSigFile, SigFile: File of Byte;
 
-    i: integer;
+    i, counterName: integer;
+    protocolOutputName:string;
 
     frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
     frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
     frxSigStatus, frxSigInformation, frxCertInformation: TfrxMemoView;
 
-    frxReportTypeProtocol: TfrxReport;
-    protocolName, protocolOutputName: string;
-    frxPDFexport: TfrxPDFExport;
+    ProtocolName: string;
 begin
   NotSignatureFile := TNotSignatureFile.Create;
   NotSignatureFile.Name := directoryFiles + inputFileName;
@@ -277,12 +278,12 @@ begin
       if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
         begin
           frxReportTypeProtocol := frxReportProtocolConfirmed;
-          protocolName := 'ProtocolConfirmed_';
+          ProtocolName := 'ProtocolConfirmed_';
         end
       else
         begin
           frxReportTypeProtocol := frxReportProtocolNotConfirmed;
-          protocolName := 'ProtocolNotConfirmed_';
+          ProtocolName := 'ProtocolNotConfirmed_';
         end;
       frxNotSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileName'));
       frxNotSigFileName.Memo.Text := ExtractFileName(NotSignatureFile.Name);
@@ -309,33 +310,41 @@ begin
       frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
       frxSigInformation.Memo.Text := SignatureFiles[i].SignatureInformation;
 
-      frxReportTypeProtocol.PrepareReport();
-      frxPDFexport := TfrxPDFExport.Create(self);
-      frxPDFexport.PageNumbers := '1';
-      frxPDFexport.Compressed := True;
-      frxPDFexport.Background := True;
-      frxPDFexport.PrintOptimized := False;
-      frxPDFexport.OpenAfterExport := False;
-      frxPDFexport.ShowProgress := False;
-      frxPDFexport.ShowDialog := False;
+      frxPDFexportProtocol.PageNumbers := '1';
+      frxPDFexportProtocol.Compressed := True;
+      frxPDFexportProtocol.Background := True;
+      frxPDFexportProtocol.PrintOptimized := False;
+      frxPDFexportProtocol.OpenAfterExport := False;
+      frxPDFexportProtocol.ShowProgress := False;
+      frxPDFexportProtocol.ShowDialog := False;
 
-      frxPDFexport.FileName := directoryExport + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
-      frxReportTypeProtocol.Export(frxPDFexport);
-
-      {protocolOutputName := directoryOutput + protocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
-      //Проверка существует ли в папке output протокол с таким же названием
+      frxPDFexportProtocol.FileName := directoryExport + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+      frxReportTypeProtocol.Export(frxPDFexportProtocol);
+      //Проверка существует ли в папке output файл с таким же названием
       //Если существует, название меняется
-      protocolOutputName := ifFileExistsRename(protocolOutputName);
-      MemoLog.Lines.Add('чисто ради теста ' + protocolOutputName);
-      frxPDFexport.FileName := protocolOutputName;
-      frxReportTypeProtocol.Export(frxPDFexport);}
+      counterName := 0;
+      protocolOutputName:= directoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+      while FileExists(protocolOutputName) do
+        begin
+          counterName := counterName+1;
+          if counterName = 1 then
+            begin
+              Insert(' (' + IntToStr(counterName) + ')', protocolOutputName, Length(protocolOutputName)-3);
+              frxPDFexportProtocol.FileName := protocolOutputName
+            end
+          else
+            begin
+              protocolOutputName := StringReplace(protocolOutputName, ' (' + IntToStr(counterName-1) + ')', ' (' + IntToStr(counterName) + ')', []);
+              frxPDFexportProtocol.FileName := protocolOutputName;
+            end;
+        end;
+      frxReportTypeProtocol.Export(frxPDFexportProtocol);
     end;
 end;
 
-function TFormMain.ifFileExistsRename(inputFileName: string): string;
+function TFormMain.ifFilesExistsRename(inputFileName: string): string;
 var counterName: integer;
 begin
-
   counterName := 0;
   while FileExists(inputFileName) do
     begin
@@ -351,7 +360,6 @@ begin
           result := inputFileName;
         end;
     end;
-
 end;
 
 function TFormMain.SignatureVerify (inputFileName, inputFileNameSignature: string; out ResultDescription: string): integer;

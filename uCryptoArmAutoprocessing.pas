@@ -61,7 +61,7 @@ type
     function CorrectPath(inputDirectory: string): string;
     function CheckFileName(inputFileName: string): boolean;
 
-    function ifFilesExistsRename(inputFileName: string): string;
+    function ifFileExistsRename(inputFileName: string): string;
 
     procedure CreateProtocol(inputFileName: string;
                              inputFileNameSignature: array of string;
@@ -233,8 +233,7 @@ var SignatureFiles: array of TSignatureFile;
     NotSigFileDateTime, SigFileDateTime: TDateTime;
     NotSigFile, SigFile: File of Byte;
 
-    i, counterName: integer;
-    protocolOutputName:string;
+    i: integer;
 
     frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
     frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
@@ -322,27 +321,14 @@ begin
       frxReportTypeProtocol.Export(frxPDFexportProtocol);
       //Проверка существует ли в папке output файл с таким же названием
       //Если существует, название меняется
-      counterName := 0;
-      protocolOutputName:= directoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
-      while FileExists(protocolOutputName) do
-        begin
-          counterName := counterName+1;
-          if counterName = 1 then
-            begin
-              Insert(' (' + IntToStr(counterName) + ')', protocolOutputName, Length(protocolOutputName)-3);
-              frxPDFexportProtocol.FileName := protocolOutputName
-            end
-          else
-            begin
-              protocolOutputName := StringReplace(protocolOutputName, ' (' + IntToStr(counterName-1) + ')', ' (' + IntToStr(counterName) + ')', []);
-              frxPDFexportProtocol.FileName := protocolOutputName;
-            end;
-        end;
+      frxPDFexportProtocol.FileName := directoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+      frxPDFexportProtocol.FileName := ifFileExistsRename(frxPDFexportProtocol.FileName);
       frxReportTypeProtocol.Export(frxPDFexportProtocol);
     end;
+
 end;
 
-function TFormMain.ifFilesExistsRename(inputFileName: string): string;
+function TFormMain.ifFileExistsRename(inputFileName: string): string;
 var counterName: integer;
 begin
   counterName := 0;
