@@ -230,7 +230,7 @@ var SignatureFiles: array of TSignatureFile;
     NotSigFile, SigFile: File of Byte;
 
     i, counterName: integer;
-    newProtocolName:string;
+    protocolOutputName:string;
 
     frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
     frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
@@ -320,25 +320,24 @@ begin
 
       frxPDFexport.FileName := directoryExport + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
       frxReportTypeProtocol.Export(frxPDFexport);
-      frxPDFexport.FileName := directoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
-      {//Проверка существует ли в папке output файл с таким же названием
+      //Проверка существует ли в папке output файл с таким же названием
       //Если существует, название меняется
       counterName := 0;
-      newProtocolName:= frxPDFexport.FileName;
-      while FileExists(newProtocolName) do
+      protocolOutputName:= directoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+      while FileExists(protocolOutputName) do
         begin
           counterName := counterName+1;
           if counterName = 1 then
             begin
-              Insert(' (' + IntToStr(i) + ')', newProtocolName, Length(newProtocolName)-3);
-              frxPDFExport.FileName := newProtocolName
+              Insert(' (' + IntToStr(counterName) + ')', protocolOutputName, Length(protocolOutputName)-3);
+              frxPDFExport.FileName := protocolOutputName
             end
           else
             begin
-              newProtocolName := StringReplace(newProtocolName, ' (' + IntToStr(i-1) + ')', ' (' + IntToStr(i) + ')', []);
-              frxPDFExport.FileName := newProtocolName;
+              protocolOutputName := StringReplace(protocolOutputName, ' (' + IntToStr(counterName-1) + ')', ' (' + IntToStr(counterName) + ')', []);
+              frxPDFExport.FileName := protocolOutputName;
             end;
-        end;}
+        end;
       frxReportTypeProtocol.Export(frxPDFexport);
     end;
 end;
