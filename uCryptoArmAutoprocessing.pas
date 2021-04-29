@@ -141,6 +141,7 @@ var SearchResult: TSearchRec;
     responceTextFile: TextFile;
     responceTextFileName: string;
 begin
+  ButtonManualProcessing.Enabled := False;
 
   DirectoryRoot := CorrectPath(EditPath.Text);
   if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
@@ -176,6 +177,7 @@ begin
 
     end;
 
+  ButtonManualProcessing.Enabled := True;
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -244,7 +246,7 @@ begin
   CloseFile(NotSigFile);
 
   SetLength(SignatureFiles, Length(InputFileNameSignature));
-  MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '"' + #13#10);
+  MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной подписи около 30 секунд. Ожидайте...' + #13#10);
   for i := 0 to High(SignatureFiles) do
     begin
       SignatureFiles[i] := TSignatureFile.Create;
@@ -563,7 +565,6 @@ end;
 procedure TFormMain.MoveFilesToErrors(inputFileName: string);
 var fileDirectoryFrom, fileDirectoryTo: string;
     pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
-    i: integer;
 begin
   if System.SysUtils.DirectoryExists(DirectoryErrors) = False then
     System.SysUtils.ForceDirectories(DirectoryErrors);

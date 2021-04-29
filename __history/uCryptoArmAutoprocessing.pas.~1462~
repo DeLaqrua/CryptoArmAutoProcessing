@@ -30,7 +30,7 @@ type
     LabelAutoProcessingState: TLabel;
     TimerAutoProcessing: TTimer;
     frxPDFExportProtocol: TfrxPDFExport;
-    frxReport1: TfrxReport;
+    frxReportTypeProtocol: TfrxReport;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -60,6 +60,8 @@ type
     function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
     function CorrectPath(inputDirectory: string): string;
     function CheckFileName(inputFileName: string): boolean;
+
+    function ifFileExistsRename(inputFileName: string): string;
 
     procedure CreateProtocol(inputFileName: string;
                              inputFileNameSignature: array of string;
@@ -138,8 +140,8 @@ procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
     responceTextFile: TextFile;
     responceTextFileName: string;
-    i: integer;
 begin
+  ButtonManualProcessing.Enabled := False;
 
   DirectoryRoot := CorrectPath(EditPath.Text);
   if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
@@ -162,15 +164,7 @@ begin
                 if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
                   System.SysUtils.ForceDirectories(DirectoryOutput);
                 responceTextFileName := DirectoryOutput + 'response_' + StringReplace(SearchResult.Name, ExtractFileExt(SearchResult.Name), '', [rfIgnoreCase]) + '.txt';
-                i := 0;
-                while FileExists(responceTextFileName) do
-                  begin
-                    i := i+1;
-                    if i = 1 then
-                      Insert(' (' + IntToStr(i) + ')', responceTextFileName, Length(responceTextFileName)-3)
-                    else
-                      responceTextFileName := StringReplace(responceTextFileName, ' (' + IntToStr(i-1) + ')', ' (' + IntToStr(i) + ')', []);
-                  end;
+                responceTextFileName := ifFileExistsRename(responceTextFileName);
                 AssignFile(responceTextFile, responceTextFileName);
                 ReWrite(responceTextFile);
                 WriteLn(responceTextFile, DescriptionErrorArchive);
@@ -183,6 +177,7 @@ begin
 
     end;
 
+  ButtonManualProcessing.Enabled := True;
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -231,14 +226,12 @@ var SignatureFiles: array of TSignatureFile;
     NotSigFileDateTime, SigFileDateTime: TDateTime;
     NotSigFile, SigFile: File of Byte;
 
-    i, counterName: integer;
-    protocolOutputName:string;
+    i: integer;
 
     frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
     frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
     frxSigStatus, frxSigInformation, frxCertInformation: TfrxMemoView;
 
-    frxReportTypeProtocol: TfrxReport;
     ProtocolName: string;
 begin
   NotSignatureFile := TNotSignatureFile.Create;
@@ -309,39 +302,44 @@ begin
       frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
       frxSigInformation.Memo.Text := SignatureFiles[i].SignatureInformation;
 
-      frxReportTypeProtocol.PrepareReport();
+      frxPDFexportProtocol.PageNumbers := '1';
+      frxPDFexportProtocol.Compressed := True;
+      frxPDFexportProtocol.Background := True;
+      frxPDFexportProtocol.PrintOptimized := False;
+      frxPDFexportProtocol.OpenAfterExport := False;
+      frxPDFexportProtocol.ShowProgress := False;
+      frxPDFexportProtocol.ShowDialog := False;
 
-
-      frxPDFexport := TfrxPDFExport.Create(self);
-      frxPDFexport.PageNumbers := '1';
-      frxPDFexport.Compressed := True;
-      frxPDFexport.Background := True;
-      frxPDFexport.PrintOptimized := False;
-      frxPDFexport.OpenAfterExport := False;
-      frxPDFexport.ShowProgress := False;
-      frxPDFexport.ShowDialog := False;
-
-      frxPDFexport.FileName := directoryExport + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
-      frxReportTypeProtocol.Export(frxPDFexport);
+      frxPDFexportProtocol.FileName := directoryExport + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+      frxReportTypeProtocol.Export(frxPDFexportProtocol);
       //Проверка существует ли в папке output файл с таким же названием
       //Если существует, название меняется
-      counterName := 0;
-      protocolOutputName:= directoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
-      while FileExists(protocolOutputName) do
+      frxPDFexportProtocol.FileName := directoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+      frxPDFexportProtocol.FileName := ifFileExistsRename(frxPDFexportProtocol.FileName);
+      frxReportTypeProtocol.Export(frxPDFexportProtocol);
+    end;
+
+end;
+
+function TFormMain.ifFileExistsRename(inputFileName: string): string;
+var counterName: integer;
+begin
+  result := inputFileName;
+
+  counterName := 0;
+  while FileExists(inputFileName) do
+    begin
+      counterName := counterName + 1;
+      if counterName = 1 then
         begin
-          counterName := counterName+1;
-          if counterName = 1 then
-            begin
-              Insert(' (' + IntToStr(counterName) + ')', protocolOutputName, Length(protocolOutputName)-3);
-              frxPDFExport.FileName := protocolOutputName
-            end
-          else
-            begin
-              protocolOutputName := StringReplace(protocolOutputName, ' (' + IntToStr(counterName-1) + ')', ' (' + IntToStr(counterName) + ')', []);
-              frxPDFExport.FileName := protocolOutputName;
-            end;
+          Insert(' (' + IntToStr(counterName) + ')', inputFileName, Length(inputFileName)-3);
+          result := inputFileName;
+        end
+      else
+        begin
+          inputFileName := StringReplace(inputFileName, ' (' + IntToStr(counterName-1) + ')', ' (' + IntToStr(counterName) + ')', []);
+          result := inputFileName;
         end;
-      frxReportTypeProtocol.Export(frxPDFexport);
     end;
 end;
 
@@ -567,31 +565,16 @@ end;
 procedure TFormMain.MoveFilesToErrors(inputFileName: string);
 var fileDirectoryFrom, fileDirectoryTo: string;
     pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
-    i: integer;
 begin
   if System.SysUtils.DirectoryExists(DirectoryErrors) = False then
     System.SysUtils.ForceDirectories(DirectoryErrors);
 
   fileDirectoryFrom := DirectoryRoot + inputFileName;
-  fileDirectoryTo := DirectoryErrors + inputFileName;
   pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
 
-  i := 0;
-  while FileExists(fileDirectoryTo) do
-    begin
-      i := i+1;
-      if i = 1 then
-        begin
-          Insert(' (' + IntToStr(i) + ')', fileDirectoryTo, Length(fileDirectoryTo)-3);
-          pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-        end
-      else
-        begin
-          fileDirectoryTo := StringReplace(fileDirectoryTo, ' (' + IntToStr(i-1) + ')', ' (' + IntToStr(i) + ')', []);
-          pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-        end;
-    end;
+  fileDirectoryTo := DirectoryErrors + inputFileName;
+  fileDirectoryTo := ifFileExistsRename(fileDirectoryTo);
+  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
 
   MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
 
