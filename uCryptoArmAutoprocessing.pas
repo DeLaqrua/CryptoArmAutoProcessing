@@ -140,7 +140,36 @@ procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
     responceTextFile: TextFile;
     responceTextFileName: string;
+
+    a: array of variant;
+    b: array of string;
+    i: integer;
+    VArr, ResultFromVBS: Variant;
+    str: string;
+    FunctionParameters: PSafeArray;
 begin
+  {SetLength(a, 2);
+  a[0]:='Первый элемент';
+  a[1]:='Второй элемент';
+  SetLength(b, High(a)+1);
+  for i := 0 to High(a) do
+    b[i] := a[i];
+
+  MemoLog.Lines.Add(IntToStr(High(b)));
+  try
+    VArr:=VarArrayCreate([0, 0], varVariant);
+    VArr[0] := '1';
+
+    FunctionParameters := PSafeArray(TVarData(VArr).VArray);
+
+    ResultFromVBS := ScriptControlVB.Run('TestArray', FunctionParameters);
+
+    //memoLog.Lines.Add(ResultFromVBS);
+  except
+    on E: Exception do
+    MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
+  end;}
+
   ButtonManualProcessing.Enabled := False;
 
   DirectoryRoot := CorrectPath(EditPath.Text);
@@ -302,6 +331,7 @@ begin
       frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
       frxSigInformation.Memo.Text := SignatureFiles[i].SignatureInformation;
 
+      frxReportTypeProtocol.PrepareReport(true);
       frxPDFexportProtocol.PageNumbers := '1';
       frxPDFexportProtocol.Compressed := True;
       frxPDFexportProtocol.Background := True;

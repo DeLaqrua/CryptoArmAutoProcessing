@@ -171,3 +171,14 @@ Function CertificateVerify (ByVal InputFileNameSignature)
     Set oSignatures = Nothing
     Set oPKCS7Message = Nothing
 End Function
+
+Function TestArray(hz)
+dim arr()
+
+Redim Preserve arr(2)
+arr(0) = "Первый элемент массива"
+arr(1) = "Второй элемент массива"
+arr(2) = "Третий элемент массива"
+
+TestArray = Array(arr)
+End Function

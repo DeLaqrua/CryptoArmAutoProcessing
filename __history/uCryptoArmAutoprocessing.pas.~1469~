@@ -140,8 +140,21 @@ procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
     responceTextFile: TextFile;
     responceTextFileName: string;
+
+    a: array of variant;
+    b: array of string;
+    i: integer;
 begin
-  ButtonManualProcessing.Enabled := False;
+  SetLength(a, 2);
+  a[0]:='Первый элемент';
+  a[1]:='Второй элемент';
+  SetLength(b, High(a)+1);
+  for i := 0 to High(a) do
+    b[i] := a[i];
+
+  MemoLog.Lines.Add(IntToStr(High(b)));
+
+{  ButtonManualProcessing.Enabled := False;
 
   DirectoryRoot := CorrectPath(EditPath.Text);
   if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
@@ -177,7 +190,7 @@ begin
 
     end;
 
-  ButtonManualProcessing.Enabled := False;
+  ButtonManualProcessing.Enabled := True;}
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -246,7 +259,7 @@ begin
   CloseFile(NotSigFile);
 
   SetLength(SignatureFiles, Length(InputFileNameSignature));
-  MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '"' + #13#10);
+  MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной подписи около 30 секунд. Ожидайте...' + #13#10);
   for i := 0 to High(SignatureFiles) do
     begin
       SignatureFiles[i] := TSignatureFile.Create;

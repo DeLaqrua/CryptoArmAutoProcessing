@@ -140,8 +140,37 @@ procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
     responceTextFile: TextFile;
     responceTextFileName: string;
+
+    a: array of variant;
+    b: array of string;
     i: integer;
+    VArr, ResultFromVBS: Variant;
+    str: string;
+    FunctionParameters: PSafeArray;
 begin
+  {SetLength(a, 2);
+  a[0]:='Первый элемент';
+  a[1]:='Второй элемент';
+  SetLength(b, High(a)+1);
+  for i := 0 to High(a) do
+    b[i] := a[i];
+
+  MemoLog.Lines.Add(IntToStr(High(b)));}
+  try
+    VArr:=VarArrayCreate([0, 0], varVariant);
+    VArr[0] := '1';
+
+    FunctionParameters := PSafeArray(TVarData(VArr).VArray);
+
+    ResultFromVBS := ScriptControlVB.Run('TestArray', FunctionParameters);
+    str := ResultFromVBS;
+    memoLog.Lines.Add(str);
+  except
+    on E: Exception do
+    MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
+  end;
+
+{  ButtonManualProcessing.Enabled := False;
 
   DirectoryRoot := CorrectPath(EditPath.Text);
   if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
@@ -164,15 +193,7 @@ begin
                 if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
                   System.SysUtils.ForceDirectories(DirectoryOutput);
                 responceTextFileName := DirectoryOutput + 'response_' + StringReplace(SearchResult.Name, ExtractFileExt(SearchResult.Name), '', [rfIgnoreCase]) + '.txt';
-                i := 0;
-                while FileExists(responceTextFileName) do
-                  begin
-                    i := i+1;
-                    if i = 1 then
-                      Insert(' (' + IntToStr(i) + ')', responceTextFileName, Length(responceTextFileName)-3)
-                    else
-                      responceTextFileName := StringReplace(responceTextFileName, ' (' + IntToStr(i-1) + ')', ' (' + IntToStr(i) + ')', []);
-                  end;
+                responceTextFileName := ifFileExistsRename(responceTextFileName);
                 AssignFile(responceTextFile, responceTextFileName);
                 ReWrite(responceTextFile);
                 WriteLn(responceTextFile, DescriptionErrorArchive);
@@ -185,6 +206,7 @@ begin
 
     end;
 
+  ButtonManualProcessing.Enabled := True;}
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -253,7 +275,7 @@ begin
   CloseFile(NotSigFile);
 
   SetLength(SignatureFiles, Length(InputFileNameSignature));
-  MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '"' + #13#10);
+  MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной подписи около 30 секунд. Ожидайте...' + #13#10);
   for i := 0 to High(SignatureFiles) do
     begin
       SignatureFiles[i] := TSignatureFile.Create;
@@ -331,6 +353,8 @@ end;
 function TFormMain.ifFileExistsRename(inputFileName: string): string;
 var counterName: integer;
 begin
+  result := inputFileName;
+
   counterName := 0;
   while FileExists(inputFileName) do
     begin
@@ -570,31 +594,16 @@ end;
 procedure TFormMain.MoveFilesToErrors(inputFileName: string);
 var fileDirectoryFrom, fileDirectoryTo: string;
     pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
-    i: integer;
 begin
   if System.SysUtils.DirectoryExists(DirectoryErrors) = False then
     System.SysUtils.ForceDirectories(DirectoryErrors);
 
   fileDirectoryFrom := DirectoryRoot + inputFileName;
-  fileDirectoryTo := DirectoryErrors + inputFileName;
   pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
 
-  i := 0;
-  while FileExists(fileDirectoryTo) do
-    begin
-      i := i+1;
-      if i = 1 then
-        begin
-          Insert(' (' + IntToStr(i) + ')', fileDirectoryTo, Length(fileDirectoryTo)-3);
-          pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-        end
-      else
-        begin
-          fileDirectoryTo := StringReplace(fileDirectoryTo, ' (' + IntToStr(i-1) + ')', ' (' + IntToStr(i) + ')', []);
-          pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-        end;
-    end;
+  fileDirectoryTo := DirectoryErrors + inputFileName;
+  fileDirectoryTo := ifFileExistsRename(fileDirectoryTo);
+  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
 
   MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
 
