@@ -3,8 +3,9 @@ unit uCryptoArmAutoprocessing;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.OleCtrls, MSScriptControl_TLB,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
+  System.StrUtils, System.Types,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.OleCtrls, MSScriptControl_TLB,
   Vcl.StdCtrls, ActiveX, System.Zip, Vcl.FileCtrl, System.Masks, DateUtils,
   Vcl.Buttons, Vcl.Samples.Spin, Vcl.ExtCtrls, frxClass, frxGradient,
   frxExportPDF;
@@ -54,7 +55,7 @@ type
   private
     { Private declarations }
   public
-    function SignatureVerify(inputFileName, inputFileNameSignature: string; out ResultDescription: string): integer;
+    function SignatureVerify(inputFileName, inputFileNameSignature: string; out arrayResultsDescription: TStringDynArray): TSmallIntDynArray;
     function SignatureInformation(InputFileNameSignature: string): string;
     function CertificateInformation(InputFileNameSignature: string): string;
     function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
@@ -83,8 +84,8 @@ type
     Size: string;
     SignatureInformation: string;
     CertificateInformation: string;
-    VerifyStatus: integer;
-    VerifyStatusDesctiption: string;
+    VerifyStatus: TSmallIntDynArray;
+    VerifyStatusDesctiption: TStringDynArray;
   end;
 
   TNotSignatureFile = class(TObject)
@@ -140,36 +141,7 @@ procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
     responceTextFile: TextFile;
     responceTextFileName: string;
-
-    a: array of variant;
-    b: array of string;
-    i: integer;
-    VArr, ResultFromVBS: Variant;
-    str: string;
-    FunctionParameters: PSafeArray;
 begin
-  {SetLength(a, 2);
-  a[0]:='Первый элемент';
-  a[1]:='Второй элемент';
-  SetLength(b, High(a)+1);
-  for i := 0 to High(a) do
-    b[i] := a[i];
-
-  MemoLog.Lines.Add(IntToStr(High(b)));
-  try
-    VArr:=VarArrayCreate([0, 0], varVariant);
-    VArr[0] := '1';
-
-    FunctionParameters := PSafeArray(TVarData(VArr).VArray);
-
-    ResultFromVBS := ScriptControlVB.Run('TestArray', FunctionParameters);
-
-    //memoLog.Lines.Add(ResultFromVBS);
-  except
-    on E: Exception do
-    MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
-  end;}
-
   ButtonManualProcessing.Enabled := False;
 
   DirectoryRoot := CorrectPath(EditPath.Text);
@@ -293,10 +265,10 @@ begin
 
       SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
 
-      SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
-      SignatureFiles[i].VerifyStatusDesctiption := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
+      //SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
+      //SignatureFiles[i].VerifyStatusDesctiption := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
 
-      if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
+      {if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
         begin
           frxReportTypeProtocol := frxReportProtocolConfirmed;
           ProtocolName := 'ProtocolConfirmed_';
@@ -305,7 +277,7 @@ begin
         begin
           frxReportTypeProtocol := frxReportProtocolNotConfirmed;
           ProtocolName := 'ProtocolNotConfirmed_';
-        end;
+        end;}
       frxNotSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileName'));
       frxNotSigFileName.Memo.Text := ExtractFileName(NotSignatureFile.Name);
       frxSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileName'));
@@ -325,8 +297,8 @@ begin
       frxCertInformation.Memo.Text := SignatureFiles[i].CertificateInformation;
 
       frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
-      frxSigStatus.Memo.Text := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
-      MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". Статус проверки: ' + SignatureFiles[i].VerifyStatusDesctiption + #13#10);
+      //frxSigStatus.Memo.Text := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
+      //MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". Статус проверки: ' + SignatureFiles[i].VerifyStatusDesctiption + #13#10);
 
       frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
       frxSigInformation.Memo.Text := SignatureFiles[i].SignatureInformation;
@@ -373,70 +345,78 @@ begin
     end;
 end;
 
-function TFormMain.SignatureVerify (inputFileName, inputFileNameSignature: string; out ResultDescription: string): integer;
-var VArr, ResultFromVBS: Variant;
-    FunctionParameters: PSafeArray;
+function TFormMain.SignatureVerify (inputFileName, inputFileNameSignature: string; out arrayResultsDescription: TStringDynArray): TSmallIntDynArray;
+var VArr, resultFromVBS: Variant;
+    functionParameters: PSafeArray;
+    arrayResults: TSmallIntDynArray;
+    arrayResultsD: TStringDynArray;
+    i: integer;
 begin
   try
     VArr:=VarArrayCreate([0, 1], varVariant);
     VArr[0] := inputFileName;
     VArr[1] := inputFileNameSignature;
 
-    FunctionParameters := PSafeArray(TVarData(VArr).VArray);
+    functionParameters := PSafeArray(TVarData(VArr).VArray);
 
-    ResultFromVBS := ScriptControlVB.Run('SignatureVerify', FunctionParameters);
-    case ResultFromVBS of
-      1 : ResultDescription := 'Успех';
-      3 : ResultDescription := 'Подпись некорректна или к ней нет доверия';
-    else ResultDescription := 'Статус не определён';
-    end;
-
+    resultFromVBS := ScriptControlVB.Run('SignatureVerify', functionParameters);
+    arrayResults := ResultFromVBS;
+    SetLength(arrayResultsD, Length(arrayResults));
+    For i := 0 to High(arrayResults) do
+      begin
+        case arrayResults[i] of
+          1 : arrayResultsD[i] := 'Успех';
+          3 : arrayResultsD[i] := 'Подпись некорректна или к ней нет доверия';
+        else arrayResultsD[i] := 'Статус не определён';
+        end;
+      end;
   except
     on E: Exception do
     MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
   end;
 
-  Result := ResultFromVBS;
+  result := arrayResults;
+  arrayResultsDescription := arrayResultsD;
 end;
 
 function TFormMain.SignatureInformation(InputFileNameSignature: string): string;
-var VArr, ResultFromVBS: Variant;
-    FunctionParameters: PSafeArray;
+var VArr, resultFromVBS: Variant;
+    functionParameters: PSafeArray;
 begin
   try
     VArr:=VarArrayCreate([0, 0], varVariant);
     VArr[0] := inputFileNameSignature;
 
-    FunctionParameters := PSafeArray(TVarData(VArr).VArray);
+    functionParameters := PSafeArray(TVarData(VArr).VArray);
 
-    ResultFromVBS := ScriptControlVB.Run('SignatureInformation', FunctionParameters);
+    resultFromVBS := ScriptControlVB.Run('SignatureInformation', FunctionParameters);
 
   except
     on E: Exception do
     MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
   end;
 
-  Result := ResultFromVBS;
+  result := resultFromVBS;
 end;
 
 function TFormMain.CertificateInformation(InputFileNameSignature: string): string;
-var VArr, ResultFromVBS: Variant;
-    FunctionParameters: PSafeArray;
+var VArr, resultFromVBS: Variant;
+    functionParameters: PSafeArray;
 begin
   try
     VArr:=VarArrayCreate([0, 0], varVariant);
     VArr[0] := inputFileNameSignature;
 
-    FunctionParameters := PSafeArray(TVarData(VArr).VArray);
+    functionParameters := PSafeArray(TVarData(VArr).VArray);
 
-    ResultFromVBS := ScriptControlVB.Run('CertificateInformation', FunctionParameters);
+    resultFromVBS := ScriptControlVB.Run('CertificateInformation', FunctionParameters);
 
   except
     on E: Exception do
     MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
   end;
 
-  Result := ResultFromVBS;
+  result := resultFromVBS;
 end;
 
 procedure TFormMain.SortErrorFiles;

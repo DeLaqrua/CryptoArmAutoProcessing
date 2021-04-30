@@ -43,11 +43,14 @@ Function SignatureVerify (ByVal InputFileName, ByVal InputFileNameSignature)
     oPKCS7Message.Load DT_SIGNED_DATA, InputFileNameSignature, InputFileName
     Set oSignatures = oPKCS7Message.Signatures
     Dim n : n = oSignatures.Count
+    Dim arrayResults()
+    Redim Preserve arrayResults(n-1)
     For  i=0 To n-1
         Set oSignature = oSignatures.Item(i)
         Status = oSignature.Verify (CERT_AND_SIGN)
-        SignatureVerify = Status 'Возвращаем результат проверки       
+        arrayResults(i) = Status
     Next
+    SignatureVerify = arrayResults 'Возвращаем результат проверки
 
     'Очищаем переменные
     Set oSignature = Nothing
@@ -63,6 +66,7 @@ Function SignatureInformation (ByVal InputFileNameSignature)
     For i=0 to n-1
         Set oSignature = oSignatures.Item(i)
 
+        SignatureInformation = SignatureInformation + "Подпись №" + CStr(i+1) + ":" + vbCrLf
         'Время подписи
         dim sSigningTime : sSigningTime = oSignature.SigningTime
         SignatureInformation = SignatureInformation + "Время подписи: " + CStr(sSigningTime) + vbCrLf
@@ -82,7 +86,7 @@ Function SignatureInformation (ByVal InputFileNameSignature)
         SignatureInformation = SignatureInformation + "Тип ЭЦП: " + sDetachedValue + vbCrLf
         'Номер версии протокола версии CMS
         Dim lCMSVersion : lCMSVersion = oSignature.CMSVersion
-        SignatureInformation = SignatureInformation + "Номер версии протокола CMS: " + CStr(lCMSVersion)
+        SignatureInformation = SignatureInformation + "Номер версии протокола CMS: " + CStr(lCMSVersion) + vbCrLf + vbCrLf
     Next
 
     'Очищаем переменные
@@ -102,12 +106,13 @@ Function CertificateInformation (ByVal InputFileNameSignature)
         'Получаем указатель на сертификат подписи
         Set oCertificate = oSignature.Certificate
 
+        CertificateInformation = CertificateInformation + "Сертификат №" + CStr(i+1) + ":" + vbCrLf + vbCrLf
         'Свойства сертификата
-        CertificateInformation =                          "Серийный номер сертификата: " + CStr(oCertificate.SerialNumber) + vbCrLf + vbCrLf
+        CertificateInformation = CertificateInformation + "Серийный номер сертификата: " + CStr(oCertificate.SerialNumber) + vbCrLf + vbCrLf
         CertificateInformation = CertificateInformation + "Выдан УЦ: " + CStr(oCertificate.IssuerName) + vbCrLf + vbCrLf
         CertificateInformation = CertificateInformation + "Владелец сертификата: " + CStr(oCertificate.SubjectName) + vbCrLf + vbCrLf
-        CertificateInformation = CertificateInformation + "Действует с: " + CStr(oCertificate.ValidFrom) + vbCrLf + vbCrLf
-        CertificateInformation = CertificateInformation + "Действует по: " + CStr(oCertificate.ValidTo)
+        CertificateInformation = CertificateInformation + "Действует с: " + CStr(oCertificate.ValidFrom) + vbCrLf
+        CertificateInformation = CertificateInformation + "Действует по: " + CStr(oCertificate.ValidTo) + vbCrLf + vbCrLf
     Next
 
     'Очищаем переменные
@@ -170,15 +175,4 @@ Function CertificateVerify (ByVal InputFileNameSignature)
     Set oSignature = Nothing
     Set oSignatures = Nothing
     Set oPKCS7Message = Nothing
-End Function
-
-Function TestArray(hz)
-dim arr()
-
-Redim Preserve arr(2)
-arr(0) = "Первый элемент массива"
-arr(1) = "Второй элемент массива"
-arr(2) = "Третий элемент массива"
-
-TestArray = Array(arr)
 End Function
