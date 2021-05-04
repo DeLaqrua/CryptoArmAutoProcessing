@@ -816,7 +816,7 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44312.586743252300000000
+    ReportOptions.LastChange = 44320.378244490740000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -8467,24 +8467,9 @@ object FormMain: TFormMain
         ShowHint = False
         StretchMode = smActualHeight
       end
-      object MemoNotConfirmed: TfrxMemoView
-        Left = 94.488250000000000000
-        Top = 510.236550000000000000
-        Width = 188.976500000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clGreen
-        Font.Height = -13
-        Font.Name = 'Arial'
-        Font.Style = [fsBold]
-        Memo.UTF8W = (
-          #1055#1054#1044#1055#1048#1057#1068' '#1055#1054#1044#1058#1042#1045#1056#1046#1044#1045#1053#1040)
-        ParentFont = False
-      end
       object MemoSignatureInformation: TfrxMemoView
         Left = 94.488250000000000000
-        Top = 532.913730000000000000
+        Top = 510.236550000000000000
         Width = 612.283860000000000000
         Height = 22.677180000000000000
         ShowHint = False
@@ -8497,7 +8482,7 @@ object FormMain: TFormMain
         Height = 18.897650000000000000
         ShowHint = False
         Font.Charset = DEFAULT_CHARSET
-        Font.Color = 52376
+        Font.Color = clGreen
         Font.Height = -13
         Font.Name = 'Arial'
         Font.Style = []
@@ -8529,7 +8514,7 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44312.587129571800000000
+    ReportOptions.LastChange = 44320.378744884260000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -16144,24 +16129,9 @@ object FormMain: TFormMain
         ShowHint = False
         StretchMode = smActualHeight
       end
-      object MemoNotConfirmed: TfrxMemoView
-        Left = 94.488250000000000000
-        Top = 510.236550000000000000
-        Width = 211.653680000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clRed
-        Font.Height = -13
-        Font.Name = 'Arial'
-        Font.Style = [fsBold]
-        Memo.UTF8W = (
-          #1055#1054#1044#1055#1048#1057#1068' '#1053#1045' '#1055#1054#1044#1058#1042#1045#1056#1046#1044#1045#1053#1040)
-        ParentFont = False
-      end
       object MemoSignatureInformation: TfrxMemoView
         Left = 94.488250000000000000
-        Top = 532.913730000000000000
+        Top = 510.236550000000000000
         Width = 612.283860000000000000
         Height = 22.677180000000000000
         ShowHint = False

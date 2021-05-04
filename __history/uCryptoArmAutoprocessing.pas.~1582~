@@ -55,7 +55,7 @@ type
   private
     { Private declarations }
   public
-    function SignatureVerify(inputFileName, inputFileNameSignature: string; out arrayResultsDescription: array of string): TSmallIntDynArray;
+    function SignatureVerify(inputFileName, inputFileNameSignature: string; out arrayResultsDescription: TStringDynArray): TSmallIntDynArray;
     function SignatureInformation(InputFileNameSignature: string): string;
     function CertificateInformation(InputFileNameSignature: string): string;
     function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
@@ -85,7 +85,7 @@ type
     SignatureInformation: string;
     CertificateInformation: string;
     VerifyStatus: TSmallIntDynArray;
-    VerifyStatusDesctiption: array of string;
+    VerifyStatusDesctiption: TStringDynArray;
   end;
 
   TNotSignatureFile = class(TObject)
@@ -141,36 +141,8 @@ procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
     responceTextFile: TextFile;
     responceTextFileName: string;
-
-    a: array of variant;
-    b: array of string;
-    i: integer;
-    VArr, resultFromVBS: Variant;
-    str: string;
-    FunctionParameters: PSafeArray;
-
-    ArrayDyn: TSmallIntDynArray;
 begin
-  try
-    VArr:=VarArrayCreate([0, 1], varVariant);
-    VArr[0] := 'E:\Proba\AutoProcessingFiles\SH_830012_83001.xls';
-    VArr[1] := 'E:\Proba\AutoProcessingFiles\SH_830012_83001.xls.sig';
-
-    FunctionParameters := PSafeArray(TVarData(VArr).VArray);
-
-    resultFromVBS := ScriptControlVB.Run('SignatureVerify', FunctionParameters);
-    ArrayDyn := resultFromVBS;
-    memoLog.Lines.Add('Длина ' + IntToStr(Length(ArrayDyn)));
-    memoLog.Lines.Add('Первый ' + IntToStr(ArrayDyn[0]));
-    memoLog.Lines.Add('Второй ' + IntToStr(ArrayDyn[1]));
-    memoLog.Lines.Add('Самый большой элемент в массиве ' + IntToStr(High(ArrayDyn)));
-
-  except
-    on E: Exception do
-    MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
-  end;
-
-{  ButtonManualProcessing.Enabled := False;
+  ButtonManualProcessing.Enabled := False;
 
   DirectoryRoot := CorrectPath(EditPath.Text);
   if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
@@ -206,7 +178,7 @@ begin
 
     end;
 
-  ButtonManualProcessing.Enabled := True;}
+  ButtonManualProcessing.Enabled := True;
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -255,7 +227,7 @@ var SignatureFiles: array of TSignatureFile;
     NotSigFileDateTime, SigFileDateTime: TDateTime;
     NotSigFile, SigFile: File of Byte;
 
-    i: integer;
+    i, j, counterCorrectStatus: integer;
 
     frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
     frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
@@ -293,10 +265,28 @@ begin
 
       SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
 
-      //SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
-      //SignatureFiles[i].VerifyStatusDesctiption := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
+      SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
+      For j := 0 to High(SignatureFiles[i].VerifyStatusDesctiption) do
+        begin
+          SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j) + ': '
+                                                          + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
+                                                          + 'ПОДПИСЬ ПОДТВЕРЖДЕНА' + #13#10;
+        end;
 
-      if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
+      counterCorrectStatus := 0;
+      For j := 0 to High(SignatureFiles[i].VerifyStatus) do
+        begin
+          if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
+            begin
+              counterCorrectStatus := counterCorrectStatus + 1;
+            end
+          else
+            begin
+
+            end;
+        end;
+          
+      {if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
         begin
           frxReportTypeProtocol := frxReportProtocolConfirmed;
           ProtocolName := 'ProtocolConfirmed_';
@@ -305,7 +295,7 @@ begin
         begin
           frxReportTypeProtocol := frxReportProtocolNotConfirmed;
           ProtocolName := 'ProtocolNotConfirmed_';
-        end;
+        end;}
       frxNotSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileName'));
       frxNotSigFileName.Memo.Text := ExtractFileName(NotSignatureFile.Name);
       frxSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileName'));
@@ -325,14 +315,13 @@ begin
       frxCertInformation.Memo.Text := SignatureFiles[i].CertificateInformation;
 
       frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
-      frxSigStatus.Memo.Text := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
-      MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". Статус проверки: ' + SignatureFiles[i].VerifyStatusDesctiption + #13#10);
+      //frxSigStatus.Memo.Text := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
+      //MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". Статус проверки: ' + SignatureFiles[i].VerifyStatusDesctiption + #13#10);
 
       frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
       frxSigInformation.Memo.Text := SignatureFiles[i].SignatureInformation;
 
       frxReportTypeProtocol.PrepareReport(true);
-      frxPDFexportProtocol.PageNumbers := '1';
       frxPDFexportProtocol.Compressed := True;
       frxPDFexportProtocol.Background := True;
       frxPDFexportProtocol.PrintOptimized := False;
@@ -351,32 +340,11 @@ begin
 
 end;
 
-function TFormMain.ifFileExistsRename(inputFileName: string): string;
-var counterName: integer;
-begin
-  result := inputFileName;
-
-  counterName := 0;
-  while FileExists(inputFileName) do
-    begin
-      counterName := counterName + 1;
-      if counterName = 1 then
-        begin
-          Insert(' (' + IntToStr(counterName) + ')', inputFileName, Length(inputFileName)-3);
-          result := inputFileName;
-        end
-      else
-        begin
-          inputFileName := StringReplace(inputFileName, ' (' + IntToStr(counterName-1) + ')', ' (' + IntToStr(counterName) + ')', []);
-          result := inputFileName;
-        end;
-    end;
-end;
-
-function TFormMain.SignatureVerify (inputFileName, inputFileNameSignature: string; out arrayResultsDescription: string): TSmallIntDynArray;
+function TFormMain.SignatureVerify (inputFileName, inputFileNameSignature: string; out arrayResultsDescription: TStringDynArray): TSmallIntDynArray;
 var VArr, resultFromVBS: Variant;
     functionParameters: PSafeArray;
     arrayResults: TSmallIntDynArray;
+    arrayResultsD: TStringDynArray;
     i: integer;
 begin
   try
@@ -388,13 +356,13 @@ begin
 
     resultFromVBS := ScriptControlVB.Run('SignatureVerify', functionParameters);
     arrayResults := ResultFromVBS;
-    SetLength(arrayResultsDescription, Length(arrayResults));
+    SetLength(arrayResultsD, Length(arrayResults));
     For i := 0 to High(arrayResults) do
       begin
         case arrayResults[i] of
-          1 : arrayResultsDescription[i] := 'Успех';
-          3 : arrayResultsDescription[i] := 'Подпись некорректна или к ней нет доверия';
-        else arrayResultsDescription[i] := 'Статус не определён';
+          1 : arrayResultsD[i] := 'Успех';
+          3 : arrayResultsD[i] := 'Подпись некорректна или к ней нет доверия';
+        else arrayResultsD[i] := 'Статус не определён';
         end;
       end;
   except
@@ -403,6 +371,7 @@ begin
   end;
 
   result := arrayResults;
+  arrayResultsDescription := arrayResultsD;
 end;
 
 function TFormMain.SignatureInformation(InputFileNameSignature: string): string;
@@ -462,6 +431,28 @@ begin
           end;
       until FindNext(SearchResult) <> 0;
       FindClose(SearchResult);
+    end;
+end;
+
+function TFormMain.ifFileExistsRename(inputFileName: string): string;
+var counterName: integer;
+begin
+  result := inputFileName;
+
+  counterName := 0;
+  while FileExists(inputFileName) do
+    begin
+      counterName := counterName + 1;
+      if counterName = 1 then
+        begin
+          Insert(' (' + IntToStr(counterName) + ')', inputFileName, Length(inputFileName)-3);
+          result := inputFileName;
+        end
+      else
+        begin
+          inputFileName := StringReplace(inputFileName, ' (' + IntToStr(counterName-1) + ')', ' (' + IntToStr(counterName) + ')', []);
+          result := inputFileName;
+        end;
     end;
 end;
 

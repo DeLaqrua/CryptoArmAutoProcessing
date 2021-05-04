@@ -16230,6 +16230,27 @@ object FormMain: TFormMain
     PrintScaling = False
     CheckboxAsShape = False
     Left = 672
-    Top = 216
+    Top = 208
+  end
+  object frxReportTypeProtocol: TfrxReport
+    Version = '4.15.11'
+    DotMatrixReport = False
+    IniFile = '\Software\Fast Reports'
+    PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick]
+    PreviewOptions.Zoom = 1.000000000000000000
+    PrintOptions.Printer = 'Default'
+    PrintOptions.PrintOnSheet = 0
+    ReportOptions.CreateDate = 44314.717068611110000000
+    ReportOptions.LastChange = 44314.717068611110000000
+    ScriptLanguage = 'PascalScript'
+    ScriptText.Strings = (
+      'begin'
+      ''
+      'end.')
+    Left = 672
+    Top = 264
+    Datasets = <>
+    Variables = <>
+    Style = <>
   end
 end
