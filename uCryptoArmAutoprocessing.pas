@@ -327,12 +327,12 @@ begin
           if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
             begin
               frxSigStatus.Font.Color := clGreen;
-              frxSigStatus.Memo.Add := SignatureFiles[i].VerifyStatusDesctiption[j];
+              frxSigStatus.Memo.Add(SignatureFiles[i].VerifyStatusDesctiption[j]);
             end
           else
             begin
               frxSigStatus.Font.Color :=clRed;
-              frxSigStatus.Memo.Add := SignatureFiles[i].VerifyStatusDesctiption[j];
+              frxSigStatus.Memo.Add(SignatureFiles[i].VerifyStatusDesctiption[j]);
             end;
         end;
       MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + #13#10);

@@ -816,7 +816,7 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44320.454609155100000000
+    ReportOptions.LastChange = 44320.562272500000000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -7786,211 +7786,233 @@ object FormMain: TFormMain
         A497CAA924A7EAA497CAA924A7EAA497CAA924A7EAA497CAA924A7EAA497CAA9
         24A7EAA497CAA924A7EAA497CAA924A7EAA497CAA924A7EAA497CAA924A7EAA4
         97CAA924A7EAA497CAA924A7EAA497CAA924A7FFD9}
-      object GradientBackground: TfrxGradientView
-        Left = 94.488250000000000000
-        Top = 438.425480000000000000
-        Width = 623.622450000000000000
-        Height = 514.016080000000000000
-        ShowHint = False
-        EndColor = clSilver
-        Style = gsHorizontal
-        Color = 14737632
+      object ReportTitleProtocol: TfrxReportTitle
+        Height = 192.756030000000000000
+        Top = 18.897650000000000000
+        Width = 718.110700000000000000
+        object SysMemoDate: TfrxSysMemoView
+          Left = 411.968770000000000000
+          Top = 94.488250000000000000
+          Width = 71.811070000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+          Memo.UTF8W = (
+            '[DATE]')
+        end
+        object SysMemoTime: TfrxSysMemoView
+          Left = 483.779840000000000000
+          Top = 94.488250000000000000
+          Width = 94.488250000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+          Memo.UTF8W = (
+            '[TIME]')
+        end
+        object MemoProtocolCreate: TfrxMemoView
+          Left = 291.023810000000000000
+          Top = 94.488250000000000000
+          Width = 113.385900000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+          Memo.UTF8W = (
+            #1055#1088#1086#1090#1086#1082#1086#1083' '#1089#1086#1079#1076#1072#1085':')
+        end
+        object MemoTitle: TfrxMemoView
+          Left = 262.677335000000000000
+          Top = 34.015770000000010000
+          Width = 302.362400000000000000
+          Height = 41.574830000000000000
+          ShowHint = False
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -19
+          Font.Name = 'Arial'
+          Font.Style = []
+          HAlign = haCenter
+          Memo.UTF8W = (
+            #1055#1056#1054#1058#1054#1050#1054#1051' '#1055#1056#1054#1042#1045#1056#1050#1048
+            #1069#1051#1045#1050#1058#1056#1054#1053#1053#1054#1049' '#1055#1054#1044#1055#1048#1057#1048)
+          ParentFont = False
+        end
       end
-      object SysMemoDate: TfrxSysMemoView
-        Left = 411.968770000000000000
-        Top = 113.385900000000000000
-        Width = 68.031540000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-        Memo.UTF8W = (
-          '[DATE]')
+      object PageHeaderProtocol: TfrxPageHeader
+        Height = 90.708720000000000000
+        Top = 234.330860000000000000
+        Width = 718.110700000000000000
+        object MemoNotSigFile: TfrxMemoView
+          Left = 86.929190000000000000
+          Top = 3.779529999999994000
+          Width = 139.842610000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsItalic]
+          Memo.UTF8W = (
+            #1048#1089#1093#1086#1076#1085#1099#1081' '#1076#1086#1082#1091#1084#1077#1085#1090':')
+          ParentFont = False
+        end
+        object MemoNotSigFileName: TfrxMemoView
+          Left = 86.929190000000000000
+          Top = 26.456710000000020000
+          Width = 313.700990000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+        end
+        object MemoNotSigFileDateCreate: TfrxMemoView
+          Left = 136.063080000000000000
+          Top = 45.354360000000130000
+          Width = 264.567100000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+        end
+        object MemoNotSigFileCreate: TfrxMemoView
+          Left = 86.929190000000000000
+          Top = 45.354360000000130000
+          Width = 49.133890000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+          Memo.UTF8W = (
+            #1057#1086#1079#1076#1072#1085)
+        end
+        object MemoNotSigSize: TfrxMemoView
+          Left = 86.929190000000000000
+          Top = 64.252010000000130000
+          Width = 52.913420000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+          Memo.UTF8W = (
+            #1056#1072#1079#1084#1077#1088)
+        end
+        object MemoNotSigFileSize: TfrxMemoView
+          Left = 139.842610000000000000
+          Top = 64.252010000000130000
+          Width = 260.787570000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+        end
+        object MemoSigFile: TfrxMemoView
+          Left = 408.189240000000000000
+          Top = 3.779529999999994000
+          Width = 139.842610000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsItalic]
+          Memo.UTF8W = (
+            #1060#1072#1081#1083' '#1087#1086#1076#1087#1080#1089#1080':')
+          ParentFont = False
+        end
+        object MemoSigFileName: TfrxMemoView
+          Left = 408.189240000000000000
+          Top = 26.456710000000020000
+          Width = 309.921460000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+        end
+        object MemoSigFileDateCreate: TfrxMemoView
+          Left = 457.323130000000000000
+          Top = 45.354360000000130000
+          Width = 260.787570000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+        end
+        object MemoSigFileCreate: TfrxMemoView
+          Left = 408.189240000000000000
+          Top = 45.354360000000130000
+          Width = 49.133890000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+          Memo.UTF8W = (
+            #1057#1086#1079#1076#1072#1085)
+        end
+        object MemoSigSize: TfrxMemoView
+          Left = 408.189240000000000000
+          Top = 64.252010000000130000
+          Width = 52.913420000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+          Memo.UTF8W = (
+            #1056#1072#1079#1084#1077#1088)
+        end
+        object MemoSigFileSize: TfrxMemoView
+          Left = 461.102660000000000000
+          Top = 64.252010000000130000
+          Width = 257.008040000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+        end
       end
-      object SysMemoTime: TfrxSysMemoView
-        Left = 480.000310000000000000
-        Top = 113.385900000000000000
-        Width = 94.488250000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-        Memo.UTF8W = (
-          '[TIME]')
+      object MasterDataProtocol: TfrxMasterData
+        Height = 582.047620000000000000
+        Top = 385.512060000000000000
+        Width = 718.110700000000000000
+        RowCount = 1
+        StartNewPage = True
+        Stretched = True
+        object GradientBackground: TfrxGradientView
+          Left = 94.488250000000000000
+          Top = 68.031539999999900000
+          Width = 623.622450000000000000
+          Height = 514.016080000000000000
+          ShowHint = False
+          EndColor = clSilver
+          Style = gsHorizontal
+          Color = 14737632
+        end
+        object MemoCertificateInformation: TfrxMemoView
+          Left = 94.488250000000000000
+          Top = 79.370129999999900000
+          Width = 612.283860000000000000
+          Height = 22.677180000000000000
+          ShowHint = False
+          StretchMode = smActualHeight
+        end
+        object MemoSignatureInformation: TfrxMemoView
+          Left = 94.488250000000000000
+          Top = 139.842610000000000000
+          Width = 612.283860000000000000
+          Height = 22.677180000000000000
+          ShowHint = False
+          StretchMode = smActualHeight
+        end
+        object MemoSignatureStatus: TfrxMemoView
+          Left = 94.488250000000000000
+          Top = 117.165430000000000000
+          Width = 612.283860000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clGreen
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+        end
       end
-      object MemoProtocolCreate: TfrxMemoView
-        Left = 291.023810000000000000
-        Top = 113.385900000000000000
-        Width = 113.385900000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-        Memo.UTF8W = (
-          #1055#1088#1086#1090#1086#1082#1086#1083' '#1089#1086#1079#1076#1072#1085':')
-      end
-      object MemoNotSigFile: TfrxMemoView
-        Left = 86.929190000000000000
-        Top = 204.094620000000000000
-        Width = 139.842610000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -13
-        Font.Name = 'Arial'
-        Font.Style = [fsItalic]
-        Memo.UTF8W = (
-          #1048#1089#1093#1086#1076#1085#1099#1081' '#1076#1086#1082#1091#1084#1077#1085#1090':')
-        ParentFont = False
-      end
-      object MemoNotSigFileName: TfrxMemoView
-        Left = 86.929190000000000000
-        Top = 226.771800000000000000
-        Width = 313.700990000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-      end
-      object MemoNotSigFileDateCreate: TfrxMemoView
-        Left = 136.063080000000000000
-        Top = 245.669450000000000000
-        Width = 264.567100000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-      end
-      object MemoNotSigFileCreate: TfrxMemoView
-        Left = 86.929190000000000000
-        Top = 245.669450000000000000
-        Width = 49.133890000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-        Memo.UTF8W = (
-          #1057#1086#1079#1076#1072#1085)
-      end
-      object MemoNotSigSize: TfrxMemoView
-        Left = 86.929190000000000000
-        Top = 264.567100000000000000
-        Width = 52.913420000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-        Memo.UTF8W = (
-          #1056#1072#1079#1084#1077#1088)
-      end
-      object MemoNotSigFileSize: TfrxMemoView
-        Left = 139.842610000000000000
-        Top = 264.567100000000000000
-        Width = 260.787570000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-      end
-      object MemoSigFile: TfrxMemoView
-        Left = 408.189240000000000000
-        Top = 204.094620000000000000
-        Width = 139.842610000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -13
-        Font.Name = 'Arial'
-        Font.Style = [fsItalic]
-        Memo.UTF8W = (
-          #1060#1072#1081#1083' '#1087#1086#1076#1087#1080#1089#1080':')
-        ParentFont = False
-      end
-      object MemoSigFileName: TfrxMemoView
-        Left = 408.189240000000000000
-        Top = 226.771800000000000000
-        Width = 309.921460000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-      end
-      object MemoSigFileDateCreate: TfrxMemoView
-        Left = 457.323130000000000000
-        Top = 245.669450000000000000
-        Width = 260.787570000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-      end
-      object MemoSigFileCreate: TfrxMemoView
-        Left = 408.189240000000000000
-        Top = 245.669450000000000000
-        Width = 49.133890000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-        Memo.UTF8W = (
-          #1057#1086#1079#1076#1072#1085)
-      end
-      object MemoSigSize: TfrxMemoView
-        Left = 408.189240000000000000
-        Top = 264.567100000000000000
-        Width = 52.913420000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-        Memo.UTF8W = (
-          #1056#1072#1079#1084#1077#1088)
-      end
-      object MemoSigFileSize: TfrxMemoView
-        Left = 461.102660000000000000
-        Top = 264.567100000000000000
-        Width = 257.008040000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-      end
-      object MemoCertificateInformation: TfrxMemoView
-        Left = 94.488250000000000000
-        Top = 449.764070000000000000
-        Width = 612.283860000000000000
+      object PageFooterProtocol: TfrxPageFooter
         Height = 22.677180000000000000
-        ShowHint = False
-        StretchMode = smActualHeight
-      end
-      object MemoSignatureInformation: TfrxMemoView
-        Left = 94.488250000000000000
-        Top = 510.236550000000000000
-        Width = 612.283860000000000000
-        Height = 22.677180000000000000
-        ShowHint = False
-        StretchMode = smActualHeight
-      end
-      object MemoSignatureStatus: TfrxMemoView
-        Left = 94.488250000000000000
-        Top = 487.559370000000000000
-        Width = 612.283860000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clGreen
-        Font.Height = -13
-        Font.Name = 'Arial'
-        Font.Style = []
-        ParentFont = False
-      end
-      object MemoCopyright: TfrxMemoView
-        Left = 94.488250000000000000
-        Top = 990.236860000000000000
-        Width = 317.480520000000000000
-        Height = 18.897650000000000000
-        ShowHint = False
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clGray
-        Font.Height = -11
-        Font.Name = 'Arial'
-        Font.Style = []
-        Memo.UTF8W = (
-          #1055#1088#1086#1090#1086#1082#1086#1083' '#1089#1086#1079#1076#1072#1085' '#1089#1088#1077#1076#1089#1090#1074#1072#1084#1080' '#1087#1088#1086#1075#1088#1072#1084#1084#1099' '#1050#1088#1080#1087#1090#1086#1040#1056#1052' v.5.4.4.4')
-        ParentFont = False
-      end
-      object MemoTitle: TfrxMemoView
-        Left = 262.677335000000000000
-        Top = 52.913420000000000000
-        Width = 302.362400000000000000
-        Height = 41.574830000000000000
-        ShowHint = False
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -19
-        Font.Name = 'Arial'
-        Font.Style = []
-        HAlign = haCenter
-        Memo.UTF8W = (
-          #1055#1056#1054#1058#1054#1050#1054#1051' '#1055#1056#1054#1042#1045#1056#1050#1048
-          #1069#1051#1045#1050#1058#1056#1054#1053#1053#1054#1049' '#1055#1054#1044#1055#1048#1057#1048)
-        ParentFont = False
+        Top = 1028.032160000000000000
+        Width = 718.110700000000000000
+        object MemoCopyright: TfrxMemoView
+          Left = 94.488250000000000000
+          Width = 317.480520000000000000
+          Height = 18.897650000000000000
+          ShowHint = False
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clGray
+          Font.Height = -11
+          Font.Name = 'Arial'
+          Font.Style = []
+          Memo.UTF8W = (
+            #1055#1088#1086#1090#1086#1082#1086#1083' '#1089#1086#1079#1076#1072#1085' '#1089#1088#1077#1076#1089#1090#1074#1072#1084#1080' '#1087#1088#1086#1075#1088#1072#1084#1084#1099' '#1050#1088#1080#1087#1090#1086#1040#1056#1052' v.5.4.4.4')
+          ParentFont = False
+        end
       end
     end
   end
