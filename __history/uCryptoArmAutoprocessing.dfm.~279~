@@ -816,7 +816,7 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44321.386738703700000000
+    ReportOptions.LastChange = 44321.580203217590000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -7206,7 +7206,7 @@ object FormMain: TFormMain
         Width = 718.110700000000000000
         object SysMemoDate: TfrxSysMemoView
           Left = 411.968770000000000000
-          Top = 94.488249999999990000
+          Top = 94.488250000000000000
           Width = 71.811070000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -7215,7 +7215,7 @@ object FormMain: TFormMain
         end
         object SysMemoTime: TfrxSysMemoView
           Left = 483.779840000000000000
-          Top = 94.488249999999990000
+          Top = 94.488250000000000000
           Width = 94.488250000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -7224,7 +7224,7 @@ object FormMain: TFormMain
         end
         object MemoProtocolCreate: TfrxMemoView
           Left = 291.023810000000000000
-          Top = 94.488249999999990000
+          Top = 94.488250000000000000
           Width = 113.385900000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -7233,7 +7233,7 @@ object FormMain: TFormMain
         end
         object MemoTitle: TfrxMemoView
           Left = 262.677335000000000000
-          Top = 34.015770000000000000
+          Top = 34.015770000000010000
           Width = 302.362400000000000000
           Height = 41.574830000000000000
           ShowHint = False
@@ -8252,21 +8252,12 @@ object FormMain: TFormMain
         end
       end
       object MasterDataProtocol: TfrxMasterData
-        Height = 582.047620000000000000
+        Height = 540.472790000000000000
         Top = 419.527830000000000000
         Width = 718.110700000000000000
         RowCount = 1
         StartNewPage = True
         Stretched = True
-        object GradientBackground: TfrxGradientView
-          Left = 94.488250000000000000
-          Width = 623.622450000000000000
-          Height = 582.047620000000000000
-          ShowHint = False
-          EndColor = clSilver
-          Style = gsHorizontal
-          Color = 14737632
-        end
         object MemoCertificateInformation: TfrxMemoView
           Left = 94.488250000000000000
           Top = 7.559059999999988000
@@ -8276,18 +8267,18 @@ object FormMain: TFormMain
           StretchMode = smActualHeight
         end
         object MemoSignatureInformation: TfrxMemoView
-          Left = 94.488249999999990000
-          Top = 98.267780000000020000
+          Left = 94.488250000000000000
+          Top = 64.252009999999990000
           Width = 612.283860000000000000
           Height = 22.677180000000000000
           ShowHint = False
           StretchMode = smActualHeight
         end
         object MemoSignatureStatus: TfrxMemoView
-          Left = 94.488249999999990000
-          Top = 41.574830000000020000
+          Left = 94.488250000000000000
+          Top = 30.236240000000010000
           Width = 612.283860000000000000
-          Height = 52.913420000000000000
+          Height = 22.677180000000000000
           ShowHint = False
           StretchMode = smActualHeight
           Font.Charset = DEFAULT_CHARSET
@@ -8300,7 +8291,7 @@ object FormMain: TFormMain
       end
       object PageFooterProtocol: TfrxPageFooter
         Height = 22.677180000000000000
-        Top = 1062.047930000000000000
+        Top = 1020.473100000000000000
         Width = 718.110700000000000000
         object MemoCopyright: TfrxMemoView
           Left = 94.488250000000000000
@@ -15499,7 +15490,7 @@ object FormMain: TFormMain
     CenterWindow = False
     PrintScaling = False
     CheckboxAsShape = False
-    Left = 672
+    Left = 656
     Top = 208
   end
   object frxReportTypeProtocol: TfrxReport
@@ -15517,10 +15508,14 @@ object FormMain: TFormMain
       'begin'
       ''
       'end.')
-    Left = 672
+    Left = 656
     Top = 264
     Datasets = <>
     Variables = <>
     Style = <>
+  end
+  object frxGradientObjectBackground: TfrxGradientObject
+    Left = 656
+    Top = 320
   end
 end

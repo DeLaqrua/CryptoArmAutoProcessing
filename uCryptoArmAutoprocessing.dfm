@@ -808,6 +808,7 @@ object FormMain: TFormMain
     OnKeyPress = SpinEditSecKeyPress
   end
   object frxReportProtocolConfirmed: TfrxReport
+    Tag = 21650
     Version = '4.15.11'
     DotMatrixReport = False
     IniFile = '\Software\Fast Reports'
@@ -816,12 +817,13 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44321.453848368060000000
+    ReportOptions.LastChange = 44321.582808032400000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
       ''
       'end.')
+    OnReportPrint = 'frxReportAbstractOnReportPrint'
     Left = 80
     Top = 208
     Datasets = <>
@@ -8255,17 +8257,9 @@ object FormMain: TFormMain
         Height = 540.472790000000000000
         Top = 419.527830000000000000
         Width = 718.110700000000000000
+        AllowSplit = True
         RowCount = 1
         Stretched = True
-        object GradientBackground: TfrxGradientView
-          Left = 64.252010000000000000
-          Width = 653.858690000000000000
-          Height = 540.472790000000000000
-          ShowHint = False
-          EndColor = clSilver
-          Style = gsHorizontal
-          Color = 14737632
-        end
         object MemoCertificateInformation: TfrxMemoView
           Left = 94.488250000000000000
           Top = 7.559059999999988000
