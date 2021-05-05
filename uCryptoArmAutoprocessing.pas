@@ -269,7 +269,7 @@ begin
       For j := 0 to High(SignatureFiles[i].VerifyStatusDesctiption) do
         begin
           if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
-            SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j) + ': '
+            SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
                                                           + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
                                                           + 'ПОДПИСЬ ПОДТВЕРЖДЕНА' + #13#10
           else
@@ -335,7 +335,7 @@ begin
               frxSigStatus.Memo.Add(SignatureFiles[i].VerifyStatusDesctiption[j]);
             end;
         end;
-      MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + #13#10);
+      MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '"' + #13#10);
 
       frxReportTypeProtocol.PrepareReport(true);
       frxPDFexportProtocol.Compressed := True;
