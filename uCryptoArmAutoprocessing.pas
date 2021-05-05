@@ -328,6 +328,7 @@ begin
       frxSigInformation.Memo.Text := SignatureFiles[i].SignatureInformation;
 
       frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
+      frxSigStatus.Memo.Text := '';
       For j := 0 to High(SignatureFiles[i].VerifyStatus) do
         begin
           if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
