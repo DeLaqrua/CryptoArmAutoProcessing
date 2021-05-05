@@ -233,7 +233,7 @@ var SignatureFiles: array of TSignatureFile;
     frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
     frxSigStatus, frxSigInformation, frxCertInformation: TfrxMemoView;
 
-    ProtocolName: string;
+    protocolName: string;
 begin
   NotSignatureFile := TNotSignatureFile.Create;
   NotSignatureFile.Name := directoryFiles + inputFileName;
@@ -268,21 +268,38 @@ begin
       SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
       For j := 0 to High(SignatureFiles[i].VerifyStatusDesctiption) do
         begin
-          SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j) + ': '
+          if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
+            SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
                                                           + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
-                                                          + 'ПОДПИСЬ ПОДТВЕРЖДЕНА' + #13#10;
+                                                          + 'ПОДПИСЬ ПОДТВЕРЖДЕНА' + #13#10
+          else
+            SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j) + ': '
+                                                          + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
+                                                          + 'ПОДПИСЬ НЕ ПОДТВЕРЖДЕНА' + #13#10
         end;
 
-      {if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
+      //Если внутри файла *.sig попадётся хотя бы одна некорректная подпись,
+      //то используется шаблон протокола для неподтверждённых подписей
+      counterCorrectStatus := 0;
+      For j := 0 to High(SignatureFiles[i].VerifyStatus) do
+        begin
+          if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
+            begin
+              counterCorrectStatus := counterCorrectStatus + 1;
+            end
+          else
+            begin
+              frxReportTypeProtocol := frxReportProtocolNotConfirmed;
+              protocolName := 'ProtocolNotConfirmed_';
+              Break;
+            end;
+        end;
+      if counterCorrectStatus = Length(SignatureFiles[i].VerifyStatus) then
         begin
           frxReportTypeProtocol := frxReportProtocolConfirmed;
-          ProtocolName := 'ProtocolConfirmed_';
-        end
-      else
-        begin
-          frxReportTypeProtocol := frxReportProtocolNotConfirmed;
-          ProtocolName := 'ProtocolNotConfirmed_';
-        end;}
+          protocolName := 'ProtocolConfirmed_';
+        end;
+
       frxNotSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileName'));
       frxNotSigFileName.Memo.Text := ExtractFileName(NotSignatureFile.Name);
       frxSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileName'));
@@ -301,12 +318,24 @@ begin
       frxCertInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoCertificateInformation'));
       frxCertInformation.Memo.Text := SignatureFiles[i].CertificateInformation;
 
-      frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
-      //frxSigStatus.Memo.Text := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
-      //MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". Статус проверки: ' + SignatureFiles[i].VerifyStatusDesctiption + #13#10);
-
       frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
       frxSigInformation.Memo.Text := SignatureFiles[i].SignatureInformation;
+
+      frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
+      For j := 0 to High(SignatureFiles[i].VerifyStatus) do
+        begin
+          if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
+            begin
+              frxSigStatus.Font.Color := clGreen;
+              frxSigStatus.Memo.Add(SignatureFiles[i].VerifyStatusDesctiption[j]);
+            end
+          else
+            begin
+              frxSigStatus.Font.Color :=clRed;
+              frxSigStatus.Memo.Add(SignatureFiles[i].VerifyStatusDesctiption[j]);
+            end;
+        end;
+      MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '"' + #13#10);
 
       frxReportTypeProtocol.PrepareReport(true);
       frxPDFexportProtocol.Compressed := True;

@@ -816,7 +816,7 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44321.359927986110000000
+    ReportOptions.LastChange = 44321.378819513890000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -7248,13 +7248,12 @@ object FormMain: TFormMain
             #1069#1051#1045#1050#1058#1056#1054#1053#1053#1054#1049' '#1055#1054#1044#1055#1048#1057#1048)
           ParentFont = False
         end
-        object Picture1: TfrxPictureView
+        object PictureSignCorrect: TfrxPictureView
           Left = 86.929190000000000000
           Top = 128.504020000000000000
-          Width = 2031.511750000000000000
-          Height = 38.070810000000000000
+          Width = 2008.834570000000000000
+          Height = 49.409400000000000000
           ShowHint = False
-          AutoSize = True
           Picture.Data = {
             0A544A504547496D616765A86D0000FFD8FFE104DA4578696600004D4D002A00
             000008000C01000003000000010971000001010003000000010DC50000010200
@@ -8140,7 +8139,7 @@ object FormMain: TFormMain
         end
       end
       object PageHeaderProtocol: TfrxPageHeader
-        Height = 90.708720000000000000
+        Height = 124.724490000000000000
         Top = 234.330860000000000000
         Width = 718.110700000000000000
         object MemoNotSigFile: TfrxMemoView
@@ -8254,16 +8253,15 @@ object FormMain: TFormMain
       end
       object MasterDataProtocol: TfrxMasterData
         Height = 582.047620000000000000
-        Top = 385.512060000000000000
+        Top = 419.527830000000000000
         Width = 718.110700000000000000
         RowCount = 1
         StartNewPage = True
         Stretched = True
         object GradientBackground: TfrxGradientView
           Left = 94.488250000000000000
-          Top = 68.031539999999900000
           Width = 623.622450000000000000
-          Height = 514.016080000000000000
+          Height = 582.047620000000000000
           ShowHint = False
           EndColor = clSilver
           Style = gsHorizontal
@@ -8271,7 +8269,7 @@ object FormMain: TFormMain
         end
         object MemoCertificateInformation: TfrxMemoView
           Left = 94.488250000000000000
-          Top = 79.370129999999900000
+          Top = 7.559059999999988000
           Width = 612.283860000000000000
           Height = 22.677180000000000000
           ShowHint = False
@@ -8279,7 +8277,7 @@ object FormMain: TFormMain
         end
         object MemoSignatureInformation: TfrxMemoView
           Left = 94.488250000000000000
-          Top = 139.842610000000000000
+          Top = 68.031540000000010000
           Width = 612.283860000000000000
           Height = 22.677180000000000000
           ShowHint = False
@@ -8287,10 +8285,11 @@ object FormMain: TFormMain
         end
         object MemoSignatureStatus: TfrxMemoView
           Left = 94.488250000000000000
-          Top = 117.165430000000000000
+          Top = 45.354359999999990000
           Width = 612.283860000000000000
           Height = 18.897650000000000000
           ShowHint = False
+          StretchMode = smActualHeight
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clGreen
           Font.Height = -13
@@ -8301,7 +8300,7 @@ object FormMain: TFormMain
       end
       object PageFooterProtocol: TfrxPageFooter
         Height = 22.677180000000000000
-        Top = 1028.032160000000000000
+        Top = 1062.047930000000000000
         Width = 718.110700000000000000
         object MemoCopyright: TfrxMemoView
           Left = 94.488250000000000000

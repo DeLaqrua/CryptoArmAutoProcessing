@@ -32,6 +32,7 @@ type
     TimerAutoProcessing: TTimer;
     frxPDFExportProtocol: TfrxPDFExport;
     frxReportTypeProtocol: TfrxReport;
+    frxGradientObjectBackground: TfrxGradientObject;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -143,6 +144,9 @@ var SearchResult: TSearchRec;
     responceTextFileName: string;
 begin
   ButtonManualProcessing.Enabled := False;
+  TimerAutoProcessing.Enabled := False;
+  SpeedButtonPlay.Enabled := False;
+  SpeedButtonStop.Enabled := False;
 
   DirectoryRoot := CorrectPath(EditPath.Text);
   if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
@@ -179,6 +183,8 @@ begin
     end;
 
   ButtonManualProcessing.Enabled := True;
+  SpeedButtonPlay.Enabled := True;
+  SpeedButtonStop.Enabled := True;
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -268,11 +274,18 @@ begin
       SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
       For j := 0 to High(SignatureFiles[i].VerifyStatusDesctiption) do
         begin
-          SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j) + ': '
+          if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
+            SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
                                                           + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
-                                                          + 'ПОДПИСЬ ПОДТВЕРЖДЕНА' + #13#10;
+                                                          + 'ПОДПИСЬ ПОДТВЕРЖДЕНА' + #13#10
+          else
+            SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
+                                                          + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
+                                                          + 'ПОДПИСЬ НЕ ПОДТВЕРЖДЕНА' + #13#10
         end;
 
+      //Если внутри файла *.sig попадётся хотя бы одна некорректная подпись,
+      //то используется шаблон протокола для неподтверждённых подписей
       counterCorrectStatus := 0;
       For j := 0 to High(SignatureFiles[i].VerifyStatus) do
         begin
@@ -293,16 +306,6 @@ begin
           protocolName := 'ProtocolConfirmed_';
         end;
 
-      {if SignatureFiles[i].VerifyStatus = SIGN_CORRECT then
-        begin
-          frxReportTypeProtocol := frxReportProtocolConfirmed;
-          protocolName := 'ProtocolConfirmed_';
-        end
-      else
-        begin
-          frxReportTypeProtocol := frxReportProtocolNotConfirmed;
-          protocolName := 'ProtocolNotConfirmed_';
-        end;}
       frxNotSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileName'));
       frxNotSigFileName.Memo.Text := ExtractFileName(NotSignatureFile.Name);
       frxSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileName'));
@@ -321,12 +324,24 @@ begin
       frxCertInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoCertificateInformation'));
       frxCertInformation.Memo.Text := SignatureFiles[i].CertificateInformation;
 
-      frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
-      //frxSigStatus.Memo.Text := 'Статус проверки подписи: ' + SignatureFiles[i].VerifyStatusDesctiption;
-      //MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". Статус проверки: ' + SignatureFiles[i].VerifyStatusDesctiption + #13#10);
-
       frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
       frxSigInformation.Memo.Text := SignatureFiles[i].SignatureInformation;
+
+      frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
+      For j := 0 to High(SignatureFiles[i].VerifyStatus) do
+        begin
+          if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
+            begin
+              frxSigStatus.Font.Color := clGreen;
+              frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
+            end
+          else
+            begin
+              frxSigStatus.Font.Color :=clRed;
+              frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
+            end;
+        end;
+      MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '"' + #13#10);
 
       frxReportTypeProtocol.PrepareReport(true);
       frxPDFexportProtocol.Compressed := True;
@@ -611,8 +626,6 @@ begin
   pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
 
   MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
-
-  TimerAutoProcessing.Enabled := True;
 end;
 
 function TFormMain.CorrectPath(inputDirectory: string): string;
@@ -686,8 +699,9 @@ end;
 
 procedure TFormMain.TimerAutoProcessingTimer(Sender: TObject);
 begin
-  ButtonManualProcessingClick(Self);
   TimerAutoProcessing.Enabled := False;
+  ButtonManualProcessingClick(Self);
+  TimerAutoProcessing.Enabled := True;
 end;
 
 procedure TFormMain.SpeedButtonPlayMouseDown(Sender: TObject;
