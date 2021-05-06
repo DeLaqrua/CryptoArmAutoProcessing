@@ -62,20 +62,23 @@ Function SignatureInformation (ByVal InputFileNameSignature)
     Set oPKCS7Message = CreateObject("DigtCrypto.PKCS7Message")
     oPKCS7Message.Load DT_SIGNED_DATA, InputFileNameSignature, ""
     Set oSignatures = oPKCS7Message.Signatures
+    Dim SigInfo
     Dim n : n = oSignatures.Count
+    Dim arrayResults()
+    Redim Preserve arrayResults(n-1)
     For i=0 to n-1
         Set oSignature = oSignatures.Item(i)
 
-        SignatureInformation = SignatureInformation + "Подпись №" + CStr(i+1) + ":" + vbCrLf
+        SigInfo = SigInfo + "Подпись №" + CStr(i+1) + ":" + vbCrLf
         'Время подписи
         dim sSigningTime : sSigningTime = oSignature.SigningTime
-        SignatureInformation = SignatureInformation + "Время подписи: " + CStr(sSigningTime) + vbCrLf
+        SigInfo = SigInfo + "Время подписи: " + CStr(sSigningTime) + vbCrLf
         'Хэш алгоритм подписи
         Dim sHashAlg : sHashAlg = oSignature.HashAlg
-        SignatureInformation = SignatureInformation + "Хэш алгоритм подписи: " + CStr(sHashAlg) + vbCrLf
+        SigInfo = SigInfo + "Хэш алгоритм подписи: " + CStr(sHashAlg) + vbCrLf
         'Алгоритм подписи ЭЦП
         Dim sHashEncAlg : sHashEncAlg = oSignature.HashEncAlg
-        SignatureInformation = SignatureInformation + "Алгоритм подписи ЭЦП: " + CStr(sHashEncAlg) + vbCrLf
+        SigInfo = SigInfo + "Алгоритм подписи ЭЦП: " + CStr(sHashEncAlg) + vbCrLf
         'Тип ЭЦП: true – отсоединённая, false – присоединённая
         Dim sDetached : sDetached = oSignature.Detached
         Dim sDetachedValue        
@@ -83,11 +86,13 @@ Function SignatureInformation (ByVal InputFileNameSignature)
             sDetachedValue = "Отсоединённая"
         else sDetachedValue = "Присоединённая"
         end if
-        SignatureInformation = SignatureInformation + "Тип ЭЦП: " + sDetachedValue + vbCrLf
+        SigInfo = SigInfo + "Тип ЭЦП: " + sDetachedValue + vbCrLf
         'Номер версии протокола версии CMS
         Dim lCMSVersion : lCMSVersion = oSignature.CMSVersion
-        SignatureInformation = SignatureInformation + "Номер версии протокола CMS: " + CStr(lCMSVersion) + vbCrLf + vbCrLf
+        SigInfo = SigInfo + "Номер версии протокола CMS: " + CStr(lCMSVersion) + vbCrLf + vbCrLf
+        arrayResults(i) = SigInfo
     Next
+    SignatureInformation = arrayResults 'Возвращаем результат информации о подписи
 
     'Очищаем переменные
     Set oSignature = Nothing
@@ -99,21 +104,26 @@ Function CertificateInformation (ByVal InputFileNameSignature)
     Set oPKCS7Message = CreateObject("DigtCrypto.PKCS7Message")
     oPKCS7Message.Load DT_SIGNED_DATA, InputFileNameSignature, ""
     Set oSignatures = oPKCS7Message.Signatures
+    Dim CertInfo
     Dim n : n = oSignatures.Count
+    Dim arrayResults()
+    Redim Preserve arrayResults(n-1)
     For i=0 to n-1
         Set oSignature = oSignatures.Item(i)
 
         'Получаем указатель на сертификат подписи
         Set oCertificate = oSignature.Certificate
 
-        CertificateInformation = CertificateInformation + "Сертификат №" + CStr(i+1) + ":" + vbCrLf + vbCrLf
+        CertInfo = CertInfo + "Сертификат №" + CStr(i+1) + ":" + vbCrLf + vbCrLf
         'Свойства сертификата
-        CertificateInformation = CertificateInformation + "Серийный номер сертификата: " + CStr(oCertificate.SerialNumber) + vbCrLf + vbCrLf
-        CertificateInformation = CertificateInformation + "Выдан УЦ: " + CStr(oCertificate.IssuerName) + vbCrLf + vbCrLf
-        CertificateInformation = CertificateInformation + "Владелец сертификата: " + CStr(oCertificate.SubjectName) + vbCrLf + vbCrLf
-        CertificateInformation = CertificateInformation + "Действует с: " + CStr(oCertificate.ValidFrom) + vbCrLf
-        CertificateInformation = CertificateInformation + "Действует по: " + CStr(oCertificate.ValidTo) + vbCrLf + vbCrLf
+        CertInfo = CertInfo + "Серийный номер сертификата: " + CStr(oCertificate.SerialNumber) + vbCrLf + vbCrLf
+        CertInfo = CertInfo + "Выдан УЦ: " + CStr(oCertificate.IssuerName) + vbCrLf + vbCrLf
+        CertInfo = CertInfo + "Владелец сертификата: " + CStr(oCertificate.SubjectName) + vbCrLf + vbCrLf
+        CertInfo = CertInfo + "Действует с: " + CStr(oCertificate.ValidFrom) + vbCrLf
+        CertInfo = CertInfo + "Действует по: " + CStr(oCertificate.ValidTo) + vbCrLf + vbCrLf
+        arrayResults(i) = CertInfo
     Next
+    CertificateInformation = arrayResults 'Возвращаем результат информации о сертификате
 
     'Очищаем переменные
     Set oCertificate = Nothing
@@ -126,7 +136,10 @@ Function CertificateVerify (ByVal InputFileNameSignature)
     Set oPKCS7Message = CreateObject("DigtCrypto.PKCS7Message")
     oPKCS7Message.Load DT_SIGNED_DATA, InputFileNameSignature, ""
     Set oSignatures = oPKCS7Message.Signatures
+    Dim CertVerify
     Dim n : n = oSignatures.Count
+    Dim arrayResults()
+    Redim Preserve arrayResults(n-1)
     For i=0 to n-1
         Set oSignature = oSignatures.Item(i)
 
@@ -142,33 +155,36 @@ Function CertificateVerify (ByVal InputFileNameSignature)
 
         Select Case Status
             Case VS_CORRECT
-                CertificateVerify = "Статус сертификата: " + "Корректен"
+                CertVerify = "Статус сертификата: " + "Корректен"
             Case VS_UNSUFFICIENT_INFO
-                CertificateVerify = "Статус сертификата: " + "Статус неизвестен"
+                CertVerify = "Статус сертификата: " + "Статус неизвестен"
             Case VS_UNCORRECT
-                CertificateVerify = "Статус сертификата: " + "Некорректен"
+                CertVerify = "Статус сертификата: " + "Некорректен"
             Case VS_INVALID_CERTIFICATE_BLOB
-                CertificateVerify = "Статус сертификата: " + "Недействительный блоб сертификата"
+                CertVerify = "Статус сертификата: " + "Недействительный блоб сертификата"
             Case VS_CERTIFICATE_TIME_EXPIRIED
-                CertificateVerify = "Статус сертификата: " + "Время действия сертификата истекло или ещё не наступило"
+                CertVerify = "Статус сертификата: " + "Время действия сертификата истекло или ещё не наступило"
             Case VS_CERTIFICATE_NO_CHAIN
-                CertificateVerify = "Статус сертификата: " + "Невозможно построить цепочку сертификации"
+                CertVerify = "Статус сертификата: " + "Невозможно построить цепочку сертификации"
             Case VS_CERTIFICATE_CRL_UPDATING_ERROR
-                CertificateVerify = "Статус сертификата: " + "Ошибка обновления сертификата"
+                CertVerify = "Статус сертификата: " + "Ошибка обновления сертификата"
             Case VS_LOCAL_CRL_NOT_FOUND
-                CertificateVerify = "Статус сертификата: " + "Не найден локальный СОС"
+                CertVerify = "Статус сертификата: " + "Не найден локальный СОС"
             Case VS_CRL_TIME_EXPIRIED
-                CertificateVerify = "Статус сертификата: " + "Истекло время действия СОС"
+                CertVerify = "Статус сертификата: " + "Истекло время действия СОС"
             Case VS_CERTIFICATE_IN_CRL
-                CertificateVerify = "Статус сертификата: " + "Сертификат находится в СОС"
+                CertVerify = "Статус сертификата: " + "Сертификат находится в СОС"
             Case VS_CERTIFICATE_IN_LOCAL_CRL
-                CertificateVerify = "Статус сертификата: " + "Сертификат находится в локальном СОС"
+                CertVerify = "Статус сертификата: " + "Сертификат находится в локальном СОС"
             Case VS_CERTIFICATE_CORRECT_BY_LOCAL_CRL
-                CertificateVerify = "Статус сертификата: " + "Сертификат действителен по локальному СОС"
+                CertVerify = "Статус сертификата: " + "Сертификат действителен по локальному СОС"
             Case VS_CERTIFICATE_USING_RESTRICTED
-                CertificateVerify = "Статус сертификата: " + "Использование сертификата ограничено"
+                CertVerify = "Статус сертификата: " + "Использование сертификата ограничено"
         End Select
+
+        arrayResults(i) = CertVerify
     Next
+    CertificateVerify = arrayResults
 
     'Очищаем переменные
     Set oCertificate = Nothing
