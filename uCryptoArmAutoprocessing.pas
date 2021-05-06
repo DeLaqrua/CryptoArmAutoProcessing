@@ -58,7 +58,7 @@ type
   public
     function SignatureVerify(inputFileName, inputFileNameSignature: string; out arrayResultsDescription: TStringDynArray): TSmallIntDynArray;
     function SignatureInformation(InputFileNameSignature: string): TStringDynArray;
-    function CertificateInformation(InputFileNameSignature: string): string;
+    function CertificateInformation(InputFileNameSignature: string): TStringDynArray;
     function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
     function CorrectPath(inputDirectory: string): string;
     function CheckFileName(inputFileName: string): boolean;
@@ -398,7 +398,7 @@ begin
   arrayResultsDescription := arrayResultsD;
 end;
 
-function TFormMain.SignatureInformation(InputFileNameSignature: string): string;
+function TFormMain.SignatureInformation(InputFileNameSignature: string): TStringDynArray;
 var VArr, resultFromVBS: Variant;
     functionParameters: PSafeArray;
     arrayResults: TStringDynArray;
@@ -420,7 +420,7 @@ begin
   result := arrayResults;
 end;
 
-function TFormMain.CertificateInformation(InputFileNameSignature: string): string;
+function TFormMain.CertificateInformation(InputFileNameSignature: string): TStringDynArray;
 var VArr, resultFromVBS: Variant;
     functionParameters: PSafeArray;
     arrayResults: TStringDynArray;
