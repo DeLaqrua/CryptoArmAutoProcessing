@@ -69,7 +69,7 @@ Function SignatureInformation (ByVal InputFileNameSignature)
     For i=0 to n-1
         Set oSignature = oSignatures.Item(i)
 
-        SigInfo = SigInfo + "Подпись №" + CStr(i+1) + ":" + vbCrLf
+        SigInfo = "Подпись №" + CStr(i+1) + ":" + vbCrLf
         'Время подписи
         dim sSigningTime : sSigningTime = oSignature.SigningTime
         SigInfo = SigInfo + "Время подписи: " + CStr(sSigningTime) + vbCrLf
@@ -114,7 +114,7 @@ Function CertificateInformation (ByVal InputFileNameSignature)
         'Получаем указатель на сертификат подписи
         Set oCertificate = oSignature.Certificate
 
-        CertInfo = CertInfo + "Сертификат №" + CStr(i+1) + ":" + vbCrLf + vbCrLf
+        CertInfo = "Сертификат №" + CStr(i+1) + ":" + vbCrLf + vbCrLf
         'Свойства сертификата
         CertInfo = CertInfo + "Серийный номер сертификата: " + CStr(oCertificate.SerialNumber) + vbCrLf + vbCrLf
         CertInfo = CertInfo + "Выдан УЦ: " + CStr(oCertificate.IssuerName) + vbCrLf + vbCrLf
