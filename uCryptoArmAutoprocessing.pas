@@ -57,7 +57,7 @@ type
     { Private declarations }
   public
     function SignatureVerify(inputFileName, inputFileNameSignature: string; out arrayResultsDescription: TStringDynArray): TSmallIntDynArray;
-    function SignatureInformation(InputFileNameSignature: string): string;
+    function SignatureInformation(InputFileNameSignature: string): TStringDynArray;
     function CertificateInformation(InputFileNameSignature: string): string;
     function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
     function CorrectPath(inputDirectory: string): string;
@@ -388,6 +388,7 @@ begin
         else arrayResultsD[i] := 'Статус не определён';
         end;
       end;
+
   except
     on E: Exception do
     MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
@@ -400,6 +401,7 @@ end;
 function TFormMain.SignatureInformation(InputFileNameSignature: string): string;
 var VArr, resultFromVBS: Variant;
     functionParameters: PSafeArray;
+    arrayResults: TStringDynArray;
 begin
   try
     VArr:=VarArrayCreate([0, 0], varVariant);
@@ -408,18 +410,20 @@ begin
     functionParameters := PSafeArray(TVarData(VArr).VArray);
 
     resultFromVBS := ScriptControlVB.Run('SignatureInformation', FunctionParameters);
+    arrayResults := resultFromVBS;
 
   except
     on E: Exception do
     MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
   end;
 
-  result := resultFromVBS;
+  result := arrayResults;
 end;
 
 function TFormMain.CertificateInformation(InputFileNameSignature: string): string;
 var VArr, resultFromVBS: Variant;
     functionParameters: PSafeArray;
+    arrayResults: TStringDynArray;
 begin
   try
     VArr:=VarArrayCreate([0, 0], varVariant);
@@ -428,13 +432,14 @@ begin
     functionParameters := PSafeArray(TVarData(VArr).VArray);
 
     resultFromVBS := ScriptControlVB.Run('CertificateInformation', FunctionParameters);
+    arrayResults := resultFromVBS;
 
   except
     on E: Exception do
     MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
   end;
 
-  result := resultFromVBS;
+  result := arrayResults;
 end;
 
 procedure TFormMain.SortErrorFiles;
