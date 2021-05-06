@@ -32,6 +32,7 @@ type
     TimerAutoProcessing: TTimer;
     frxPDFExportProtocol: TfrxPDFExport;
     frxReportTypeProtocol: TfrxReport;
+    frxGradientObjectBackground: TfrxGradientObject;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -56,8 +57,8 @@ type
     { Private declarations }
   public
     function SignatureVerify(inputFileName, inputFileNameSignature: string; out arrayResultsDescription: TStringDynArray): TSmallIntDynArray;
-    function SignatureInformation(InputFileNameSignature: string): string;
-    function CertificateInformation(InputFileNameSignature: string): string;
+    function SignatureInformation(InputFileNameSignature: string): TStringDynArray;
+    function CertificateInformation(InputFileNameSignature: string): TStringDynArray;
     function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
     function CorrectPath(inputDirectory: string): string;
     function CheckFileName(inputFileName: string): boolean;
@@ -82,8 +83,8 @@ type
     Name: string;
     DateCreate: string;
     Size: string;
-    SignatureInformation: string;
-    CertificateInformation: string;
+    SignatureInformation: TStringDynArray;
+    CertificateInformation: TStringDynArray;
     VerifyStatus: TSmallIntDynArray;
     VerifyStatusDesctiption: TStringDynArray;
   end;
@@ -143,8 +144,9 @@ var SearchResult: TSearchRec;
     responceTextFileName: string;
 begin
   ButtonManualProcessing.Enabled := False;
-  SpeedButtonStop.Enabled := False;
+  TimerAutoProcessing.Enabled := False;
   SpeedButtonPlay.Enabled := False;
+  SpeedButtonStop.Enabled := False;
 
   DirectoryRoot := CorrectPath(EditPath.Text);
   if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
@@ -181,6 +183,8 @@ begin
     end;
 
   ButtonManualProcessing.Enabled := True;
+  SpeedButtonPlay.Enabled := True;
+  SpeedButtonStop.Enabled := True;
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -273,11 +277,11 @@ begin
           if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
             SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
                                                           + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
-                                                          + 'ПОДПИСЬ ПОДТВЕРЖДЕНА' + #13#10
+                                                          + 'ПОДПИСЬ ПОДТВЕРЖДЕНА' + #13#10 + #13#10
           else
             SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
                                                           + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
-                                                          + 'ПОДПИСЬ НЕ ПОДТВЕРЖДЕНА' + #13#10
+                                                          + 'ПОДПИСЬ НЕ ПОДТВЕРЖДЕНА' + #13#10 + #13#10
         end;
 
       //Если внутри файла *.sig попадётся хотя бы одна некорректная подпись,
@@ -324,17 +328,18 @@ begin
       frxSigInformation.Memo.Text := SignatureFiles[i].SignatureInformation;
 
       frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
+      frxSigStatus.Memo.Text := '';
       For j := 0 to High(SignatureFiles[i].VerifyStatus) do
         begin
           if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
             begin
               frxSigStatus.Font.Color := clGreen;
-              frxSigStatus.Memo.Add(SignatureFiles[i].VerifyStatusDesctiption[j]);
+              frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
             end
           else
             begin
               frxSigStatus.Font.Color :=clRed;
-              frxSigStatus.Memo.Add(SignatureFiles[i].VerifyStatusDesctiption[j]);
+              frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
             end;
         end;
       MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '"' + #13#10);
@@ -383,6 +388,7 @@ begin
         else arrayResultsD[i] := 'Статус не определён';
         end;
       end;
+
   except
     on E: Exception do
     MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
@@ -392,9 +398,10 @@ begin
   arrayResultsDescription := arrayResultsD;
 end;
 
-function TFormMain.SignatureInformation(InputFileNameSignature: string): string;
+function TFormMain.SignatureInformation(InputFileNameSignature: string): TStringDynArray;
 var VArr, resultFromVBS: Variant;
     functionParameters: PSafeArray;
+    arrayResults: TStringDynArray;
 begin
   try
     VArr:=VarArrayCreate([0, 0], varVariant);
@@ -403,18 +410,20 @@ begin
     functionParameters := PSafeArray(TVarData(VArr).VArray);
 
     resultFromVBS := ScriptControlVB.Run('SignatureInformation', FunctionParameters);
+    arrayResults := resultFromVBS;
 
   except
     on E: Exception do
     MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
   end;
 
-  result := resultFromVBS;
+  result := arrayResults;
 end;
 
-function TFormMain.CertificateInformation(InputFileNameSignature: string): string;
+function TFormMain.CertificateInformation(InputFileNameSignature: string): TStringDynArray;
 var VArr, resultFromVBS: Variant;
     functionParameters: PSafeArray;
+    arrayResults: TStringDynArray;
 begin
   try
     VArr:=VarArrayCreate([0, 0], varVariant);
@@ -423,13 +432,14 @@ begin
     functionParameters := PSafeArray(TVarData(VArr).VArray);
 
     resultFromVBS := ScriptControlVB.Run('CertificateInformation', FunctionParameters);
+    arrayResults := resultFromVBS;
 
   except
     on E: Exception do
     MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
   end;
 
-  result := resultFromVBS;
+  result := arrayResults;
 end;
 
 procedure TFormMain.SortErrorFiles;
@@ -622,8 +632,6 @@ begin
   pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
 
   MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
-
-  TimerAutoProcessing.Enabled := True;
 end;
 
 function TFormMain.CorrectPath(inputDirectory: string): string;
@@ -697,8 +705,9 @@ end;
 
 procedure TFormMain.TimerAutoProcessingTimer(Sender: TObject);
 begin
-  ButtonManualProcessingClick(Self);
   TimerAutoProcessing.Enabled := False;
+  ButtonManualProcessingClick(Self);
+  TimerAutoProcessing.Enabled := True;
 end;
 
 procedure TFormMain.SpeedButtonPlayMouseDown(Sender: TObject;

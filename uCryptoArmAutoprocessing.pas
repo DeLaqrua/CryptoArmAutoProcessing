@@ -268,7 +268,6 @@ begin
       CloseFile(SigFile);
 
       SignatureFiles[i].CertificateInformation := CertificateInformation(SignatureFiles[i].Name);
-
       SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
 
       SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
@@ -322,15 +321,15 @@ begin
       frxSigFileSize.Memo.Text := SignatureFiles[i].Size;
 
       frxCertInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoCertificateInformation'));
-      frxCertInformation.Memo.Text := SignatureFiles[i].CertificateInformation;
-
+      frxCertInformation.Memo.Text := '';
       frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
-      frxSigInformation.Memo.Text := SignatureFiles[i].SignatureInformation;
-
+      frxSigInformation.Memo.Text := '';
       frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
       frxSigStatus.Memo.Text := '';
       For j := 0 to High(SignatureFiles[i].VerifyStatus) do
         begin
+          frxCertInformation.Memo.Text := frxCertInformation.Memo.Text + SignatureFiles[i].CertificateInformation[j];
+          frxSigInformation.Memo.Text := frxSigInformation.Memo.Text + SignatureFiles[i].SignatureInformation[j];
           if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
             begin
               frxSigStatus.Font.Color := clGreen;
