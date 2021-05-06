@@ -83,8 +83,8 @@ type
     Name: string;
     DateCreate: string;
     Size: string;
-    SignatureInformation: string;
-    CertificateInformation: string;
+    SignatureInformation: TStringDynArray;
+    CertificateInformation: TStringDynArray;
     VerifyStatus: TSmallIntDynArray;
     VerifyStatusDesctiption: TStringDynArray;
   end;
