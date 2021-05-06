@@ -817,7 +817,7 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44322.483309953710000000
+    ReportOptions.LastChange = 44322.507185740740000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -7203,7 +7203,7 @@ object FormMain: TFormMain
         A924A7EAA497CAA924A7EAA497CAA924A7EAA497CAA924A7EAA497CAA924A7EA
         A497CAA924A7EAA497CAA924A7FFD9}
       object ReportTitleProtocol: TfrxReportTitle
-        Height = 132.283550000000000000
+        Height = 136.063080000000000000
         Top = 18.897650000000000000
         Width = 718.110700000000000000
         object SysMemoDate: TfrxSysMemoView
@@ -7252,12 +7252,11 @@ object FormMain: TFormMain
         end
       end
       object PageHeaderProtocol: TfrxPageHeader
-        Height = 155.236240000000000000
-        Top = 173.858380000000000000
+        Height = 181.692950000000000000
+        Top = 177.637910000000000000
         Width = 718.110700000000000000
         object PictureSignCorrect: TfrxPictureView
           Left = 86.929190000000000000
-          Top = -0.000036609999995108
           Width = 2008.834570000000000000
           Height = 49.409400000000000000
           ShowHint = False
@@ -8146,7 +8145,7 @@ object FormMain: TFormMain
         end
         object MemoNotSigFile: TfrxMemoView
           Left = 86.929190000000000000
-          Top = 68.031540000000010000
+          Top = 64.252046610000010000
           Width = 139.842610000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -8161,21 +8160,21 @@ object FormMain: TFormMain
         end
         object MemoNotSigFileName: TfrxMemoView
           Left = 86.929190000000000000
-          Top = 90.708719999999970000
+          Top = 86.929226609999970000
           Width = 313.700990000000000000
           Height = 18.897650000000000000
           ShowHint = False
         end
         object MemoNotSigFileDateCreate: TfrxMemoView
           Left = 136.063080000000000000
-          Top = 109.606370000000000000
+          Top = 105.826876610000000000
           Width = 264.567100000000000000
           Height = 18.897650000000000000
           ShowHint = False
         end
         object MemoNotSigFileCreate: TfrxMemoView
           Left = 86.929190000000000000
-          Top = 109.606370000000000000
+          Top = 105.826876610000000000
           Width = 49.133890000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -8184,7 +8183,7 @@ object FormMain: TFormMain
         end
         object MemoNotSigSize: TfrxMemoView
           Left = 86.929190000000000000
-          Top = 128.504020000000000000
+          Top = 124.724526610000000000
           Width = 52.913420000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -8193,14 +8192,14 @@ object FormMain: TFormMain
         end
         object MemoNotSigFileSize: TfrxMemoView
           Left = 139.842610000000000000
-          Top = 128.504020000000000000
+          Top = 124.724526610000000000
           Width = 260.787570000000000000
           Height = 18.897650000000000000
           ShowHint = False
         end
         object MemoSigFile: TfrxMemoView
           Left = 408.189240000000000000
-          Top = 68.031540000000010000
+          Top = 64.252046610000010000
           Width = 139.842610000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -8215,21 +8214,21 @@ object FormMain: TFormMain
         end
         object MemoSigFileName: TfrxMemoView
           Left = 408.189240000000000000
-          Top = 90.708719999999970000
+          Top = 86.929226609999970000
           Width = 309.921460000000000000
           Height = 18.897650000000000000
           ShowHint = False
         end
         object MemoSigFileDateCreate: TfrxMemoView
           Left = 457.323130000000000000
-          Top = 109.606370000000000000
+          Top = 105.826876610000000000
           Width = 260.787570000000000000
           Height = 18.897650000000000000
           ShowHint = False
         end
         object MemoSigFileCreate: TfrxMemoView
           Left = 408.189240000000000000
-          Top = 109.606370000000000000
+          Top = 105.826876610000000000
           Width = 49.133890000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -8238,7 +8237,7 @@ object FormMain: TFormMain
         end
         object MemoSigSize: TfrxMemoView
           Left = 408.189240000000000000
-          Top = 128.504020000000000000
+          Top = 124.724526610000000000
           Width = 52.913420000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -8247,15 +8246,15 @@ object FormMain: TFormMain
         end
         object MemoSigFileSize: TfrxMemoView
           Left = 461.102660000000000000
-          Top = 128.504020000000000000
+          Top = 124.724526610000000000
           Width = 257.008040000000000000
           Height = 18.897650000000000000
           ShowHint = False
         end
       end
       object MasterDataProtocol: TfrxMasterData
-        Height = 540.472790000000000000
-        Top = 389.291590000000000000
+        Height = 385.512060000000000000
+        Top = 419.527830000000000000
         Width = 718.110700000000000000
         AllowSplit = True
         RowCount = 1
@@ -8270,7 +8269,7 @@ object FormMain: TFormMain
         end
         object MemoSignatureInformation: TfrxMemoView
           Left = 94.488250000000000000
-          Top = 64.252009999999990000
+          Top = 98.267780000000010000
           Width = 612.283860000000000000
           Height = 22.677180000000000000
           ShowHint = False
@@ -8278,7 +8277,7 @@ object FormMain: TFormMain
         end
         object MemoSignatureStatus: TfrxMemoView
           Left = 94.488250000000000000
-          Top = 30.236240000000010000
+          Top = 52.913419999999970000
           Width = 612.283860000000000000
           Height = 22.677180000000000000
           ShowHint = False
@@ -8292,11 +8291,12 @@ object FormMain: TFormMain
         end
       end
       object PageFooterProtocol: TfrxPageFooter
-        Height = 22.677180000000000000
-        Top = 990.236860000000000000
+        Height = 181.417440000000000000
+        Top = 865.512370000000000000
         Width = 718.110700000000000000
         object MemoCopyright: TfrxMemoView
           Left = 94.488250000000000000
+          Top = 154.960730000000000000
           Width = 317.480520000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -15515,9 +15515,5 @@ object FormMain: TFormMain
     Datasets = <>
     Variables = <>
     Style = <>
-  end
-  object frxGradientObjectBackground: TfrxGradientObject
-    Left = 656
-    Top = 320
   end
 end
