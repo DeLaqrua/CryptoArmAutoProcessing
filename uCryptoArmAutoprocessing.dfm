@@ -817,7 +817,7 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44322.507185740740000000
+    ReportOptions.LastChange = 44322.579787268520000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
@@ -8253,7 +8253,7 @@ object FormMain: TFormMain
         end
       end
       object MasterDataProtocol: TfrxMasterData
-        Height = 385.512060000000000000
+        Height = 309.921460000000000000
         Top = 419.527830000000000000
         Width = 718.110700000000000000
         AllowSplit = True
@@ -8269,7 +8269,7 @@ object FormMain: TFormMain
         end
         object MemoSignatureInformation: TfrxMemoView
           Left = 94.488250000000000000
-          Top = 98.267780000000010000
+          Top = 49.133890000000010000
           Width = 612.283860000000000000
           Height = 22.677180000000000000
           ShowHint = False
@@ -8277,7 +8277,7 @@ object FormMain: TFormMain
         end
         object MemoSignatureStatus: TfrxMemoView
           Left = 94.488250000000000000
-          Top = 52.913419999999970000
+          Top = 90.708719999999970000
           Width = 612.283860000000000000
           Height = 22.677180000000000000
           ShowHint = False
@@ -8291,12 +8291,12 @@ object FormMain: TFormMain
         end
       end
       object PageFooterProtocol: TfrxPageFooter
-        Height = 181.417440000000000000
-        Top = 865.512370000000000000
+        Height = 257.008040000000000000
+        Top = 789.921770000000000000
         Width = 718.110700000000000000
         object MemoCopyright: TfrxMemoView
           Left = 94.488250000000000000
-          Top = 154.960730000000000000
+          Top = 230.551330000000000000
           Width = 317.480520000000000000
           Height = 18.897650000000000000
           ShowHint = False
