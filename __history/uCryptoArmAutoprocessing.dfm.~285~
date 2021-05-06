@@ -808,6 +808,7 @@ object FormMain: TFormMain
     OnKeyPress = SpinEditSecKeyPress
   end
   object frxReportProtocolConfirmed: TfrxReport
+    Tag = 21650
     Version = '4.15.11'
     DotMatrixReport = False
     IniFile = '\Software\Fast Reports'
@@ -816,12 +817,13 @@ object FormMain: TFormMain
     PrintOptions.Printer = 'Default'
     PrintOptions.PrintOnSheet = 0
     ReportOptions.CreateDate = 44291.656067256900000000
-    ReportOptions.LastChange = 44321.438559884260000000
+    ReportOptions.LastChange = 44322.492822870370000000
     ScriptLanguage = 'PascalScript'
     ScriptText.Strings = (
       'begin'
       ''
       'end.')
+    OnReportPrint = 'frxReportAbstractOnReportPrint'
     Left = 80
     Top = 208
     Datasets = <>
@@ -7201,7 +7203,7 @@ object FormMain: TFormMain
         A924A7EAA497CAA924A7EAA497CAA924A7EAA497CAA924A7EAA497CAA924A7EA
         A497CAA924A7EAA497CAA924A7FFD9}
       object ReportTitleProtocol: TfrxReportTitle
-        Height = 192.756030000000000000
+        Height = 136.063080000000000000
         Top = 18.897650000000000000
         Width = 718.110700000000000000
         object SysMemoDate: TfrxSysMemoView
@@ -7248,9 +7250,13 @@ object FormMain: TFormMain
             #1069#1051#1045#1050#1058#1056#1054#1053#1053#1054#1049' '#1055#1054#1044#1055#1048#1057#1048)
           ParentFont = False
         end
+      end
+      object PageHeaderProtocol: TfrxPageHeader
+        Height = 181.692950000000000000
+        Top = 177.637910000000000000
+        Width = 718.110700000000000000
         object PictureSignCorrect: TfrxPictureView
           Left = 86.929190000000000000
-          Top = 128.504020000000000000
           Width = 2008.834570000000000000
           Height = 49.409400000000000000
           ShowHint = False
@@ -8137,14 +8143,9 @@ object FormMain: TFormMain
           Transparent = False
           TransparentColor = clWhite
         end
-      end
-      object PageHeaderProtocol: TfrxPageHeader
-        Height = 124.724490000000000000
-        Top = 234.330860000000000000
-        Width = 718.110700000000000000
         object MemoNotSigFile: TfrxMemoView
           Left = 86.929190000000000000
-          Top = 3.779529999999994000
+          Top = 64.252046610000010000
           Width = 139.842610000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -8159,21 +8160,21 @@ object FormMain: TFormMain
         end
         object MemoNotSigFileName: TfrxMemoView
           Left = 86.929190000000000000
-          Top = 26.456710000000020000
+          Top = 86.929226609999970000
           Width = 313.700990000000000000
           Height = 18.897650000000000000
           ShowHint = False
         end
         object MemoNotSigFileDateCreate: TfrxMemoView
           Left = 136.063080000000000000
-          Top = 45.354360000000130000
+          Top = 105.826876610000000000
           Width = 264.567100000000000000
           Height = 18.897650000000000000
           ShowHint = False
         end
         object MemoNotSigFileCreate: TfrxMemoView
           Left = 86.929190000000000000
-          Top = 45.354360000000130000
+          Top = 105.826876610000000000
           Width = 49.133890000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -8182,7 +8183,7 @@ object FormMain: TFormMain
         end
         object MemoNotSigSize: TfrxMemoView
           Left = 86.929190000000000000
-          Top = 64.252010000000130000
+          Top = 124.724526610000000000
           Width = 52.913420000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -8191,14 +8192,14 @@ object FormMain: TFormMain
         end
         object MemoNotSigFileSize: TfrxMemoView
           Left = 139.842610000000000000
-          Top = 64.252010000000130000
+          Top = 124.724526610000000000
           Width = 260.787570000000000000
           Height = 18.897650000000000000
           ShowHint = False
         end
         object MemoSigFile: TfrxMemoView
           Left = 408.189240000000000000
-          Top = 3.779529999999994000
+          Top = 64.252046610000010000
           Width = 139.842610000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -8213,21 +8214,21 @@ object FormMain: TFormMain
         end
         object MemoSigFileName: TfrxMemoView
           Left = 408.189240000000000000
-          Top = 26.456710000000020000
+          Top = 86.929226609999970000
           Width = 309.921460000000000000
           Height = 18.897650000000000000
           ShowHint = False
         end
         object MemoSigFileDateCreate: TfrxMemoView
           Left = 457.323130000000000000
-          Top = 45.354360000000130000
+          Top = 105.826876610000000000
           Width = 260.787570000000000000
           Height = 18.897650000000000000
           ShowHint = False
         end
         object MemoSigFileCreate: TfrxMemoView
           Left = 408.189240000000000000
-          Top = 45.354360000000130000
+          Top = 105.826876610000000000
           Width = 49.133890000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -8236,7 +8237,7 @@ object FormMain: TFormMain
         end
         object MemoSigSize: TfrxMemoView
           Left = 408.189240000000000000
-          Top = 64.252010000000130000
+          Top = 124.724526610000000000
           Width = 52.913420000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -8245,27 +8246,19 @@ object FormMain: TFormMain
         end
         object MemoSigFileSize: TfrxMemoView
           Left = 461.102660000000000000
-          Top = 64.252010000000130000
+          Top = 124.724526610000000000
           Width = 257.008040000000000000
           Height = 18.897650000000000000
           ShowHint = False
         end
       end
       object MasterDataProtocol: TfrxMasterData
-        Height = 582.047620000000000000
+        Height = 411.968770000000000000
         Top = 419.527830000000000000
         Width = 718.110700000000000000
+        AllowSplit = True
         RowCount = 1
         Stretched = True
-        object GradientBackground: TfrxGradientView
-          Left = 60.472480000000000000
-          Width = 657.638220000000000000
-          Height = 582.047620000000000000
-          ShowHint = False
-          EndColor = clSilver
-          Style = gsHorizontal
-          Color = 14737632
-        end
         object MemoCertificateInformation: TfrxMemoView
           Left = 94.488250000000000000
           Top = 7.559059999999988000
@@ -8276,7 +8269,7 @@ object FormMain: TFormMain
         end
         object MemoSignatureInformation: TfrxMemoView
           Left = 94.488250000000000000
-          Top = 79.370130000000010000
+          Top = 60.472480000000010000
           Width = 612.283860000000000000
           Height = 22.677180000000000000
           ShowHint = False
@@ -8284,9 +8277,9 @@ object FormMain: TFormMain
         end
         object MemoSignatureStatus: TfrxMemoView
           Left = 94.488250000000000000
-          Top = 41.574830000000020000
+          Top = 30.236240000000010000
           Width = 612.283860000000000000
-          Height = 11.338590000000000000
+          Height = 22.677180000000000000
           ShowHint = False
           StretchMode = smActualHeight
           Font.Charset = DEFAULT_CHARSET
@@ -8298,11 +8291,12 @@ object FormMain: TFormMain
         end
       end
       object PageFooterProtocol: TfrxPageFooter
-        Height = 22.677180000000000000
-        Top = 1062.047930000000000000
+        Height = 154.960730000000000000
+        Top = 891.969080000000000000
         Width = 718.110700000000000000
         object MemoCopyright: TfrxMemoView
           Left = 94.488250000000000000
+          Top = 128.504020000000000000
           Width = 317.480520000000000000
           Height = 18.897650000000000000
           ShowHint = False
@@ -15498,7 +15492,7 @@ object FormMain: TFormMain
     CenterWindow = False
     PrintScaling = False
     CheckboxAsShape = False
-    Left = 672
+    Left = 656
     Top = 208
   end
   object frxReportTypeProtocol: TfrxReport
@@ -15516,14 +15510,14 @@ object FormMain: TFormMain
       'begin'
       ''
       'end.')
-    Left = 672
+    Left = 656
     Top = 264
     Datasets = <>
     Variables = <>
     Style = <>
   end
   object frxGradientObjectBackground: TfrxGradientObject
-    Left = 672
+    Left = 656
     Top = 320
   end
 end

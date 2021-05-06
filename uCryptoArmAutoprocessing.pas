@@ -32,7 +32,6 @@ type
     TimerAutoProcessing: TTimer;
     frxPDFExportProtocol: TfrxPDFExport;
     frxReportTypeProtocol: TfrxReport;
-    frxGradientObjectBackground: TfrxGradientObject;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -341,6 +340,9 @@ begin
               frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
             end;
         end;
+      frxCertInformation.Memo.Text := TrimRight(frxCertInformation.Memo.Text);
+      frxSigInformation.Memo.Text := TrimRight(frxSigInformation.Memo.Text);
+      frxSigStatus.Memo.Text := TrimRight(frxSigStatus.Memo.Text);
       MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '"' + #13#10);
 
       frxReportTypeProtocol.PrepareReport(true);
