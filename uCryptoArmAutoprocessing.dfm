@@ -741,7 +741,7 @@ object FormMain: TFormMain
     TabOrder = 2
   end
   object EditPath: TEdit
-    Left = 216
+    Left = 225
     Top = 54
     Width = 305
     Height = 27
@@ -752,7 +752,7 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 3
-    Text = 'E:\Proba\AutoProcessingFiles\'
+    Text = '\\192.168.200.142\Obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\AutoProcessing\'
   end
   object ButtonPath: TButton
     Left = 536
@@ -803,7 +803,7 @@ object FormMain: TFormMain
     MinValue = 0
     ParentFont = False
     TabOrder = 6
-    Value = 5
+    Value = 30
     OnChange = SpinEditSecChange
     OnKeyPress = SpinEditSecKeyPress
   end
