@@ -32,7 +32,6 @@ type
     TimerAutoProcessing: TTimer;
     frxPDFExportProtocol: TfrxPDFExport;
     frxReportTypeProtocol: TfrxReport;
-    frxGradientObjectBackground: TfrxGradientObject;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -57,8 +56,8 @@ type
     { Private declarations }
   public
     function SignatureVerify(inputFileName, inputFileNameSignature: string; out arrayResultsDescription: TStringDynArray): TSmallIntDynArray;
-    function SignatureInformation(InputFileNameSignature: string): string;
-    function CertificateInformation(InputFileNameSignature: string): string;
+    function SignatureInformation(InputFileNameSignature: string): TStringDynArray;
+    function CertificateInformation(InputFileNameSignature: string): TStringDynArray;
     function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
     function CorrectPath(inputDirectory: string): string;
     function CheckFileName(inputFileName: string): boolean;
@@ -83,8 +82,8 @@ type
     Name: string;
     DateCreate: string;
     Size: string;
-    SignatureInformation: string;
-    CertificateInformation: string;
+    SignatureInformation: TStringDynArray;
+    CertificateInformation: TStringDynArray;
     VerifyStatus: TSmallIntDynArray;
     VerifyStatusDesctiption: TStringDynArray;
   end;
@@ -268,7 +267,6 @@ begin
       CloseFile(SigFile);
 
       SignatureFiles[i].CertificateInformation := CertificateInformation(SignatureFiles[i].Name);
-
       SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
 
       SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
@@ -277,11 +275,11 @@ begin
           if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
             SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
                                                           + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
-                                                          + 'ПОДПИСЬ ПОДТВЕРЖДЕНА' + #13#10
+                                                          + 'ПОДПИСЬ ПОДТВЕРЖДЕНА' + #13#10 + #13#10
           else
             SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
                                                           + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
-                                                          + 'ПОДПИСЬ НЕ ПОДТВЕРЖДЕНА' + #13#10
+                                                          + 'ПОДПИСЬ НЕ ПОДТВЕРЖДЕНА' + #13#10 + #13#10
         end;
 
       //Если внутри файла *.sig попадётся хотя бы одна некорректная подпись,
@@ -322,25 +320,29 @@ begin
       frxSigFileSize.Memo.Text := SignatureFiles[i].Size;
 
       frxCertInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoCertificateInformation'));
-      frxCertInformation.Memo.Text := SignatureFiles[i].CertificateInformation;
-
+      frxCertInformation.Memo.Text := '';
       frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
-      frxSigInformation.Memo.Text := SignatureFiles[i].SignatureInformation;
-
+      frxSigInformation.Memo.Text := '';
       frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
+      frxSigStatus.Memo.Text := '';
       For j := 0 to High(SignatureFiles[i].VerifyStatus) do
         begin
+          frxCertInformation.Memo.Text := frxCertInformation.Memo.Text + SignatureFiles[i].CertificateInformation[j];
+          frxSigInformation.Memo.Text := frxSigInformation.Memo.Text + SignatureFiles[i].SignatureInformation[j];
           if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
             begin
               frxSigStatus.Font.Color := clGreen;
-              frxSigStatus.Memo.Add(SignatureFiles[i].VerifyStatusDesctiption[j]);
+              frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
             end
           else
             begin
               frxSigStatus.Font.Color :=clRed;
-              frxSigStatus.Memo.Add(SignatureFiles[i].VerifyStatusDesctiption[j]);
+              frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
             end;
         end;
+      frxCertInformation.Memo.Text := TrimRight(frxCertInformation.Memo.Text);
+      frxSigInformation.Memo.Text := TrimRight(frxSigInformation.Memo.Text);
+      frxSigStatus.Memo.Text := TrimRight(frxSigStatus.Memo.Text);
       MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '"' + #13#10);
 
       frxReportTypeProtocol.PrepareReport(true);
@@ -387,6 +389,7 @@ begin
         else arrayResultsD[i] := 'Статус не определён';
         end;
       end;
+
   except
     on E: Exception do
     MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
@@ -396,9 +399,10 @@ begin
   arrayResultsDescription := arrayResultsD;
 end;
 
-function TFormMain.SignatureInformation(InputFileNameSignature: string): string;
+function TFormMain.SignatureInformation(InputFileNameSignature: string): TStringDynArray;
 var VArr, resultFromVBS: Variant;
     functionParameters: PSafeArray;
+    arrayResults: TStringDynArray;
 begin
   try
     VArr:=VarArrayCreate([0, 0], varVariant);
@@ -407,18 +411,20 @@ begin
     functionParameters := PSafeArray(TVarData(VArr).VArray);
 
     resultFromVBS := ScriptControlVB.Run('SignatureInformation', FunctionParameters);
+    arrayResults := resultFromVBS;
 
   except
     on E: Exception do
     MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
   end;
 
-  result := resultFromVBS;
+  result := arrayResults;
 end;
 
-function TFormMain.CertificateInformation(InputFileNameSignature: string): string;
+function TFormMain.CertificateInformation(InputFileNameSignature: string): TStringDynArray;
 var VArr, resultFromVBS: Variant;
     functionParameters: PSafeArray;
+    arrayResults: TStringDynArray;
 begin
   try
     VArr:=VarArrayCreate([0, 0], varVariant);
@@ -427,13 +433,14 @@ begin
     functionParameters := PSafeArray(TVarData(VArr).VArray);
 
     resultFromVBS := ScriptControlVB.Run('CertificateInformation', FunctionParameters);
+    arrayResults := resultFromVBS;
 
   except
     on E: Exception do
     MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
   end;
 
-  result := resultFromVBS;
+  result := arrayResults;
 end;
 
 procedure TFormMain.SortErrorFiles;

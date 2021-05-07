@@ -330,15 +330,9 @@ begin
           frxCertInformation.Memo.Text := frxCertInformation.Memo.Text + SignatureFiles[i].CertificateInformation[j];
           frxSigInformation.Memo.Text := frxSigInformation.Memo.Text + SignatureFiles[i].SignatureInformation[j];
           if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
-            begin
-              frxSigStatus.Font.Color := clGreen;
-              frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
-            end
+            frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j]
           else
-            begin
-              frxSigStatus.Font.Color :=clRed;
-              frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
-            end;
+            frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
         end;
       frxCertInformation.Memo.Text := TrimRight(frxCertInformation.Memo.Text);
       frxSigInformation.Memo.Text := TrimRight(frxSigInformation.Memo.Text);
