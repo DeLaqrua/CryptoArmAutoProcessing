@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   System.StrUtils, System.Types,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.OleCtrls, MSScriptControl_TLB,
-  Vcl.StdCtrls, ActiveX, System.Zip, Vcl.FileCtrl, System.Masks, DateUtils,
+  Vcl.StdCtrls, ActiveX, Vcl.FileCtrl, System.Masks, DateUtils,
   Vcl.Buttons, Vcl.Samples.Spin, Vcl.ExtCtrls, frxClass, frxGradient,
   frxExportPDF;
 
@@ -103,6 +103,9 @@ const
 
 implementation
 
+uses
+  FWZipReader;
+
 {$R *.dfm}
 
 procedure TFormMain.FormCreate(Sender: TObject);
@@ -188,31 +191,30 @@ end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
 var i, arrayIndex: integer;
-    Archive: TZipFile;
+    Archive: TFWZipReader;
     SigFilesArray: array of string;
     NotSigFile: string;
 begin
-  Archive := TZipFile.Create;
+  Archive := TFWZipReader.Create;
   try
-    Archive.Open(DirectoryRoot + inputArchiveFileName, zmRead);
+    Archive.LoadFromFile(DirectoryRoot + inputArchiveFileName);
     Archive.ExtractAll(DirectoryRoot);
 
     arrayIndex := 0;
-    for i := 0 to Archive.FileCount-1 do
+    for i := 0 to Archive.Count-1 do
       begin
-        if LowerCase(ExtractFileExt(Archive.FileName[i])) = '.sig' then
+        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
           begin
             SetLength(SigFilesArray, arrayIndex + 1);
-            SigFilesArray[arrayIndex] := Archive.FileName[i];
+            SigFilesArray[arrayIndex] := Archive.item[i].FileName;
             arrayIndex := arrayIndex + 1;
           end
         else
           begin
-            NotSigFile := Archive.FileName[i];
+            NotSigFile := Archive.item[i].FileName;
           end;
       end;
 
-    Archive.Close;
   finally
     Archive.Free;
   end;
@@ -497,20 +499,20 @@ end;
 
 function TFormMain.CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
 var i, Counter: integer;
-    Archive: TZipFile;
+    Archive: TFWZipReader;
 begin
 
   Result := False;
 
-  Archive := TZipFile.Create;
+  Archive := TFWZipReader.Create;
   try
-    Archive.Open(DirectoryRoot + inputArchiveFileName, zmRead);
+    Archive.LoadFromFile(DirectoryRoot + inputArchiveFileName);
 
     Counter := 0;
     //Проверка на количество файлов, прилагаемых в zip-архиве для подписания. По регламенту в архиве должен быть 1 файл для подписания.
-    for i := 0 to Archive.FileCount-1 do
+    for i := 0 to Archive.Count-1 do
       begin
-        if LowerCase(ExtractFileExt(Archive.FileName[i])) <> '.sig' then
+        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) <> '.sig' then
           Counter := Counter + 1;
       end;
     if Counter <> 1 then
@@ -521,9 +523,9 @@ begin
 
     //Проверка на количество подписей. Если в zip-архиве подписи отсутствуют, то в мусор.
     Counter := 0;
-    for i := 0 to Archive.FileCount-1 do
+    for i := 0 to Archive.Count-1 do
       begin
-        if LowerCase(ExtractFileExt(Archive.FileName[i])) = '.sig' then
+        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
           counter := Counter + 1;
       end;
     if Counter = 0 then
@@ -533,16 +535,15 @@ begin
       end;
 
     //Проверка на правильность имён файлов внутри zip-архива
-    for i := 0 to Archive.FileCount-1 do
+    for i := 0 to Archive.Count-1 do
       begin
-        if Not MatchesMask( Archive.FileName[i], Copy(inputArchiveFileName, 1, AnsiPos('_', inputArchiveFileName) + 12) + '*' ) then
+        if Not MatchesMask( Archive.item[i].FileName, Copy(inputArchiveFileName, 1, AnsiPos('_', inputArchiveFileName) + 12) + '*' ) then
           begin
             Result := True;
             DescriptionErrorArchive := 'Файлы внутри zip-архива "' + inputArchiveFileName + '" не соответствуют его названию';
           end;
       end;
 
-    Archive.Close;
   finally
     Archive.Free;
   end;
