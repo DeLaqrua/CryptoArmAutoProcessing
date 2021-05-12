@@ -492,10 +492,11 @@ begin
 
   if MatchesMask(inputFileName, 'SH_*_*_*.zip') or
      MatchesMask(inputFileName, 'SHO_*_*_*.zip') or
-     MatchesMask(inputFileName, 'MSHO_*_*_*.zip') or
-     MatchesMask(inputFileName, 'MSH_*_*_*.zip') or
-     MatchesMask(inputFileName, 'MSMP_*_*_*.zip') or
-     MatchesMask(inputFileName, 'SMP_*_*_*.zip') then
+     MatchesMask(inputFileName, 'SMP_*_*_*.zip') or
+     MatchesMask(inputFileName, 'SHCP_*_*_основной.zip') or
+     MatchesMask(inputFileName, 'MSHO_*_MTR_*.zip') or
+     MatchesMask(inputFileName, 'MSH_*_MTR_*.zip') or
+     MatchesMask(inputFileName, 'MSMP_*_MTR_*.zip') then
     begin
       Result := True;
     end;
