@@ -528,10 +528,15 @@ begin
         if LowerCase(ExtractFileExt(Archive.item[i].FileName)) <> '.sig' then
           Counter := Counter + 1;
       end;
-    if Counter <> 1 then
+    if Counter > 1 then
       begin
         Result := True;
         DescriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" более одного файла для подписания.';
+      end;
+    if Counter = 0 then
+      begin
+        Result := True;
+        DescriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствуют файлы для подписания.';
       end;
 
     //Проверка на количество подписей. Если в zip-архиве подписи отсутствуют, то в мусор.
