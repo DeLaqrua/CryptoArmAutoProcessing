@@ -341,6 +341,11 @@ begin
       frxSigStatus.Memo.Text := TrimRight(frxSigStatus.Memo.Text);
       MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '"' + #13#10);
 
+      //Проверяем существует ли директория папка "Output"
+      //перед тем как в неё переместить протокол
+      if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
+        System.SysUtils.ForceDirectories(DirectoryOutput);
+
       frxReportTypeProtocol.PrepareReport(true);
       frxPDFexportProtocol.Compressed := True;
       frxPDFexportProtocol.Background := True;
@@ -351,7 +356,7 @@ begin
 
       frxPDFexportProtocol.FileName := directoryExport + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
       frxReportTypeProtocol.Export(frxPDFexportProtocol);
-      //Проверка существует ли в папке output файл с таким же названием
+      //Проверка существует ли в папке "Output" файл с таким же названием
       //Если существует, название меняется
       frxPDFexportProtocol.FileName := directoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
       frxPDFexportProtocol.FileName := ifFileExistsRename(frxPDFexportProtocol.FileName);

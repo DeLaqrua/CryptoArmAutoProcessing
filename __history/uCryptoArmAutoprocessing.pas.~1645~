@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   System.StrUtils, System.Types,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.OleCtrls, MSScriptControl_TLB,
-  Vcl.StdCtrls, ActiveX, System.Zip, Vcl.FileCtrl, System.Masks, DateUtils,
+  Vcl.StdCtrls, ActiveX, Vcl.FileCtrl, System.Masks, DateUtils,
   Vcl.Buttons, Vcl.Samples.Spin, Vcl.ExtCtrls, frxClass, frxGradient,
   frxExportPDF;
 
@@ -32,7 +32,6 @@ type
     TimerAutoProcessing: TTimer;
     frxPDFExportProtocol: TfrxPDFExport;
     frxReportTypeProtocol: TfrxReport;
-    frxGradientObjectBackground: TfrxGradientObject;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -58,10 +57,12 @@ type
   public
     function SignatureVerify(inputFileName, inputFileNameSignature: string; out arrayResultsDescription: TStringDynArray): TSmallIntDynArray;
     function SignatureInformation(InputFileNameSignature: string): TStringDynArray;
-    function CertificateInformation(InputFileNameSignature: string): string;
+    function CertificateInformation(InputFileNameSignature: string): TStringDynArray;
     function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
     function CorrectPath(inputDirectory: string): string;
     function CheckFileName(inputFileName: string): boolean;
+
+    function mvbTryConnectPath(const APath: string): Boolean;
 
     function ifFileExistsRename(inputFileName: string): string;
 
@@ -83,8 +84,8 @@ type
     Name: string;
     DateCreate: string;
     Size: string;
-    SignatureInformation: string;
-    CertificateInformation: string;
+    SignatureInformation: TStringDynArray;
+    CertificateInformation: TStringDynArray;
     VerifyStatus: TSmallIntDynArray;
     VerifyStatusDesctiption: TStringDynArray;
   end;
@@ -103,6 +104,9 @@ const
   SIGN_CORRECT = 1;
 
 implementation
+
+uses
+  FWZipReader;
 
 {$R *.dfm}
 
@@ -187,33 +191,54 @@ begin
   SpeedButtonStop.Enabled := True;
 end;
 
+function TFormMain.mvbTryConnectPath(const APath: string): Boolean;
+var ADrive, UNCPath: string;
+    rc: TNetResource;
+    ResultFlag, Size: DWORD;
+begin
+     ADrive := ExtractFileDrive(APath);
+
+     Size := 0;
+     WNetGetConnection(PChar(ADrive), nil, Size);
+     SetLength(UNCPath, Size);
+     WNetGetConnection(PChar(ADrive), PChar(UNCPath), Size);
+     SetLength(UNCPath, Size - 1);
+
+     Size := 0;
+     ZeroMemory(@rc, sizeof(rc));
+     rc.dwType := RESOURCETYPE_DISK;
+     rc.lpLocalName := PChar(ADrive);
+     rc.lpRemoteName := PChar(UNCPath);
+     rc.lpProvider := nil;
+     Result := WNetUseConnection(0, rc, nil, nil, 0, nil, Size, ResultFlag) = NO_ERROR;
+end;
+
 procedure TFormMain.Processed(inputArchiveFileName: string);
 var i, arrayIndex: integer;
-    Archive: TZipFile;
+    Archive: TFWZipReader;
     SigFilesArray: array of string;
     NotSigFile: string;
 begin
-  Archive := TZipFile.Create;
+  Archive := TFWZipReader.Create;
   try
-    Archive.Open(DirectoryRoot + inputArchiveFileName, zmRead);
+    Archive.LoadFromFile(DirectoryRoot + inputArchiveFileName);
     Archive.ExtractAll(DirectoryRoot);
 
     arrayIndex := 0;
-    for i := 0 to Archive.FileCount-1 do
+    for i := 0 to Archive.Count-1 do
       begin
-        if LowerCase(ExtractFileExt(Archive.FileName[i])) = '.sig' then
+        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
           begin
             SetLength(SigFilesArray, arrayIndex + 1);
-            SigFilesArray[arrayIndex] := Archive.FileName[i];
+            SigFilesArray[arrayIndex] := Archive.item[i].FileName;
             arrayIndex := arrayIndex + 1;
           end
         else
           begin
-            NotSigFile := Archive.FileName[i];
+            NotSigFile := Archive.item[i].FileName;
           end;
       end;
 
-    Archive.Close;
   finally
     Archive.Free;
   end;
@@ -268,7 +293,6 @@ begin
       CloseFile(SigFile);
 
       SignatureFiles[i].CertificateInformation := CertificateInformation(SignatureFiles[i].Name);
-
       SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
 
       SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
@@ -322,26 +346,23 @@ begin
       frxSigFileSize.Memo.Text := SignatureFiles[i].Size;
 
       frxCertInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoCertificateInformation'));
-      frxCertInformation.Memo.Text := SignatureFiles[i].CertificateInformation;
-
+      frxCertInformation.Memo.Text := '';
       frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
-      frxSigInformation.Memo.Text := SignatureFiles[i].SignatureInformation;
-
+      frxSigInformation.Memo.Text := '';
       frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
       frxSigStatus.Memo.Text := '';
       For j := 0 to High(SignatureFiles[i].VerifyStatus) do
         begin
+          frxCertInformation.Memo.Text := frxCertInformation.Memo.Text + SignatureFiles[i].CertificateInformation[j];
+          frxSigInformation.Memo.Text := frxSigInformation.Memo.Text + SignatureFiles[i].SignatureInformation[j];
           if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
-            begin
-              frxSigStatus.Font.Color := clGreen;
-              frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
-            end
+            frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j]
           else
-            begin
-              frxSigStatus.Font.Color :=clRed;
-              frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
-            end;
+            frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
         end;
+      frxCertInformation.Memo.Text := TrimRight(frxCertInformation.Memo.Text);
+      frxSigInformation.Memo.Text := TrimRight(frxSigInformation.Memo.Text);
+      frxSigStatus.Memo.Text := TrimRight(frxSigStatus.Memo.Text);
       MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '"' + #13#10);
 
       frxReportTypeProtocol.PrepareReport(true);
@@ -398,7 +419,7 @@ begin
   arrayResultsDescription := arrayResultsD;
 end;
 
-function TFormMain.SignatureInformation(InputFileNameSignature: string): string;
+function TFormMain.SignatureInformation(InputFileNameSignature: string): TStringDynArray;
 var VArr, resultFromVBS: Variant;
     functionParameters: PSafeArray;
     arrayResults: TStringDynArray;
@@ -420,7 +441,7 @@ begin
   result := arrayResults;
 end;
 
-function TFormMain.CertificateInformation(InputFileNameSignature: string): string;
+function TFormMain.CertificateInformation(InputFileNameSignature: string): TStringDynArray;
 var VArr, resultFromVBS: Variant;
     functionParameters: PSafeArray;
     arrayResults: TStringDynArray;
@@ -439,7 +460,7 @@ begin
     MessageDlg(PWideChar(E.Message), mtError, [mbOk], 0);
   end;
 
-  result := resultFromVBS;
+  result := arrayResults;
 end;
 
 procedure TFormMain.SortErrorFiles;
@@ -502,20 +523,20 @@ end;
 
 function TFormMain.CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
 var i, Counter: integer;
-    Archive: TZipFile;
+    Archive: TFWZipReader;
 begin
 
   Result := False;
 
-  Archive := TZipFile.Create;
+  Archive := TFWZipReader.Create;
   try
-    Archive.Open(DirectoryRoot + inputArchiveFileName, zmRead);
+    Archive.LoadFromFile(DirectoryRoot + inputArchiveFileName);
 
     Counter := 0;
     //Проверка на количество файлов, прилагаемых в zip-архиве для подписания. По регламенту в архиве должен быть 1 файл для подписания.
-    for i := 0 to Archive.FileCount-1 do
+    for i := 0 to Archive.Count-1 do
       begin
-        if LowerCase(ExtractFileExt(Archive.FileName[i])) <> '.sig' then
+        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) <> '.sig' then
           Counter := Counter + 1;
       end;
     if Counter <> 1 then
@@ -526,9 +547,9 @@ begin
 
     //Проверка на количество подписей. Если в zip-архиве подписи отсутствуют, то в мусор.
     Counter := 0;
-    for i := 0 to Archive.FileCount-1 do
+    for i := 0 to Archive.Count-1 do
       begin
-        if LowerCase(ExtractFileExt(Archive.FileName[i])) = '.sig' then
+        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
           counter := Counter + 1;
       end;
     if Counter = 0 then
@@ -538,16 +559,15 @@ begin
       end;
 
     //Проверка на правильность имён файлов внутри zip-архива
-    for i := 0 to Archive.FileCount-1 do
+    for i := 0 to Archive.Count-1 do
       begin
-        if Not MatchesMask( Archive.FileName[i], Copy(inputArchiveFileName, 1, AnsiPos('_', inputArchiveFileName) + 12) + '*' ) then
+        if Not MatchesMask( Archive.item[i].FileName, Copy(inputArchiveFileName, 1, AnsiPos('_', inputArchiveFileName) + 12) + '*' ) then
           begin
             Result := True;
             DescriptionErrorArchive := 'Файлы внутри zip-архива "' + inputArchiveFileName + '" не соответствуют его названию';
           end;
       end;
 
-    Archive.Close;
   finally
     Archive.Free;
   end;
