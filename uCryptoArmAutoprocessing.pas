@@ -662,7 +662,7 @@ end;
 
 procedure TFormMain.ButtonPathClick(Sender: TObject);
 begin
-  if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
+  if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdValidateDir]) then
     EditPath.Text := DirectoryRoot;
 end;
 
