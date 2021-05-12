@@ -144,12 +144,8 @@ procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
     responceTextFile: TextFile;
     responceTextFileName: string;
-
-    ADrive: string;
 begin
-
-EditPath.Text;
-{  ButtonManualProcessing.Enabled := False;
+  ButtonManualProcessing.Enabled := False;
   TimerAutoProcessing.Enabled := False;
   SpeedButtonPlay.Enabled := False;
   SpeedButtonStop.Enabled := False;
@@ -190,7 +186,7 @@ EditPath.Text;
 
   ButtonManualProcessing.Enabled := True;
   SpeedButtonPlay.Enabled := True;
-  SpeedButtonStop.Enabled := True;}
+  SpeedButtonStop.Enabled := True;
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -345,6 +341,11 @@ begin
       frxSigStatus.Memo.Text := TrimRight(frxSigStatus.Memo.Text);
       MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '"' + #13#10);
 
+      //Проверяем существует ли директория папка "Output"
+      //перед тем как в неё переместить протокол
+      if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
+        System.SysUtils.ForceDirectories(DirectoryOutput);
+
       frxReportTypeProtocol.PrepareReport(true);
       frxPDFexportProtocol.Compressed := True;
       frxPDFexportProtocol.Background := True;
@@ -355,7 +356,7 @@ begin
 
       frxPDFexportProtocol.FileName := directoryExport + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
       frxReportTypeProtocol.Export(frxPDFexportProtocol);
-      //Проверка существует ли в папке output файл с таким же названием
+      //Проверка существует ли в папке "Output" файл с таким же названием
       //Если существует, название меняется
       frxPDFexportProtocol.FileName := directoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
       frxPDFexportProtocol.FileName := ifFileExistsRename(frxPDFexportProtocol.FileName);
@@ -456,7 +457,7 @@ begin
            (CheckFileName(SearchResult.Name) = false) then
           begin
             MoveFilesToErrors(SearchResult.Name);
-            MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  Неверное имя файла "' + SearchResult.Name + '"' + #13#10);
+            MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Неверное имя файла "' + SearchResult.Name + '"' + #13#10);
           end;
       until FindNext(SearchResult) <> 0;
       FindClose(SearchResult);
@@ -491,10 +492,11 @@ begin
 
   if MatchesMask(inputFileName, 'SH_*_*_*.zip') or
      MatchesMask(inputFileName, 'SHO_*_*_*.zip') or
-     MatchesMask(inputFileName, 'MSHO_*_*_*.zip') or
-     MatchesMask(inputFileName, 'MSH_*_*_*.zip') or
-     MatchesMask(inputFileName, 'MSMP_*_*_*.zip') or
-     MatchesMask(inputFileName, 'SMP_*_*_*.zip') then
+     MatchesMask(inputFileName, 'SMP_*_*_*.zip') or
+     MatchesMask(inputFileName, 'SHCP_*_*_основной.zip') or
+     MatchesMask(inputFileName, 'MSHO_*_MTR_*.zip') or
+     MatchesMask(inputFileName, 'MSH_*_MTR_*.zip') or
+     MatchesMask(inputFileName, 'MSMP_*_MTR_*.zip') then
     begin
       Result := True;
     end;
@@ -661,7 +663,7 @@ end;
 
 procedure TFormMain.ButtonPathClick(Sender: TObject);
 begin
-  if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
+  if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdValidateDir]) then
     EditPath.Text := DirectoryRoot;
 end;
 

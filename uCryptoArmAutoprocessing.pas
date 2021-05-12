@@ -58,11 +58,13 @@ type
     function SignatureVerify(inputFileName, inputFileNameSignature: string; out arrayResultsDescription: TStringDynArray): TSmallIntDynArray;
     function SignatureInformation(InputFileNameSignature: string): TStringDynArray;
     function CertificateInformation(InputFileNameSignature: string): TStringDynArray;
-    function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
-    function CorrectPath(inputDirectory: string): string;
-    function CheckFileName(inputFileName: string): boolean;
 
+    function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
+    function CheckFileName(inputFileName: string): boolean;
     function ifFileExistsRename(inputFileName: string): string;
+    function CorrectPath(inputDirectory: string): string;
+
+    procedure CreateResponceFileToOutput(inputFileName, DescriptionError: string);
 
     procedure CreateProtocol(inputFileName: string;
                              inputFileNameSignature: array of string;
@@ -142,8 +144,6 @@ end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
-    responceTextFile: TextFile;
-    responceTextFileName: string;
 begin
   ButtonManualProcessing.Enabled := False;
   TimerAutoProcessing.Enabled := False;
@@ -168,14 +168,7 @@ begin
                 MoveFilesToErrors(SearchResult.Name);
                 MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + DescriptionErrorArchive + #13#10);
 
-                if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
-                  System.SysUtils.ForceDirectories(DirectoryOutput);
-                responceTextFileName := DirectoryOutput + 'response_' + StringReplace(SearchResult.Name, ExtractFileExt(SearchResult.Name), '', [rfIgnoreCase]) + '.txt';
-                responceTextFileName := ifFileExistsRename(responceTextFileName);
-                AssignFile(responceTextFile, responceTextFileName);
-                ReWrite(responceTextFile);
-                WriteLn(responceTextFile, DescriptionErrorArchive);
-                CloseFile(responceTextFile);
+                CreateResponceFileToOutput(SearchResult.Name, DescriptionErrorArchive);
               end
             else Processed(SearchResult.Name);
           until FindNext(SearchResult) <> 0;
@@ -457,11 +450,25 @@ begin
            (CheckFileName(SearchResult.Name) = false) then
           begin
             MoveFilesToErrors(SearchResult.Name);
-            MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  Неверное имя файла "' + SearchResult.Name + '"' + #13#10);
+            MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Неверное имя файла "' + SearchResult.Name + '"' + #13#10);
           end;
       until FindNext(SearchResult) <> 0;
       FindClose(SearchResult);
     end;
+end;
+
+procedure TFormMain.CreateResponceFileToOutput(inputFileName: string; DescriptionError: string);
+var responceTextFile: TextFile;
+    responceTextFileName: string;
+begin
+  if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
+    System.SysUtils.ForceDirectories(DirectoryOutput);
+  responceTextFileName := DirectoryOutput + 'response_' + StringReplace(inputFileName, ExtractFileExt(inputFileName), '', [rfIgnoreCase]) + '.txt';
+  responceTextFileName := ifFileExistsRename(responceTextFileName);
+  AssignFile(responceTextFile, responceTextFileName);
+  ReWrite(responceTextFile);
+  WriteLn(responceTextFile, DescriptionError);
+  CloseFile(responceTextFile);
 end;
 
 function TFormMain.ifFileExistsRename(inputFileName: string): string;
