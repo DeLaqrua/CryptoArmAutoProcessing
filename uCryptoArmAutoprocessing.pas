@@ -344,7 +344,7 @@ begin
       //Проверяем существует ли директория папка "Output"
       //перед тем как в неё переместить протокол
       if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
-        System.SysUtils.ForceDirectories(DirectoryOutput);
+        System.SysUtils.ForceDirectories(DirectoryOutput);  //123
 
       frxReportTypeProtocol.PrepareReport(true);
       frxPDFexportProtocol.Compressed := True;
