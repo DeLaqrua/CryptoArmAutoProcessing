@@ -32,6 +32,12 @@ type
     TimerAutoProcessing: TTimer;
     frxPDFExportProtocol: TfrxPDFExport;
     frxReportTypeProtocol: TfrxReport;
+    LabelInvoicePath: TLabel;
+    LabelInvoiceMTRpath: TLabel;
+    EditInvoicePath: TEdit;
+    ButtonInvoicePath: TButton;
+    EditInvoiceMTRpath: TEdit;
+    ButtonInvoiceMTRpath: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -51,6 +57,8 @@ type
     procedure TimerAutoProcessingTimer(Sender: TObject);
     procedure SpinEditSecChange(Sender: TObject);
     procedure SpinEditMinChange(Sender: TObject);
+    procedure ButtonInvoicePathClick(Sender: TObject);
+    procedure ButtonInvoiceMTRpathClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -61,7 +69,10 @@ type
 
     function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
     function CheckFileName(inputFileName: string): boolean;
+
     function ifFileExistsRename(inputFileName: string): string;
+    function ifFolderExistsRename(inputFolderName: string): string;
+
     function CorrectPath(inputDirectory: string): string;
 
     procedure CreateResponceFileToOutput(inputFileName, descriptionError: string);
@@ -99,7 +110,8 @@ type
 var
   FormMain: TFormMain;
 var
-  DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, descriptionErrorArchive: string;
+  DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR: string;
+  descriptionErrorArchive: string;
 const
   SIGN_CORRECT = 1;
 
@@ -151,7 +163,11 @@ begin
   SpeedButtonStop.Enabled := False;
 
   DirectoryRoot := CorrectPath(EditPath.Text);
-  if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
+  DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
+  DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+  if (System.SysUtils.DirectoryExists(DirectoryRoot) = False) or
+     (System.SysUtils.DirectoryExists(DirectoryInvoice) = False) or
+     (System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False) then
     ShowMessage('Проверьте путь к директории. Папки не существует.')
   else
     begin
@@ -469,115 +485,21 @@ begin
     end;
 end;
 
-procedure TFormMain.CreateResponceFileToOutput(inputFileName: string; descriptionError: string);
-var responceTextFile: TextFile;
-    responceTextFileName: string;
+procedure TFormMain.MoveFilesToErrors(inputFileName: string);
+var fileDirectoryFrom, fileDirectoryTo: string;
+    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
 begin
-  if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
-    System.SysUtils.ForceDirectories(DirectoryOutput);
-  responceTextFileName := DirectoryOutput + 'response_' + StringReplace(inputFileName, ExtractFileExt(inputFileName), '', [rfIgnoreCase]) + '.txt';
-  responceTextFileName := ifFileExistsRename(responceTextFileName);
-  AssignFile(responceTextFile, responceTextFileName);
-  ReWrite(responceTextFile);
-  WriteLn(responceTextFile, descriptionError);
-  CloseFile(responceTextFile);
-end;
+  if System.SysUtils.DirectoryExists(DirectoryErrors) = False then
+    System.SysUtils.ForceDirectories(DirectoryErrors);
 
-function TFormMain.ifFileExistsRename(inputFileName: string): string;
-var counterName: integer;
-begin
-  result := inputFileName;
+  fileDirectoryFrom := DirectoryRoot + inputFileName;
+  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
 
-  counterName := 0;
-  while FileExists(inputFileName) do
-    begin
-      counterName := counterName + 1;
-      if counterName = 1 then
-        begin
-          Insert(' (' + IntToStr(counterName) + ')', inputFileName, Length(inputFileName)-3);
-          result := inputFileName;
-        end
-      else
-        begin
-          inputFileName := StringReplace(inputFileName, ' (' + IntToStr(counterName-1) + ')', ' (' + IntToStr(counterName) + ')', []);
-          result := inputFileName;
-        end;
-    end;
-end;
+  fileDirectoryTo := DirectoryErrors + inputFileName;
+  fileDirectoryTo := ifFileExistsRename(fileDirectoryTo);
+  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
 
-function TFormMain.CheckFileName(inputFileName: string): boolean;
-begin
-  Result := False;
-
-  if MatchesMask(inputFileName, 'SH_*_*_*.zip') or
-     MatchesMask(inputFileName, 'SHO_*_*_*.zip') or
-     MatchesMask(inputFileName, 'SMP_*_*_*.zip') or
-     MatchesMask(inputFileName, 'SHCP_*_*_основной.zip') or
-     MatchesMask(inputFileName, 'MSHO_*_MTR_*.zip') or
-     MatchesMask(inputFileName, 'MSH_*_MTR_*.zip') or
-     MatchesMask(inputFileName, 'MSMP_*_MTR_*.zip') then
-    begin
-      Result := True;
-    end;
-
-end;
-
-function TFormMain.CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
-var i, Counter: integer;
-    Archive: TFWZipReader;
-begin
-
-  Result := False;
-
-  Archive := TFWZipReader.Create;
-  try
-    Archive.LoadFromFile(DirectoryRoot + inputArchiveFileName);
-
-    Counter := 0;
-    //Проверка на количество файлов, прилагаемых в zip-архиве для подписания. По регламенту в архиве должен быть 1 файл-счёт для подписания.
-    for i := 0 to Archive.Count-1 do
-      begin
-        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) <> '.sig' then
-          Counter := Counter + 1;
-      end;
-    if Counter > 1 then
-      begin
-        Result := True;
-        descriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" более одного файла для подписания.';
-      end;
-    if Counter = 0 then
-      begin
-        Result := True;
-        descriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствуют файлы для подписания.';
-      end;
-
-    //Проверка на количество подписей. Если в zip-архиве подписи отсутствуют, то в мусор.
-    Counter := 0;
-    for i := 0 to Archive.Count-1 do
-      begin
-        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
-          counter := Counter + 1;
-      end;
-    if Counter = 0 then
-      begin
-        Result := True;
-        descriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствуют файлы-подписи с расширением ".sig"';
-      end;
-
-    //Проверка на правильность имён файлов внутри zip-архива
-    for i := 0 to Archive.Count-1 do
-      begin
-        if Not MatchesMask( Archive.item[i].FileName, Copy(inputArchiveFileName, 1, AnsiPos('_', inputArchiveFileName) + 12) + '*' ) then
-          begin
-            Result := True;
-            descriptionErrorArchive := 'Файлы внутри zip-архива "' + inputArchiveFileName + '" не соответствуют его названию';
-          end;
-      end;
-
-  finally
-    Archive.Free;
-  end;
-
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
 end;
 
 procedure TFormMain.MoveFilesToProcessed(inputArchiveFileName: string; inputNotSigFile: string; inputSigFilesArray: array of string);
@@ -619,19 +541,22 @@ begin
   //Создаём протокол
   CreateProtocol(inputNotSigFile, inputSigFilesArray, DirectoryFrom, DirectoryTo, inputArchiveFileName);
 
-  //Переносим файлы
+  //Переносим файлы в папку Processed:
+  //– переносим оригинальный zip-файл
   fileDirectoryFrom := DirectoryFrom + inputArchiveFileName;
   pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
   fileDirectoryTo := DirectoryTo + inputArchiveFileName;
   pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
   MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
 
+  //– переносим файл-счёт
   fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
   pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
   fileDirectoryTo := DirectoryTo + inputNotSigFile;
   pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
   MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
 
+  //– переносим sig-файлы
   For indexArray := 0 to High(inputSigFilesArray) do
     begin
       fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[indexArray];
@@ -643,34 +568,155 @@ begin
 
 end;
 
-procedure TFormMain.MoveFilesToErrors(inputFileName: string);
-var fileDirectoryFrom, fileDirectoryTo: string;
-    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
+function TFormMain.CheckFileName(inputFileName: string): boolean;
 begin
-  if System.SysUtils.DirectoryExists(DirectoryErrors) = False then
-    System.SysUtils.ForceDirectories(DirectoryErrors);
+  Result := False;
 
-  fileDirectoryFrom := DirectoryRoot + inputFileName;
-  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+  if MatchesMask(inputFileName, 'SH_*_*_*.zip') or
+     MatchesMask(inputFileName, 'SHO_*_*_*.zip') or
+     MatchesMask(inputFileName, 'SMP_*_*_*.zip') or
+     MatchesMask(inputFileName, 'SHCP_*_*_основной.zip') or
+     MatchesMask(inputFileName, 'MSHO_*_MTR_*.zip') or
+     MatchesMask(inputFileName, 'MSH_*_MTR_*.zip') or
+     MatchesMask(inputFileName, 'MSMP_*_MTR_*.zip') then
+    begin
+      Result := True;
+    end;
 
-  fileDirectoryTo := DirectoryErrors + inputFileName;
-  fileDirectoryTo := ifFileExistsRename(fileDirectoryTo);
-  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
+end;
 
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+function TFormMain.CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
+var i, Counter: integer;
+    Archive: TFWZipReader;
+begin
+
+  Result := False;
+
+  Archive := TFWZipReader.Create;
+  try
+    Archive.LoadFromFile(DirectoryRoot + inputArchiveFileName);
+
+    Counter := 0;
+    //Проверка на количество файлов, прилагаемых в zip-архиве для подписания. По регламенту в архиве должен быть 1 файл-счёт для подписания.
+    for i := 0 to Archive.Count-1 do
+      begin
+        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) <> '.sig' then
+          Counter := Counter + 1;
+      end;
+    if Counter > 1 then
+      begin
+        Result := True;
+        descriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" более одного файла-счёта для подписания.';
+      end;
+    if Counter = 0 then
+      begin
+        Result := True;
+        descriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствует файл-счёт для подписания.';
+      end;
+
+    //Проверка на количество подписей. Если в zip-архиве подписи отсутствуют, то в мусор.
+    Counter := 0;
+    for i := 0 to Archive.Count-1 do
+      begin
+        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
+          counter := Counter + 1;
+      end;
+    if Counter = 0 then
+      begin
+        Result := True;
+        descriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствуют файлы-подписи с расширением ".sig"';
+      end;
+
+    //Проверка на правильность имён файлов внутри zip-архива
+    for i := 0 to Archive.Count-1 do
+      begin
+        if ( LowerCase(ExtractFileExt(Archive.Item[i].FileName)) <> '.sig' ) and
+           ( Not MatchesMask(Archive.item[i].FileName, StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '*') ) then
+          begin
+            Result := True;
+            descriptionErrorArchive := 'Файл-счёт "' + Archive.Item[i].FileName + '" внутри zip-архива "' + inputArchiveFileName + '" не соответствует его названию';
+          end;
+      end;
+
+  finally
+    Archive.Free;
+  end;
+
+end;
+
+procedure TFormMain.CreateResponceFileToOutput(inputFileName: string; descriptionError: string);
+var responceTextFile: TextFile;
+    responceTextFileName: string;
+begin
+  if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
+    System.SysUtils.ForceDirectories(DirectoryOutput);
+  responceTextFileName := DirectoryOutput + 'response_' + StringReplace(inputFileName, ExtractFileExt(inputFileName), '', [rfIgnoreCase]) + '.txt';
+  responceTextFileName := ifFileExistsRename(responceTextFileName);
+  AssignFile(responceTextFile, responceTextFileName);
+  ReWrite(responceTextFile);
+  WriteLn(responceTextFile, descriptionError);
+  CloseFile(responceTextFile);
+end;
+
+function TFormMain.ifFileExistsRename(inputFileName: string): string;
+var counterName: integer;
+begin
+  result := inputFileName;
+
+  counterName := 0;
+  while FileExists(inputFileName) do
+    begin
+      counterName := counterName + 1;
+      if counterName = 1 then
+        begin
+          Insert(' (' + IntToStr(counterName) + ')', inputFileName, Length(inputFileName)-3);
+          result := inputFileName;
+        end
+      else
+        begin
+          inputFileName := StringReplace(inputFileName, ' (' + IntToStr(counterName-1) + ')', ' (' + IntToStr(counterName) + ')', []);
+          result := inputFileName;
+        end;
+    end;
+end;
+
+function TFormMain.ifFolderExistsRename(inputFolderName: string): string;
+var counterName: integer;
+begin
+  result := inputFolderName;
+
+  counterName := 0;
+  while System.SysUtils.DirectoryExists(inputFolderName) do
+    begin
+      counterName := counterName+1;
+      if counterName = 1 then
+        begin
+          Insert(' (' + IntToStr(counterName) + ')', inputFolderName, Length(inputFolderName));
+        end
+      else
+        begin
+          inputFolderName := StringReplace(inputFolderName, ' (' + IntToStr(i-1) +')', ' (' + IntToStr(i) + ')', []);
+        end;
+    end;
+
 end;
 
 function TFormMain.CorrectPath(inputDirectory: string): string;
 begin
-  if Pos('/', inputDirectory) <> 0 then
-    begin
-      inputDirectory := StringReplace(inputDirectory, '/', '\', [rfReplaceAll]);
-    end;
-
-  if inputDirectory[length(inputDirectory)] <> '\' then
-    Result := inputDirectory + '\'
+  if inputDirectory = '' then
+    Result := ''
   else
-    Result := inputDirectory;
+    begin
+      if Pos('/', inputDirectory) <> 0 then
+        begin
+          inputDirectory := StringReplace(inputDirectory, '/', '\', [rfReplaceAll]);
+        end;
+
+      if inputDirectory[length(inputDirectory)] <> '\' then
+        Result := inputDirectory + '\'
+      else
+        Result := inputDirectory;
+    end;
 end;
 
 procedure TFormMain.UpdateDirectories(inputDirectoryRoot: string);
@@ -689,6 +735,18 @@ procedure TFormMain.ButtonPathClick(Sender: TObject);
 begin
   if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdValidateDir]) then
     EditPath.Text := DirectoryRoot;
+end;
+
+procedure TFormMain.ButtonInvoicePathClick(Sender: TObject);
+begin
+  if SelectDirectory('Выберите папку для выгрузки счетов:', '', DirectoryInvoice, [sdNewFolder, sdShowShares, sdValidateDir]) then
+    EditInvoicePath.Text := DirectoryInvoice;
+end;
+
+procedure TFormMain.ButtonInvoiceMTRpathClick(Sender: TObject);
+begin
+  if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdValidateDir]) then
+    EditInvoiceMTRpath.Text := DirectoryInvoiceMTR;
 end;
 
 procedure TFormMain.SpeedButtonPlayClick(Sender: TObject);

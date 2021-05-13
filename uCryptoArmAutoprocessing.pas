@@ -69,7 +69,10 @@ type
 
     function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
     function CheckFileName(inputFileName: string): boolean;
+
     function ifFileExistsRename(inputFileName: string): string;
+    function ifFolderExistsRename(inputFolderName: string): string;
+
     function CorrectPath(inputDirectory: string): string;
 
     procedure CreateResponceFileToOutput(inputFileName, descriptionError: string);
@@ -482,40 +485,70 @@ begin
     end;
 end;
 
-procedure TFormMain.CreateResponceFileToOutput(inputFileName: string; descriptionError: string);
-var responceTextFile: TextFile;
-    responceTextFileName: string;
+procedure TFormMain.MoveFilesToErrors(inputFileName: string);
+var fileDirectoryFrom, fileDirectoryTo: string;
+    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
 begin
-  if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
-    System.SysUtils.ForceDirectories(DirectoryOutput);
-  responceTextFileName := DirectoryOutput + 'response_' + StringReplace(inputFileName, ExtractFileExt(inputFileName), '', [rfIgnoreCase]) + '.txt';
-  responceTextFileName := ifFileExistsRename(responceTextFileName);
-  AssignFile(responceTextFile, responceTextFileName);
-  ReWrite(responceTextFile);
-  WriteLn(responceTextFile, descriptionError);
-  CloseFile(responceTextFile);
+  if System.SysUtils.DirectoryExists(DirectoryErrors) = False then
+    System.SysUtils.ForceDirectories(DirectoryErrors);
+
+  fileDirectoryFrom := DirectoryRoot + inputFileName;
+  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+
+  fileDirectoryTo := DirectoryErrors + inputFileName;
+  fileDirectoryTo := ifFileExistsRename(fileDirectoryTo);
+  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
+
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
 end;
 
-function TFormMain.ifFileExistsRename(inputFileName: string): string;
-var counterName: integer;
+procedure TFormMain.MoveFilesToProcessed(inputArchiveFileName: string; inputNotSigFile: string; inputSigFilesArray: array of string);
+var DirectoryFrom, DirectoryTo, fileDirectoryFrom, fileDirectoryTo: string;
+    MO: string;
+    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
+    Year, Month: integer;
+    i: integer;
 begin
-  result := inputFileName;
+  Year := YearOf(Date);
+  Month := MonthOf(Date);
+  MO := Copy(inputArchiveFileName, AnsiPos('_', inputArchiveFileName) + 1, 6);
 
-  counterName := 0;
-  while FileExists(inputFileName) do
+  DirectoryFrom := DirectoryRoot;
+
+  DirectoryTo := DirectoryProcessed + IntToStr(Year) + '\' + IntToStr(Month) + '\' + MO + '\' +
+                 StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
+  DirectoryTo := ifFolderExistsRename(DirectoryTo);
+  if System.SysUtils.DirectoryExists(DirectoryTo) = False then
+    System.SysUtils.ForceDirectories(DirectoryTo);
+
+  //—оздаЄм протокол
+  CreateProtocol(inputNotSigFile, inputSigFilesArray, DirectoryFrom, DirectoryTo, inputArchiveFileName);
+
+  //ѕереносим файлы в папку Processed:
+  //Ц переносим оригинальный zip-файл
+  fileDirectoryFrom := DirectoryFrom + inputArchiveFileName;
+  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+  fileDirectoryTo := DirectoryTo + inputArchiveFileName;
+  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+
+  //Ц переносим файл-счЄт
+  fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
+  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+  fileDirectoryTo := DirectoryTo + inputNotSigFile;
+  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+
+  //Ц переносим sig-файлы
+  For i := 0 to High(inputSigFilesArray) do
     begin
-      counterName := counterName + 1;
-      if counterName = 1 then
-        begin
-          Insert(' (' + IntToStr(counterName) + ')', inputFileName, Length(inputFileName)-3);
-          result := inputFileName;
-        end
-      else
-        begin
-          inputFileName := StringReplace(inputFileName, ' (' + IntToStr(counterName-1) + ')', ' (' + IntToStr(counterName) + ')', []);
-          result := inputFileName;
-        end;
+      fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[i];
+      pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+      fileDirectoryTo := DirectoryTo + inputSigFilesArray[i];
+      pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
+      MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
     end;
+
 end;
 
 function TFormMain.CheckFileName(inputFileName: string): boolean;
@@ -594,84 +627,63 @@ begin
 
 end;
 
-procedure TFormMain.MoveFilesToProcessed(inputArchiveFileName: string; inputNotSigFile: string; inputSigFilesArray: array of string);
-var DirectoryFrom, DirectoryTo, fileDirectoryFrom, fileDirectoryTo: string;
-    MO: string;
-    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
-    Year, Month: integer;
-    i, indexArray: integer;
+procedure TFormMain.CreateResponceFileToOutput(inputFileName: string; descriptionError: string);
+var responceTextFile: TextFile;
+    responceTextFileName: string;
 begin
-  Year := YearOf(Date);
-  Month := MonthOf(Date);
-  MO := Copy(inputArchiveFileName, AnsiPos('_', inputArchiveFileName) + 1, 6);
-
-  DirectoryFrom := DirectoryRoot;
-
-  DirectoryTo := DirectoryProcessed + IntToStr(Year) + '\' + IntToStr(Month) + '\' + MO + '\' +
-                 StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
-  //ѕровер€ем существует ли директори€ с таким же названием
-  if System.SysUtils.DirectoryExists(DirectoryTo) then
-    begin
-      i := 0;
-      while System.SysUtils.DirectoryExists(DirectoryTo) do
-        begin
-          i := i+1;
-          if i = 1 then
-            begin
-              Insert(' (' + IntToStr(i) + ')', DirectoryTo, Length(DirectoryTo));
-            end
-          else
-            begin
-              DirectoryTo := StringReplace(DirectoryTo, ' (' + IntToStr(i-1) +')', ' (' + IntToStr(i) + ')', []);
-            end;
-        end;
-      System.SysUtils.ForceDirectories(DirectoryTo);
-    end
-  else
-    System.SysUtils.ForceDirectories(DirectoryTo);
-
-  //—оздаЄм протокол
-  CreateProtocol(inputNotSigFile, inputSigFilesArray, DirectoryFrom, DirectoryTo, inputArchiveFileName);
-
-  //ѕереносим файлы
-  fileDirectoryFrom := DirectoryFrom + inputArchiveFileName;
-  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-  fileDirectoryTo := DirectoryTo + inputArchiveFileName;
-  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
-
-  fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
-  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-  fileDirectoryTo := DirectoryTo + inputNotSigFile;
-  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
-
-  For indexArray := 0 to High(inputSigFilesArray) do
-    begin
-      fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[indexArray];
-      pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-      fileDirectoryTo := DirectoryTo + inputSigFilesArray[indexArray];
-      pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-      MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
-    end;
-
+  if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
+    System.SysUtils.ForceDirectories(DirectoryOutput);
+  responceTextFileName := DirectoryOutput + 'response_' + StringReplace(inputFileName, ExtractFileExt(inputFileName), '', [rfIgnoreCase]) + '.txt';
+  responceTextFileName := ifFileExistsRename(responceTextFileName);
+  AssignFile(responceTextFile, responceTextFileName);
+  ReWrite(responceTextFile);
+  WriteLn(responceTextFile, descriptionError);
+  CloseFile(responceTextFile);
 end;
 
-procedure TFormMain.MoveFilesToErrors(inputFileName: string);
-var fileDirectoryFrom, fileDirectoryTo: string;
-    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
+function TFormMain.ifFileExistsRename(inputFileName: string): string;
+var counterName: integer;
 begin
-  if System.SysUtils.DirectoryExists(DirectoryErrors) = False then
-    System.SysUtils.ForceDirectories(DirectoryErrors);
+  result := inputFileName;
 
-  fileDirectoryFrom := DirectoryRoot + inputFileName;
-  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+  counterName := 0;
+  while FileExists(inputFileName) do
+    begin
+      counterName := counterName + 1;
+      if counterName = 1 then
+        begin
+          Insert(' (' + IntToStr(counterName) + ')', inputFileName, Length(inputFileName)-3);
+          result := inputFileName;
+        end
+      else
+        begin
+          inputFileName := StringReplace(inputFileName, ' (' + IntToStr(counterName-1) + ')', ' (' + IntToStr(counterName) + ')', []);
+          result := inputFileName;
+        end;
+    end;
+end;
 
-  fileDirectoryTo := DirectoryErrors + inputFileName;
-  fileDirectoryTo := ifFileExistsRename(fileDirectoryTo);
-  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
+function TFormMain.ifFolderExistsRename(inputFolderName: string): string;
+var counterName: integer;
+begin
+  result := inputFolderName;
 
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+  counterName := 0;
+  while System.SysUtils.DirectoryExists(inputFolderName) do
+    begin
+      counterName := counterName + 1;
+      if counterName = 1 then
+        begin
+          Insert(' (' + IntToStr(counterName) + ')', inputFolderName, Length(inputFolderName));
+          result := inputFolderName;
+        end
+      else
+        begin
+          inputFolderName := StringReplace(inputFolderName, ' (' + IntToStr(counterName-1) +')', ' (' + IntToStr(counterName) + ')', []);
+          result := inputFolderName;
+        end;
+    end;
+
 end;
 
 function TFormMain.CorrectPath(inputDirectory: string): string;

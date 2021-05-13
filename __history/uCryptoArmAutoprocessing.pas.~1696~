@@ -32,6 +32,12 @@ type
     TimerAutoProcessing: TTimer;
     frxPDFExportProtocol: TfrxPDFExport;
     frxReportTypeProtocol: TfrxReport;
+    LabelInvoicePath: TLabel;
+    LabelInvoiceMTRpath: TLabel;
+    EditInvoicePath: TEdit;
+    ButtonInvoicePath: TButton;
+    EditInvoiceMTRpath: TEdit;
+    ButtonInvoiceMTRpath: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -51,6 +57,8 @@ type
     procedure TimerAutoProcessingTimer(Sender: TObject);
     procedure SpinEditSecChange(Sender: TObject);
     procedure SpinEditMinChange(Sender: TObject);
+    procedure ButtonInvoicePathClick(Sender: TObject);
+    procedure ButtonInvoiceMTRpathClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -99,7 +107,8 @@ type
 var
   FormMain: TFormMain;
 var
-  DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, descriptionErrorArchive: string;
+  DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR: string;
+  descriptionErrorArchive: string;
 const
   SIGN_CORRECT = 1;
 
@@ -151,7 +160,11 @@ begin
   SpeedButtonStop.Enabled := False;
 
   DirectoryRoot := CorrectPath(EditPath.Text);
-  if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
+  DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
+  DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+  if (System.SysUtils.DirectoryExists(DirectoryRoot) = False) or
+     (System.SysUtils.DirectoryExists(DirectoryInvoice) = False) or
+     (System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False) then
     ShowMessage('Проверьте путь к директории. Папки не существует.')
   else
     begin
@@ -469,6 +482,89 @@ begin
     end;
 end;
 
+procedure TFormMain.MoveFilesToProcessed(inputArchiveFileName: string; inputNotSigFile: string; inputSigFilesArray: array of string);
+var DirectoryFrom, DirectoryTo, fileDirectoryFrom, fileDirectoryTo: string;
+    MO: string;
+    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
+    Year, Month: integer;
+    i, indexArray: integer;
+begin
+  Year := YearOf(Date);
+  Month := MonthOf(Date);
+  MO := Copy(inputArchiveFileName, AnsiPos('_', inputArchiveFileName) + 1, 6);
+
+  DirectoryFrom := DirectoryRoot;
+
+  DirectoryTo := DirectoryProcessed + IntToStr(Year) + '\' + IntToStr(Month) + '\' + MO + '\' +
+                 StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
+  //Проверяем существует ли директория с таким же названием
+  if System.SysUtils.DirectoryExists(DirectoryTo) then
+    begin
+      i := 0;
+      while System.SysUtils.DirectoryExists(DirectoryTo) do
+        begin
+          i := i+1;
+          if i = 1 then
+            begin
+              Insert(' (' + IntToStr(i) + ')', DirectoryTo, Length(DirectoryTo));
+            end
+          else
+            begin
+              DirectoryTo := StringReplace(DirectoryTo, ' (' + IntToStr(i-1) +')', ' (' + IntToStr(i) + ')', []);
+            end;
+        end;
+      System.SysUtils.ForceDirectories(DirectoryTo);
+    end
+  else
+    System.SysUtils.ForceDirectories(DirectoryTo);
+
+  //Создаём протокол
+  CreateProtocol(inputNotSigFile, inputSigFilesArray, DirectoryFrom, DirectoryTo, inputArchiveFileName);
+
+  //Переносим файлы в папку Processed:
+  //– Переносим оригинальный архив-файл
+  fileDirectoryFrom := DirectoryFrom + inputArchiveFileName;
+  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+  fileDirectoryTo := DirectoryTo + inputArchiveFileName;
+  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+
+  //– Переносим файл-счёт
+  fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
+  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+  fileDirectoryTo := DirectoryTo + inputNotSigFile;
+  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+
+  //– Переносим sig-файлы
+  For indexArray := 0 to High(inputSigFilesArray) do
+    begin
+      fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[indexArray];
+      pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+      fileDirectoryTo := DirectoryTo + inputSigFilesArray[indexArray];
+      pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
+      MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+    end;
+
+end;
+
+procedure TFormMain.MoveFilesToErrors(inputFileName: string);
+var fileDirectoryFrom, fileDirectoryTo: string;
+    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
+begin
+  if System.SysUtils.DirectoryExists(DirectoryErrors) = False then
+    System.SysUtils.ForceDirectories(DirectoryErrors);
+
+  fileDirectoryFrom := DirectoryRoot + inputFileName;
+  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+
+  fileDirectoryTo := DirectoryErrors + inputFileName;
+  fileDirectoryTo := ifFileExistsRename(fileDirectoryTo);
+  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
+
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+end;
+
 procedure TFormMain.CreateResponceFileToOutput(inputFileName: string; descriptionError: string);
 var responceTextFile: TextFile;
     responceTextFileName: string;
@@ -581,97 +677,22 @@ begin
 
 end;
 
-procedure TFormMain.MoveFilesToProcessed(inputArchiveFileName: string; inputNotSigFile: string; inputSigFilesArray: array of string);
-var DirectoryFrom, DirectoryTo, fileDirectoryFrom, fileDirectoryTo: string;
-    MO: string;
-    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
-    Year, Month: integer;
-    i, indexArray: integer;
-begin
-  Year := YearOf(Date);
-  Month := MonthOf(Date);
-  MO := Copy(inputArchiveFileName, AnsiPos('_', inputArchiveFileName) + 1, 6);
-
-  DirectoryFrom := DirectoryRoot;
-
-  DirectoryTo := DirectoryProcessed + IntToStr(Year) + '\' + IntToStr(Month) + '\' + MO + '\' +
-                 StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
-  //Проверяем существует ли директория с таким же названием
-  if System.SysUtils.DirectoryExists(DirectoryTo) then
-    begin
-      i := 0;
-      while System.SysUtils.DirectoryExists(DirectoryTo) do
-        begin
-          i := i+1;
-          if i = 1 then
-            begin
-              Insert(' (' + IntToStr(i) + ')', DirectoryTo, Length(DirectoryTo));
-            end
-          else
-            begin
-              DirectoryTo := StringReplace(DirectoryTo, ' (' + IntToStr(i-1) +')', ' (' + IntToStr(i) + ')', []);
-            end;
-        end;
-      System.SysUtils.ForceDirectories(DirectoryTo);
-    end
-  else
-    System.SysUtils.ForceDirectories(DirectoryTo);
-
-  //Создаём протокол
-  CreateProtocol(inputNotSigFile, inputSigFilesArray, DirectoryFrom, DirectoryTo, inputArchiveFileName);
-
-  //Переносим файлы
-  fileDirectoryFrom := DirectoryFrom + inputArchiveFileName;
-  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-  fileDirectoryTo := DirectoryTo + inputArchiveFileName;
-  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
-
-  fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
-  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-  fileDirectoryTo := DirectoryTo + inputNotSigFile;
-  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
-
-  For indexArray := 0 to High(inputSigFilesArray) do
-    begin
-      fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[indexArray];
-      pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-      fileDirectoryTo := DirectoryTo + inputSigFilesArray[indexArray];
-      pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-      MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
-    end;
-
-end;
-
-procedure TFormMain.MoveFilesToErrors(inputFileName: string);
-var fileDirectoryFrom, fileDirectoryTo: string;
-    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
-begin
-  if System.SysUtils.DirectoryExists(DirectoryErrors) = False then
-    System.SysUtils.ForceDirectories(DirectoryErrors);
-
-  fileDirectoryFrom := DirectoryRoot + inputFileName;
-  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-
-  fileDirectoryTo := DirectoryErrors + inputFileName;
-  fileDirectoryTo := ifFileExistsRename(fileDirectoryTo);
-  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
-end;
-
 function TFormMain.CorrectPath(inputDirectory: string): string;
 begin
-  if Pos('/', inputDirectory) <> 0 then
-    begin
-      inputDirectory := StringReplace(inputDirectory, '/', '\', [rfReplaceAll]);
-    end;
-
-  if inputDirectory[length(inputDirectory)] <> '\' then
-    Result := inputDirectory + '\'
+  if inputDirectory = '' then
+    Result := ''
   else
-    Result := inputDirectory;
+    begin
+      if Pos('/', inputDirectory) <> 0 then
+        begin
+          inputDirectory := StringReplace(inputDirectory, '/', '\', [rfReplaceAll]);
+        end;
+
+      if inputDirectory[length(inputDirectory)] <> '\' then
+        Result := inputDirectory + '\'
+      else
+        Result := inputDirectory;
+    end;
 end;
 
 procedure TFormMain.UpdateDirectories(inputDirectoryRoot: string);
@@ -690,6 +711,18 @@ procedure TFormMain.ButtonPathClick(Sender: TObject);
 begin
   if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdValidateDir]) then
     EditPath.Text := DirectoryRoot;
+end;
+
+procedure TFormMain.ButtonInvoicePathClick(Sender: TObject);
+begin
+  if SelectDirectory('Выберите папку для выгрузки счетов:', '', DirectoryInvoice, [sdNewFolder, sdShowShares, sdValidateDir]) then
+    EditInvoicePath.Text := DirectoryInvoice;
+end;
+
+procedure TFormMain.ButtonInvoiceMTRpathClick(Sender: TObject);
+begin
+  if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdValidateDir]) then
+    EditInvoiceMTRpath.Text := DirectoryInvoiceMTR;
 end;
 
 procedure TFormMain.SpeedButtonPlayClick(Sender: TObject);

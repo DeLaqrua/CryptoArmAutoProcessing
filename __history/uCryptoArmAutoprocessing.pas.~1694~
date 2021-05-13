@@ -32,6 +32,12 @@ type
     TimerAutoProcessing: TTimer;
     frxPDFExportProtocol: TfrxPDFExport;
     frxReportTypeProtocol: TfrxReport;
+    LabelInvoicePath: TLabel;
+    LabelInvoiceMTRpath: TLabel;
+    EditInvoicePath: TEdit;
+    ButtonInvoicePath: TButton;
+    EditInvoiceMTRpath: TEdit;
+    ButtonInvoiceMTRpath: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -51,6 +57,8 @@ type
     procedure TimerAutoProcessingTimer(Sender: TObject);
     procedure SpinEditSecChange(Sender: TObject);
     procedure SpinEditMinChange(Sender: TObject);
+    procedure ButtonInvoicePathClick(Sender: TObject);
+    procedure ButtonInvoiceMTRpathClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -99,7 +107,8 @@ type
 var
   FormMain: TFormMain;
 var
-  DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, descriptionErrorArchive: string;
+  DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR: string;
+  descriptionErrorArchive: string;
 const
   SIGN_CORRECT = 1;
 
@@ -151,7 +160,11 @@ begin
   SpeedButtonStop.Enabled := False;
 
   DirectoryRoot := CorrectPath(EditPath.Text);
-  if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
+  DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
+  DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+  if (System.SysUtils.DirectoryExists(DirectoryRoot) = False) or
+     (System.SysUtils.DirectoryExists(DirectoryInvoice) = False) or
+     (System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False) then
     ShowMessage('Проверьте путь к директории. Папки не существует.')
   else
     begin
@@ -567,10 +580,11 @@ begin
     //Проверка на правильность имён файлов внутри zip-архива
     for i := 0 to Archive.Count-1 do
       begin
-        if Not MatchesMask( Archive.item[i].FileName, Copy(inputArchiveFileName, 1, AnsiPos('_', inputArchiveFileName) + 12) + '*' ) then
+        if ( LowerCase(ExtractFileExt(Archive.Item[i].FileName)) <> '.sig' ) and
+           ( Not MatchesMask(Archive.item[i].FileName, StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '*') ) then
           begin
             Result := True;
-            descriptionErrorArchive := 'Файлы внутри zip-архива "' + inputArchiveFileName + '" не соответствуют его названию';
+            descriptionErrorArchive := 'Файл-счёт "' + Archive.Item[i].FileName + '" внутри zip-архива "' + inputArchiveFileName + '" не соответствует его названию';
           end;
       end;
 
@@ -662,15 +676,20 @@ end;
 
 function TFormMain.CorrectPath(inputDirectory: string): string;
 begin
-  if Pos('/', inputDirectory) <> 0 then
-    begin
-      inputDirectory := StringReplace(inputDirectory, '/', '\', [rfReplaceAll]);
-    end;
-
-  if inputDirectory[length(inputDirectory)] <> '\' then
-    Result := inputDirectory + '\'
+  if inputDirectory = '' then
+    Result := ''
   else
-    Result := inputDirectory;
+    begin
+      if Pos('/', inputDirectory) <> 0 then
+        begin
+          inputDirectory := StringReplace(inputDirectory, '/', '\', [rfReplaceAll]);
+        end;
+
+      if inputDirectory[length(inputDirectory)] <> '\' then
+        Result := inputDirectory + '\'
+      else
+        Result := inputDirectory;
+    end;
 end;
 
 procedure TFormMain.UpdateDirectories(inputDirectoryRoot: string);
@@ -689,6 +708,18 @@ procedure TFormMain.ButtonPathClick(Sender: TObject);
 begin
   if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdValidateDir]) then
     EditPath.Text := DirectoryRoot;
+end;
+
+procedure TFormMain.ButtonInvoicePathClick(Sender: TObject);
+begin
+  if SelectDirectory('Выберите папку для выгрузки счетов:', '', DirectoryInvoice, [sdNewFolder, sdShowShares, sdValidateDir]) then
+    EditInvoicePath.Text := DirectoryInvoice;
+end;
+
+procedure TFormMain.ButtonInvoiceMTRpathClick(Sender: TObject);
+begin
+  if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdValidateDir]) then
+    EditInvoiceMTRpath.Text := DirectoryInvoiceMTR;
 end;
 
 procedure TFormMain.SpeedButtonPlayClick(Sender: TObject);
