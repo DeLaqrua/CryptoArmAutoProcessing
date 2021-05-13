@@ -567,10 +567,11 @@ begin
     //Проверка на правильность имён файлов внутри zip-архива
     for i := 0 to Archive.Count-1 do
       begin
-        if Not MatchesMask( Archive.item[i].FileName, Copy(inputArchiveFileName, 1, AnsiPos('_', inputArchiveFileName) + 12) + '*' ) then
+        if ( LowerCase(ExtractFileExt(Archive.Item[i].FileName)) <> '.sig' ) and
+           ( Not MatchesMask(Archive.item[i].FileName, StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '*') ) then
           begin
             Result := True;
-            descriptionErrorArchive := 'Файлы внутри zip-архива "' + inputArchiveFileName + '" не соответствуют его названию';
+            descriptionErrorArchive := 'Файл-счёт "' + Archive.Item[i].FileName + '" внутри zip-архива "' + inputArchiveFileName + '" не соответствует его названию';
           end;
       end;
 

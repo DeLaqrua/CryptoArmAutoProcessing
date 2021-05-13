@@ -58,11 +58,13 @@ type
     function SignatureVerify(inputFileName, inputFileNameSignature: string; out arrayResultsDescription: TStringDynArray): TSmallIntDynArray;
     function SignatureInformation(InputFileNameSignature: string): TStringDynArray;
     function CertificateInformation(InputFileNameSignature: string): TStringDynArray;
-    function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
-    function CorrectPath(inputDirectory: string): string;
-    function CheckFileName(inputFileName: string): boolean;
 
+    function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
+    function CheckFileName(inputFileName: string): boolean;
     function ifFileExistsRename(inputFileName: string): string;
+    function CorrectPath(inputDirectory: string): string;
+
+    procedure CreateResponceFileToOutput(inputFileName, descriptionError: string);
 
     procedure CreateProtocol(inputFileName: string;
                              inputFileNameSignature: array of string;
@@ -97,7 +99,7 @@ type
 var
   FormMain: TFormMain;
 var
-  DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, DescriptionErrorArchive: string;
+  DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, descriptionErrorArchive: string;
 const
   SIGN_CORRECT = 1;
 
@@ -142,8 +144,6 @@ end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
-    responceTextFile: TextFile;
-    responceTextFileName: string;
 begin
   ButtonManualProcessing.Enabled := False;
   TimerAutoProcessing.Enabled := False;
@@ -166,16 +166,9 @@ begin
             if CheckFileName(SearchResult.Name) and CheckErrorsWithinArchive(SearchResult.Name) then
               begin
                 MoveFilesToErrors(SearchResult.Name);
-                MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + DescriptionErrorArchive + #13#10);
+                MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10);
 
-                if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
-                  System.SysUtils.ForceDirectories(DirectoryOutput);
-                responceTextFileName := DirectoryOutput + 'response_' + StringReplace(SearchResult.Name, ExtractFileExt(SearchResult.Name), '', [rfIgnoreCase]) + '.txt';
-                responceTextFileName := ifFileExistsRename(responceTextFileName);
-                AssignFile(responceTextFile, responceTextFileName);
-                ReWrite(responceTextFile);
-                WriteLn(responceTextFile, DescriptionErrorArchive);
-                CloseFile(responceTextFile);
+                CreateResponceFileToOutput(SearchResult.Name, descriptionErrorArchive);
               end
             else Processed(SearchResult.Name);
           until FindNext(SearchResult) <> 0;
@@ -358,7 +351,7 @@ begin
       frxReportTypeProtocol.Export(frxPDFexportProtocol);
       //Проверка существует ли в папке "Output" файл с таким же названием
       //Если существует, название меняется
-      frxPDFexportProtocol.FileName := directoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+      frxPDFexportProtocol.FileName := DirectoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
       frxPDFexportProtocol.FileName := ifFileExistsRename(frxPDFexportProtocol.FileName);
       frxReportTypeProtocol.Export(frxPDFexportProtocol);
     end;
@@ -446,6 +439,7 @@ end;
 
 procedure TFormMain.SortErrorFiles;
 var SearchResult: TSearchRec;
+    descriptionError: string;
 begin
   if System.SysUtils.DirectoryExists(DirectoryErrors) = False then
     System.SysUtils.ForceDirectories(DirectoryErrors);
@@ -457,11 +451,36 @@ begin
            (CheckFileName(SearchResult.Name) = false) then
           begin
             MoveFilesToErrors(SearchResult.Name);
-            MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  Неверное имя файла "' + SearchResult.Name + '"' + #13#10);
+            descriptionError := 'Неверное имя файла "' + SearchResult.Name + '"';
+            MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionError + #13#10);
+
+            CreateResponceFileToOutput(SearchResult.Name, descriptionError + #13#10
+                                                          + 'Верные имена файлов должны соответствовать маскам(фигурные скобки убираются):' + #13#10
+                                                          + 'SH_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
+                                                          + 'SHO_{Код МО}_Код СМО_{основной/доплата}.zip' + #13#10
+                                                          + 'SMP_{Код МО}_Код СМО_{основной/доплата}.zip' + #13#10
+                                                          + 'SHCP_{Код МО}_Код СМО_основной.zip' + #13#10
+                                                          + 'MSHO_{Код МО}_MTR_{основной/доплата}.zip' + #13#10
+                                                          + 'MSH_{Код МО}_MTR_{основной/доплата}.zip' + #13#10
+                                                          + 'MSMP_{Код МО}_MTR_{основной/доплата}.zip');
           end;
       until FindNext(SearchResult) <> 0;
       FindClose(SearchResult);
     end;
+end;
+
+procedure TFormMain.CreateResponceFileToOutput(inputFileName: string; descriptionError: string);
+var responceTextFile: TextFile;
+    responceTextFileName: string;
+begin
+  if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
+    System.SysUtils.ForceDirectories(DirectoryOutput);
+  responceTextFileName := DirectoryOutput + 'response_' + StringReplace(inputFileName, ExtractFileExt(inputFileName), '', [rfIgnoreCase]) + '.txt';
+  responceTextFileName := ifFileExistsRename(responceTextFileName);
+  AssignFile(responceTextFile, responceTextFileName);
+  ReWrite(responceTextFile);
+  WriteLn(responceTextFile, descriptionError);
+  CloseFile(responceTextFile);
 end;
 
 function TFormMain.ifFileExistsRename(inputFileName: string): string;
@@ -492,10 +511,11 @@ begin
 
   if MatchesMask(inputFileName, 'SH_*_*_*.zip') or
      MatchesMask(inputFileName, 'SHO_*_*_*.zip') or
-     MatchesMask(inputFileName, 'MSHO_*_*_*.zip') or
-     MatchesMask(inputFileName, 'MSH_*_*_*.zip') or
-     MatchesMask(inputFileName, 'MSMP_*_*_*.zip') or
-     MatchesMask(inputFileName, 'SMP_*_*_*.zip') then
+     MatchesMask(inputFileName, 'SMP_*_*_*.zip') or
+     MatchesMask(inputFileName, 'SHCP_*_*_основной.zip') or
+     MatchesMask(inputFileName, 'MSHO_*_MTR_*.zip') or
+     MatchesMask(inputFileName, 'MSH_*_MTR_*.zip') or
+     MatchesMask(inputFileName, 'MSMP_*_MTR_*.zip') then
     begin
       Result := True;
     end;
@@ -514,16 +534,21 @@ begin
     Archive.LoadFromFile(DirectoryRoot + inputArchiveFileName);
 
     Counter := 0;
-    //Проверка на количество файлов, прилагаемых в zip-архиве для подписания. По регламенту в архиве должен быть 1 файл для подписания.
+    //Проверка на количество файлов, прилагаемых в zip-архиве для подписания. По регламенту в архиве должен быть 1 файл-счёт для подписания.
     for i := 0 to Archive.Count-1 do
       begin
         if LowerCase(ExtractFileExt(Archive.item[i].FileName)) <> '.sig' then
           Counter := Counter + 1;
       end;
-    if Counter <> 1 then
+    if Counter > 1 then
       begin
         Result := True;
-        DescriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" более одного файла для подписания.';
+        descriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" более одного файла-счёта для подписания.';
+      end;
+    if Counter = 0 then
+      begin
+        Result := True;
+        descriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствует файл-счёт для подписания.';
       end;
 
     //Проверка на количество подписей. Если в zip-архиве подписи отсутствуют, то в мусор.
@@ -536,16 +561,17 @@ begin
     if Counter = 0 then
       begin
         Result := True;
-        DescriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствуют файлы-подписи с расширением ".sig"';
+        descriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствуют файлы-подписи с расширением ".sig"';
       end;
 
     //Проверка на правильность имён файлов внутри zip-архива
     for i := 0 to Archive.Count-1 do
       begin
-        if Not MatchesMask( Archive.item[i].FileName, Copy(inputArchiveFileName, 1, AnsiPos('_', inputArchiveFileName) + 12) + '*' ) then
+        if ( LowerCase(ExtractFileExt(Archive.Item[i].FileName)) <> '.sig' ) and
+           ( Not MatchesMask(Archive.item[i].FileName, StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '*') ) then
           begin
             Result := True;
-            DescriptionErrorArchive := 'Файлы внутри zip-архива "' + inputArchiveFileName + '" не соответствуют его названию';
+            descriptionErrorArchive := 'Файл-счёт внутри ' + 'zip-архива "' + inputArchiveFileName + '" не соответствует его названию';
           end;
       end;
 
