@@ -506,16 +506,31 @@ procedure TFormMain.MoveFilesToProcessed(inputArchiveFileName: string; inputNotS
 var DirectoryFrom, DirectoryTo, fileDirectoryFrom, fileDirectoryTo: string;
     MO: string;
     pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
-    Year, Month: integer;
+    Year: integer;
+    Month: string;
     i: integer;
 begin
   Year := YearOf(Date);
-  Month := MonthOf(Date);
+  case MonthOf(Date) of
+    1 : Month := 'Январь';
+    2 : Month := 'Февраль';
+    3 : Month := 'Март';
+    4 : Month := 'Апрель';
+    5 : Month := 'Май';
+    6 : Month := 'Июнь';
+    7 : Month := 'Июль';
+    8 : Month := 'Август';
+    9 : Month := 'Сентябрь';
+    10 : Month := 'Октябрь';
+    11 : Month := 'Ноябрь';
+    12 : Month := 'Декабрь';
+  else Month := 'Неизвестный месяц оО';
+  end;
   MO := Copy(inputArchiveFileName, AnsiPos('_', inputArchiveFileName) + 1, 6);
 
   DirectoryFrom := DirectoryRoot;
 
-  DirectoryTo := DirectoryProcessed + IntToStr(Year) + '\' + IntToStr(Month) + '\' + MO + '\' +
+  DirectoryTo := DirectoryProcessed + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
                  StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
   DirectoryTo := ifFolderExistsRename(DirectoryTo);
   if System.SysUtils.DirectoryExists(DirectoryTo) = False then
