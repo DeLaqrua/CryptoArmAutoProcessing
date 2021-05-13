@@ -105,7 +105,8 @@ type
 var
   FormMain: TFormMain;
 var
-  DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, descriptionErrorArchive: string;
+  DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR: string;
+  descriptionErrorArchive: string;
 const
   SIGN_CORRECT = 1;
 
@@ -157,7 +158,11 @@ begin
   SpeedButtonStop.Enabled := False;
 
   DirectoryRoot := CorrectPath(EditPath.Text);
-  if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
+  DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
+  DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+  if (System.SysUtils.DirectoryExists(DirectoryRoot) = False) or
+     (System.SysUtils.DirectoryExists(DirectoryInvoice) = False) or
+     (System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False) then
     ShowMessage('Проверьте путь к директории. Папки не существует.')
   else
     begin
@@ -669,15 +674,20 @@ end;
 
 function TFormMain.CorrectPath(inputDirectory: string): string;
 begin
-  if Pos('/', inputDirectory) <> 0 then
-    begin
-      inputDirectory := StringReplace(inputDirectory, '/', '\', [rfReplaceAll]);
-    end;
-
-  if inputDirectory[length(inputDirectory)] <> '\' then
-    Result := inputDirectory + '\'
+  if inputDirectory = '' then
+    Result := ''
   else
-    Result := inputDirectory;
+    begin
+      if Pos('/', inputDirectory) <> 0 then
+        begin
+          inputDirectory := StringReplace(inputDirectory, '/', '\', [rfReplaceAll]);
+        end;
+
+      if inputDirectory[length(inputDirectory)] <> '\' then
+        Result := inputDirectory + '\'
+      else
+        Result := inputDirectory;
+    end;
 end;
 
 procedure TFormMain.UpdateDirectories(inputDirectoryRoot: string);
