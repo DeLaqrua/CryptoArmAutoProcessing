@@ -57,6 +57,8 @@ type
     procedure TimerAutoProcessingTimer(Sender: TObject);
     procedure SpinEditSecChange(Sender: TObject);
     procedure SpinEditMinChange(Sender: TObject);
+    procedure ButtonInvoicePathClick(Sender: TObject);
+    procedure ButtonInvoiceMTRpathClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -706,6 +708,18 @@ procedure TFormMain.ButtonPathClick(Sender: TObject);
 begin
   if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdValidateDir]) then
     EditPath.Text := DirectoryRoot;
+end;
+
+procedure TFormMain.ButtonInvoicePathClick(Sender: TObject);
+begin
+  if SelectDirectory('Выберите папку для выгрузки счетов:', '', DirectoryInvoice, [sdNewFolder, sdShowShares, sdValidateDir]) then
+    EditInvoicePath.Text := DirectoryInvoice;
+end;
+
+procedure TFormMain.ButtonInvoiceMTRpathClick(Sender: TObject);
+begin
+  if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdValidateDir]) then
+    EditInvoiceMTRpath.Text := DirectoryInvoiceMTR;
 end;
 
 procedure TFormMain.SpeedButtonPlayClick(Sender: TObject);

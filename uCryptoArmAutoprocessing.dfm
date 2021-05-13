@@ -865,6 +865,7 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 8
+    OnClick = ButtonInvoicePathClick
   end
   object EditInvoiceMTRpath: TEdit
     Left = 225
@@ -892,6 +893,7 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 10
+    OnClick = ButtonInvoiceMTRpathClick
   end
   object frxReportProtocolConfirmed: TfrxReport
     Tag = 21650
