@@ -32,6 +32,12 @@ type
     TimerAutoProcessing: TTimer;
     frxPDFExportProtocol: TfrxPDFExport;
     frxReportTypeProtocol: TfrxReport;
+    LabelInvoicePath: TLabel;
+    LabelInvoiceMTRpath: TLabel;
+    EditInvoicePath: TEdit;
+    ButtonInvoicePath: TButton;
+    EditInvoiceMTRpath: TEdit;
+    ButtonInvoiceMTRpath: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
