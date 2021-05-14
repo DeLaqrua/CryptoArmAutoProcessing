@@ -703,7 +703,7 @@ object FormMain: TFormMain
     Left = 47
     Top = 119
     Width = 142
-    Height = 36
+    Height = 38
     Caption = #1044#1080#1088#1077#1082#1090#1086#1088#1080#1103' '#1076#1083#1103' '#1089#1095#1077#1090#1086#1074
     Color = clBlack
     Font.Charset = DEFAULT_CHARSET
@@ -784,7 +784,7 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 3
-    Text = '\\192.168.200.142\Obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\AutoProcessing\'
+    Text = 'E:\Proba\AutoProcessingFiles'
   end
   object ButtonPath: TButton
     Left = 536
@@ -851,6 +851,7 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 7
+    Text = 'E:\Proba\AutoProcessingFiles\Tanya'
   end
   object ButtonInvoicePath: TButton
     Left = 536
@@ -879,6 +880,7 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 9
+    Text = 'E:\Proba\AutoProcessingFiles\Kotchetova'
   end
   object ButtonInvoiceMTRpath: TButton
     Left = 536

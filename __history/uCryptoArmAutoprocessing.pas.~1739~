@@ -58,6 +58,7 @@ type
     procedure SpinEditSecChange(Sender: TObject);
     procedure SpinEditMinChange(Sender: TObject);
     procedure ButtonInvoicePathClick(Sender: TObject);
+    procedure ButtonInvoiceMTRpathClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -68,7 +69,10 @@ type
 
     function CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
     function CheckFileName(inputFileName: string): boolean;
+
     function ifFileExistsRename(inputFileName: string): string;
+    function ifFolderExistsRename(inputFolderName: string): string;
+
     function CorrectPath(inputDirectory: string): string;
 
     procedure CreateResponceFileToOutput(inputFileName, descriptionError: string);
@@ -76,7 +80,9 @@ type
     procedure CreateProtocol(inputFileName: string;
                              inputFileNameSignature: array of string;
                              directoryFiles: string;
-                             directoryExport: string;
+                             directoryExportToProcessed: string;
+                             directoryExportToInvoice: string;
+                             directoryExportToInvoiceMTR: string;
                              inputOriginalArchiveFileName: string);
 
     procedure UpdateDirectories(inputDirectoryRoot: string);
@@ -84,7 +90,7 @@ type
     procedure MoveFilesToErrors(inputFileName: string);
 
     procedure Processed(inputArchiveFileName: string);
-    procedure MoveFilesToProcessed(inputArchiveFileName, inputNotSigFile: string; inputSigFilesArray: array of string);
+    procedure MoveFilesToProcessedAndOtherFolders(inputArchiveFileName, inputNotSigFile: string; inputSigFilesArray: array of string);
   end;
 
   TSignatureFile = class(TObject)
@@ -224,14 +230,14 @@ begin
     Archive.Free;
   end;
 
-  MoveFilesToProcessed(inputArchiveFileName, NotSigFile, SigFilesArray);
+  MoveFilesToProcessedAndOtherFolders(inputArchiveFileName, NotSigFile, SigFilesArray);
 
 end;
 
 procedure TFormMain.CreateProtocol(inputFileName: string;
                                    inputFileNameSignature: array of string;
                                    directoryFiles: string;
-                                   directoryExport: string;
+                                   directoryExportToProcessed: string;
                                    inputOriginalArchiveFileName: string);
 var SignatureFiles: array of TSignatureFile;
     NotSignatureFile: TNotSignatureFile;
@@ -246,6 +252,12 @@ var SignatureFiles: array of TSignatureFile;
     frxSigStatus, frxSigInformation, frxCertInformation: TfrxMemoView;
 
     protocolName: string;
+
+    protocolVerifyStatusResult: integer;
+
+const Confirmed = 1;
+      NotConfirmed = 0;
+
 begin
   NotSignatureFile := TNotSignatureFile.Create;
   NotSignatureFile.Name := directoryFiles + inputFileName;
@@ -302,6 +314,7 @@ begin
             begin
               frxReportTypeProtocol := frxReportProtocolNotConfirmed;
               protocolName := 'ProtocolNotConfirmed_';
+              protocolVerifyStatusResult := NotConfirmed;
               Break;
             end;
         end;
@@ -309,6 +322,7 @@ begin
         begin
           frxReportTypeProtocol := frxReportProtocolConfirmed;
           protocolName := 'ProtocolConfirmed_';
+          protocolVerifyStatusResult := Confirmed;
         end;
 
       frxNotSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileName'));
@@ -346,11 +360,6 @@ begin
       frxSigStatus.Memo.Text := TrimRight(frxSigStatus.Memo.Text);
       MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '"' + #13#10);
 
-      //Проверяем существует ли директория папка "Output"
-      //перед тем как в неё переместить протокол
-      if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
-        System.SysUtils.ForceDirectories(DirectoryOutput);
-
       frxReportTypeProtocol.PrepareReport(true);
       frxPDFexportProtocol.Compressed := True;
       frxPDFexportProtocol.Background := True;
@@ -359,15 +368,32 @@ begin
       frxPDFexportProtocol.ShowProgress := False;
       frxPDFexportProtocol.ShowDialog := False;
 
-      frxPDFexportProtocol.FileName := directoryExport + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+      frxPDFexportProtocol.FileName := directoryExportToProcessed + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+      //Формируем протокол в Processed
       frxReportTypeProtocol.Export(frxPDFexportProtocol);
+
+      //Проверяем существует ли папка "Output"
+      //перед тем как в неё переместить протокол
+      if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
+        System.SysUtils.ForceDirectories(DirectoryOutput);
       //Проверка существует ли в папке "Output" файл с таким же названием
       //Если существует, название меняется
       frxPDFexportProtocol.FileName := DirectoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
       frxPDFexportProtocol.FileName := ifFileExistsRename(frxPDFexportProtocol.FileName);
+      //Формируем протокол в Output
       frxReportTypeProtocol.Export(frxPDFexportProtocol);
-    end;
 
+      if (protocolVerifyStatusResult = Confirmed) and ( AnsiPos('MTR', UpperCase(inputOriginalArchiveFileName)) = 0 ) then
+        begin
+          frxPDFexportProtocol.FileName := directoryExportToInvoice + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+          frxReportTypeProtocol.Export(frxPDFexportProtocol);
+        end;
+      if (protocolVerifyStatusResult = Confirmed) and ( AnsiPos('MTR', UpperCase(inputOriginalArchiveFileName)) <> 0 ) then
+        begin
+          frxPDFexportProtocol.FileName := directoryExportToInvoiceMTR + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+          frxReportTypeProtocol.Export(frxPDFexportProtocol);
+        end;
+    end;
 end;
 
 function TFormMain.SignatureVerify (inputFileName, inputFileNameSignature: string; out arrayResultsDescription: TStringDynArray): TSmallIntDynArray;
@@ -481,40 +507,98 @@ begin
     end;
 end;
 
-procedure TFormMain.CreateResponceFileToOutput(inputFileName: string; descriptionError: string);
-var responceTextFile: TextFile;
-    responceTextFileName: string;
+procedure TFormMain.MoveFilesToErrors(inputFileName: string);
+var fileDirectoryFrom, fileDirectoryTo: string;
+    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
 begin
-  if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
-    System.SysUtils.ForceDirectories(DirectoryOutput);
-  responceTextFileName := DirectoryOutput + 'response_' + StringReplace(inputFileName, ExtractFileExt(inputFileName), '', [rfIgnoreCase]) + '.txt';
-  responceTextFileName := ifFileExistsRename(responceTextFileName);
-  AssignFile(responceTextFile, responceTextFileName);
-  ReWrite(responceTextFile);
-  WriteLn(responceTextFile, descriptionError);
-  CloseFile(responceTextFile);
+  if System.SysUtils.DirectoryExists(DirectoryErrors) = False then
+    System.SysUtils.ForceDirectories(DirectoryErrors);
+
+  fileDirectoryFrom := DirectoryRoot + inputFileName;
+  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+
+  fileDirectoryTo := DirectoryErrors + inputFileName;
+  fileDirectoryTo := ifFileExistsRename(fileDirectoryTo);
+  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
+
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
 end;
 
-function TFormMain.ifFileExistsRename(inputFileName: string): string;
-var counterName: integer;
+procedure TFormMain.MoveFilesToProcessedAndOtherFolders(inputArchiveFileName: string; inputNotSigFile: string; inputSigFilesArray: array of string);
+var DirectoryFrom, DirectoryToProcessed, DirectoryToInvoice, DirectoryToInvoiceMTR: string;
+    fileDirectoryFrom, fileDirectoryToProcessed: string;
+    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
+    MO: string;
+    Year: integer;
+    Month: string;
+    i: integer;
 begin
-  result := inputFileName;
+  Year := YearOf(Date);
+  case MonthOf(Date) of
+    1 : Month := 'Январь';
+    2 : Month := 'Февраль';
+    3 : Month := 'Март';
+    4 : Month := 'Апрель';
+    5 : Month := 'Май';
+    6 : Month := 'Июнь';
+    7 : Month := 'Июль';
+    8 : Month := 'Август';
+    9 : Month := 'Сентябрь';
+    10 : Month := 'Октябрь';
+    11 : Month := 'Ноябрь';
+    12 : Month := 'Декабрь';
+  else Month := 'Неизвестный месяц оО';
+  end;
+  MO := Copy(inputArchiveFileName, AnsiPos('_', inputArchiveFileName) + 1, 6);
 
-  counterName := 0;
-  while FileExists(inputFileName) do
+  DirectoryFrom := DirectoryRoot;
+
+  DirectoryToProcessed := DirectoryProcessed + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
+                 StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
+  DirectoryToProcessed := ifFolderExistsRename(DirectoryToProcessed);
+  if System.SysUtils.DirectoryExists(DirectoryToProcessed) = False then
+    System.SysUtils.ForceDirectories(DirectoryToProcessed);
+
+  DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
+                        StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
+  DirectoryToInvoice := ifFolderExistsRename(DirectoryToInvoice);
+  if System.SysUtils.DirectoryExists(DirectoryToInvoice) = False then
+    System.SysUtils.ForceDirectories(DirectoryToInvoice);
+
+  DirectoryToInvoiceMTR := DirectoryInvoiceMTR + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
+                           StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
+  DirectoryToInvoiceMTR := ifFolderExistsRename(DirectoryToInvoiceMTR);
+  if System.SysUtils.DirectoryExists(DirectoryToInvoiceMTR) = False then
+    System.SysUtils.ForceDirectories(DirectoryToInvoiceMTR);
+
+  //Создаём протокол
+  CreateProtocol(inputNotSigFile, inputSigFilesArray, DirectoryFrom, DirectoryToProcessed, DirectoryToInvoice, DirectoryToInvoiceMTR, inputArchiveFileName);
+
+  //Переносим файлы в папку Processed:
+  //– переносим оригинальный zip-файл
+  fileDirectoryFrom := DirectoryFrom + inputArchiveFileName;
+  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+  fileDirectoryToProcessed := DirectoryToProcessed + inputArchiveFileName;
+  pointerFileDirectoryTo := Addr(fileDirectoryToProcessed[1]);
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+
+  //– переносим файл-счёт
+  fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
+  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+  fileDirectoryToProcessed := DirectoryToProcessed + inputNotSigFile;
+  pointerFileDirectoryTo := Addr(fileDirectoryToProcessed[1]);
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+
+  //– переносим sig-файлы
+  For i := 0 to High(inputSigFilesArray) do
     begin
-      counterName := counterName + 1;
-      if counterName = 1 then
-        begin
-          Insert(' (' + IntToStr(counterName) + ')', inputFileName, Length(inputFileName)-3);
-          result := inputFileName;
-        end
-      else
-        begin
-          inputFileName := StringReplace(inputFileName, ' (' + IntToStr(counterName-1) + ')', ' (' + IntToStr(counterName) + ')', []);
-          result := inputFileName;
-        end;
+      fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[i];
+      pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+      fileDirectoryToProcessed := DirectoryToProcessed + inputSigFilesArray[i];
+      pointerFileDirectoryTo := Addr(fileDirectoryToProcessed[1]);
+      MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
     end;
+
 end;
 
 function TFormMain.CheckFileName(inputFileName: string): boolean;
@@ -593,84 +677,63 @@ begin
 
 end;
 
-procedure TFormMain.MoveFilesToProcessed(inputArchiveFileName: string; inputNotSigFile: string; inputSigFilesArray: array of string);
-var DirectoryFrom, DirectoryTo, fileDirectoryFrom, fileDirectoryTo: string;
-    MO: string;
-    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
-    Year, Month: integer;
-    i, indexArray: integer;
+procedure TFormMain.CreateResponceFileToOutput(inputFileName: string; descriptionError: string);
+var responceTextFile: TextFile;
+    responceTextFileName: string;
 begin
-  Year := YearOf(Date);
-  Month := MonthOf(Date);
-  MO := Copy(inputArchiveFileName, AnsiPos('_', inputArchiveFileName) + 1, 6);
-
-  DirectoryFrom := DirectoryRoot;
-
-  DirectoryTo := DirectoryProcessed + IntToStr(Year) + '\' + IntToStr(Month) + '\' + MO + '\' +
-                 StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
-  //Проверяем существует ли директория с таким же названием
-  if System.SysUtils.DirectoryExists(DirectoryTo) then
-    begin
-      i := 0;
-      while System.SysUtils.DirectoryExists(DirectoryTo) do
-        begin
-          i := i+1;
-          if i = 1 then
-            begin
-              Insert(' (' + IntToStr(i) + ')', DirectoryTo, Length(DirectoryTo));
-            end
-          else
-            begin
-              DirectoryTo := StringReplace(DirectoryTo, ' (' + IntToStr(i-1) +')', ' (' + IntToStr(i) + ')', []);
-            end;
-        end;
-      System.SysUtils.ForceDirectories(DirectoryTo);
-    end
-  else
-    System.SysUtils.ForceDirectories(DirectoryTo);
-
-  //Создаём протокол
-  CreateProtocol(inputNotSigFile, inputSigFilesArray, DirectoryFrom, DirectoryTo, inputArchiveFileName);
-
-  //Переносим файлы
-  fileDirectoryFrom := DirectoryFrom + inputArchiveFileName;
-  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-  fileDirectoryTo := DirectoryTo + inputArchiveFileName;
-  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
-
-  fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
-  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-  fileDirectoryTo := DirectoryTo + inputNotSigFile;
-  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
-
-  For indexArray := 0 to High(inputSigFilesArray) do
-    begin
-      fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[indexArray];
-      pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-      fileDirectoryTo := DirectoryTo + inputSigFilesArray[indexArray];
-      pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
-      MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
-    end;
-
+  if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
+    System.SysUtils.ForceDirectories(DirectoryOutput);
+  responceTextFileName := DirectoryOutput + 'response_' + StringReplace(inputFileName, ExtractFileExt(inputFileName), '', [rfIgnoreCase]) + '.txt';
+  responceTextFileName := ifFileExistsRename(responceTextFileName);
+  AssignFile(responceTextFile, responceTextFileName);
+  ReWrite(responceTextFile);
+  WriteLn(responceTextFile, descriptionError);
+  CloseFile(responceTextFile);
 end;
 
-procedure TFormMain.MoveFilesToErrors(inputFileName: string);
-var fileDirectoryFrom, fileDirectoryTo: string;
-    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
+function TFormMain.ifFileExistsRename(inputFileName: string): string;
+var counterName: integer;
 begin
-  if System.SysUtils.DirectoryExists(DirectoryErrors) = False then
-    System.SysUtils.ForceDirectories(DirectoryErrors);
+  result := inputFileName;
 
-  fileDirectoryFrom := DirectoryRoot + inputFileName;
-  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+  counterName := 0;
+  while FileExists(inputFileName) do
+    begin
+      counterName := counterName + 1;
+      if counterName = 1 then
+        begin
+          Insert(' (' + IntToStr(counterName) + ')', inputFileName, Length(inputFileName)-3);
+          result := inputFileName;
+        end
+      else
+        begin
+          inputFileName := StringReplace(inputFileName, ' (' + IntToStr(counterName-1) + ')', ' (' + IntToStr(counterName) + ')', []);
+          result := inputFileName;
+        end;
+    end;
+end;
 
-  fileDirectoryTo := DirectoryErrors + inputFileName;
-  fileDirectoryTo := ifFileExistsRename(fileDirectoryTo);
-  pointerFileDirectoryTo := Addr(fileDirectoryTo[1]);
+function TFormMain.ifFolderExistsRename(inputFolderName: string): string;
+var counterName: integer;
+begin
+  result := inputFolderName;
 
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+  counterName := 0;
+  while System.SysUtils.DirectoryExists(inputFolderName) do
+    begin
+      counterName := counterName + 1;
+      if counterName = 1 then
+        begin
+          Insert(' (' + IntToStr(counterName) + ')', inputFolderName, Length(inputFolderName));
+          result := inputFolderName;
+        end
+      else
+        begin
+          inputFolderName := StringReplace(inputFolderName, ' (' + IntToStr(counterName-1) +')', ' (' + IntToStr(counterName) + ')', []);
+          result := inputFolderName;
+        end;
+    end;
+
 end;
 
 function TFormMain.CorrectPath(inputDirectory: string): string;
@@ -713,6 +776,12 @@ procedure TFormMain.ButtonInvoicePathClick(Sender: TObject);
 begin
   if SelectDirectory('Выберите папку для выгрузки счетов:', '', DirectoryInvoice, [sdNewFolder, sdShowShares, sdValidateDir]) then
     EditInvoicePath.Text := DirectoryInvoice;
+end;
+
+procedure TFormMain.ButtonInvoiceMTRpathClick(Sender: TObject);
+begin
+  if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdValidateDir]) then
+    EditInvoiceMTRpath.Text := DirectoryInvoiceMTR;
 end;
 
 procedure TFormMain.SpeedButtonPlayClick(Sender: TObject);
