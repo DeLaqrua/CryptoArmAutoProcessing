@@ -8,7 +8,7 @@ uses
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.OleCtrls, MSScriptControl_TLB,
   Vcl.StdCtrls, ActiveX, Vcl.FileCtrl, System.Masks, DateUtils,
   Vcl.Buttons, Vcl.Samples.Spin, Vcl.ExtCtrls, frxClass, frxGradient,
-  frxExportPDF;
+  frxExportPDF, Vcl.ComCtrls;
 
 type
   TFormMain = class(TForm)
@@ -38,6 +38,7 @@ type
     ButtonInvoicePath: TButton;
     EditInvoiceMTRpath: TEdit;
     ButtonInvoiceMTRpath: TButton;
+    RichEditLog: TRichEdit;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -276,7 +277,7 @@ begin
   CloseFile(NotSigFile);
 
   SetLength(SignatureFiles, Length(InputFileNameSignature));
-  MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной подписи около 30 секунд. Ожидайте...' + #13#10);
+  MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной подписи до 30 секунд. Ожидайте...' + #13#10);
   for i := 0 to High(SignatureFiles) do
     begin
       SignatureFiles[i] := TSignatureFile.Create;
@@ -502,9 +503,9 @@ begin
             CreateResponceFileToOutput(SearchResult.Name, descriptionError + #13#10
                                                           + 'Верные имена файлов должны соответствовать маскам(фигурные скобки убираются):' + #13#10
                                                           + 'SH_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
-                                                          + 'SHO_{Код МО}_Код СМО_{основной/доплата}.zip' + #13#10
-                                                          + 'SMP_{Код МО}_Код СМО_{основной/доплата}.zip' + #13#10
-                                                          + 'SHCP_{Код МО}_Код СМО_основной.zip' + #13#10
+                                                          + 'SHO_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
+                                                          + 'SMP_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
+                                                          + 'SHCP_{Код МО}_{Код СМО}_основной.zip' + #13#10
                                                           + 'MSHO_{Код МО}_MTR_{основной/доплата}.zip' + #13#10
                                                           + 'MSH_{Код МО}_MTR_{основной/доплата}.zip' + #13#10
                                                           + 'MSMP_{Код МО}_MTR_{основной/доплата}.zip');
@@ -535,7 +536,7 @@ procedure TFormMain.MoveFilesToProcessedAndOtherFolders(inputArchiveFileName: st
 var DirectoryFrom, DirectoryToProcessed, DirectoryToInvoice, DirectoryToInvoiceMTR: string;
     fileDirectoryFrom, fileDirectoryToProcessed, fileDirectoryToInvoice, fileDirectoryToInvoiceMTR: string;
     pointerFileDirectoryFrom, pointerFileDirectoryToProcessed, pointerFileDirectoryToInvoice, pointerFileDirectoryToInvoiceMTR: PWideChar;
-    MO: string;
+    MO, SMO: string;
     Year: integer;
     Month: string;
     i: integer;
@@ -573,7 +574,8 @@ begin
 
   if InvoiceType = REGULAR_INVOICE then
     begin
-      DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
+      SMO := Copy(inputArchiveFileName, AnsiPos(MO, inputArchiveFileName)+7, 5);
+      DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + SMO + '\' +
                             StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
       DirectoryToInvoice := ifFolderExistsRename(DirectoryToInvoice);
       if System.SysUtils.DirectoryExists(DirectoryToInvoice) = False then

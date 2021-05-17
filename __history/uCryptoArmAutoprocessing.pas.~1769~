@@ -533,8 +533,8 @@ end;
 
 procedure TFormMain.MoveFilesToProcessedAndOtherFolders(inputArchiveFileName: string; inputNotSigFile: string; inputSigFilesArray: array of string);
 var DirectoryFrom, DirectoryToProcessed, DirectoryToInvoice, DirectoryToInvoiceMTR: string;
-    fileDirectoryFrom, fileDirectoryToProcessed: string;
-    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
+    fileDirectoryFrom, fileDirectoryToProcessed, fileDirectoryToInvoice, fileDirectoryToInvoiceMTR: string;
+    pointerFileDirectoryFrom, pointerFileDirectoryToProcessed, pointerFileDirectoryToInvoice, pointerFileDirectoryToInvoiceMTR: PWideChar;
     MO: string;
     Year: integer;
     Month: string;
@@ -596,24 +596,48 @@ begin
   fileDirectoryFrom := DirectoryFrom + inputArchiveFileName;
   pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
   fileDirectoryToProcessed := DirectoryToProcessed + inputArchiveFileName;
-  pointerFileDirectoryTo := Addr(fileDirectoryToProcessed[1]);
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+  pointerFileDirectoryToProcessed := Addr(fileDirectoryToProcessed[1]);
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToProcessed);
 
-  //Ц  опируем файл-счЄт в папку с счетами / ћ“–-счетами и переносим его в Processed
+  //Ц копируем файл-счЄт в папку с счетами / ћ“–-счетами и переносим его в папку Processed
   fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
   pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+  if InvoiceType = REGULAR_INVOICE then
+    begin
+      fileDirectoryToInvoice := DirectoryToInvoice + inputNotSigFile;
+      pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
+      CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
+    end
+  else
+    begin
+      fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputNotSigFile;
+      pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
+      CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoiceMTR, false);
+    end;
   fileDirectoryToProcessed := DirectoryToProcessed + inputNotSigFile;
-  pointerFileDirectoryTo := Addr(fileDirectoryToProcessed[1]);
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+  pointerFileDirectoryToProcessed := Addr(fileDirectoryToProcessed[1]);
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToProcessed);
 
-  //Ц переносим sig-файлы
+  //Ц копируем sig-файлы в папку с счетами / ћ“–-счетами и переносим их в папку Processed
   For i := 0 to High(inputSigFilesArray) do
     begin
       fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[i];
       pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+      if InvoiceType = REGULAR_INVOICE then
+        begin
+          fileDirectoryToInvoice := DirectoryToInvoice + inputSigFilesArray[i];
+          pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
+          CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
+        end
+      else
+        begin
+          fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputSigFilesArray[i];
+          pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
+          CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoiceMTR, false);
+        end;
       fileDirectoryToProcessed := DirectoryToProcessed + inputSigFilesArray[i];
-      pointerFileDirectoryTo := Addr(fileDirectoryToProcessed[1]);
-      MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+      pointerFileDirectoryToProcessed := Addr(fileDirectoryToProcessed[1]);
+      MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToProcessed);
     end;
 
 end;

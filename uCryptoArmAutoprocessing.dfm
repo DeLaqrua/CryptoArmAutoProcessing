@@ -758,7 +758,7 @@ object FormMain: TFormMain
   object MemoLog: TMemo
     Left = 8
     Top = 328
-    Width = 761
+    Width = 377
     Height = 473
     Alignment = taCenter
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -896,6 +896,26 @@ object FormMain: TFormMain
     ParentFont = False
     TabOrder = 10
     OnClick = ButtonInvoiceMTRpathClick
+  end
+  object RichEditLog: TRichEdit
+    Left = 391
+    Top = 328
+    Width = 378
+    Height = 473
+    Alignment = taCenter
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Font.Charset = RUSSIAN_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    HideScrollBars = False
+    Lines.Strings = (
+      'RichEditLog')
+    ParentFont = False
+    ReadOnly = True
+    ScrollBars = ssVertical
+    TabOrder = 11
   end
   object frxReportProtocolConfirmed: TfrxReport
     Tag = 21650

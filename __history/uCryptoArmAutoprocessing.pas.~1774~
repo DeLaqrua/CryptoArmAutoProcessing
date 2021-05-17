@@ -502,9 +502,9 @@ begin
             CreateResponceFileToOutput(SearchResult.Name, descriptionError + #13#10
                                                           + 'Верные имена файлов должны соответствовать маскам(фигурные скобки убираются):' + #13#10
                                                           + 'SH_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
-                                                          + 'SHO_{Код МО}_Код СМО_{основной/доплата}.zip' + #13#10
-                                                          + 'SMP_{Код МО}_Код СМО_{основной/доплата}.zip' + #13#10
-                                                          + 'SHCP_{Код МО}_Код СМО_основной.zip' + #13#10
+                                                          + 'SHO_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
+                                                          + 'SMP_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
+                                                          + 'SHCP_{Код МО}_{Код СМО}_основной.zip' + #13#10
                                                           + 'MSHO_{Код МО}_MTR_{основной/доплата}.zip' + #13#10
                                                           + 'MSH_{Код МО}_MTR_{основной/доплата}.zip' + #13#10
                                                           + 'MSMP_{Код МО}_MTR_{основной/доплата}.zip');
@@ -533,9 +533,9 @@ end;
 
 procedure TFormMain.MoveFilesToProcessedAndOtherFolders(inputArchiveFileName: string; inputNotSigFile: string; inputSigFilesArray: array of string);
 var DirectoryFrom, DirectoryToProcessed, DirectoryToInvoice, DirectoryToInvoiceMTR: string;
-    fileDirectoryFrom, fileDirectoryToProcessed: string;
-    pointerFileDirectoryFrom, pointerFileDirectoryTo: PWideChar;
-    MO: string;
+    fileDirectoryFrom, fileDirectoryToProcessed, fileDirectoryToInvoice, fileDirectoryToInvoiceMTR: string;
+    pointerFileDirectoryFrom, pointerFileDirectoryToProcessed, pointerFileDirectoryToInvoice, pointerFileDirectoryToInvoiceMTR: PWideChar;
+    MO, SMO: string;
     Year: integer;
     Month: string;
     i: integer;
@@ -573,7 +573,8 @@ begin
 
   if InvoiceType = REGULAR_INVOICE then
     begin
-      DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
+      SMO := Copy(inputArchiveFileName, AnsiPos(MO, inputArchiveFileName)+7, 5);
+      DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + SMO + '\' +
                             StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
       DirectoryToInvoice := ifFolderExistsRename(DirectoryToInvoice);
       if System.SysUtils.DirectoryExists(DirectoryToInvoice) = False then
@@ -596,24 +597,48 @@ begin
   fileDirectoryFrom := DirectoryFrom + inputArchiveFileName;
   pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
   fileDirectoryToProcessed := DirectoryToProcessed + inputArchiveFileName;
-  pointerFileDirectoryTo := Addr(fileDirectoryToProcessed[1]);
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+  pointerFileDirectoryToProcessed := Addr(fileDirectoryToProcessed[1]);
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToProcessed);
 
-  //– копируем файл-счёт в папку с счетами / МТР-счетами и переносим его в Processed
+  //– копируем файл-счёт в папку с счетами / МТР-счетами и переносим его в папку Processed
   fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
   pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+  if InvoiceType = REGULAR_INVOICE then
+    begin
+      fileDirectoryToInvoice := DirectoryToInvoice + inputNotSigFile;
+      pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
+      CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
+    end
+  else
+    begin
+      fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputNotSigFile;
+      pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
+      CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoiceMTR, false);
+    end;
   fileDirectoryToProcessed := DirectoryToProcessed + inputNotSigFile;
-  pointerFileDirectoryTo := Addr(fileDirectoryToProcessed[1]);
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+  pointerFileDirectoryToProcessed := Addr(fileDirectoryToProcessed[1]);
+  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToProcessed);
 
-  //– переносим sig-файлы
+  //– копируем sig-файлы в папку с счетами / МТР-счетами и переносим их в папку Processed
   For i := 0 to High(inputSigFilesArray) do
     begin
       fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[i];
       pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+      if InvoiceType = REGULAR_INVOICE then
+        begin
+          fileDirectoryToInvoice := DirectoryToInvoice + inputSigFilesArray[i];
+          pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
+          CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
+        end
+      else
+        begin
+          fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputSigFilesArray[i];
+          pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
+          CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoiceMTR, false);
+        end;
       fileDirectoryToProcessed := DirectoryToProcessed + inputSigFilesArray[i];
-      pointerFileDirectoryTo := Addr(fileDirectoryToProcessed[1]);
-      MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryTo);
+      pointerFileDirectoryToProcessed := Addr(fileDirectoryToProcessed[1]);
+      MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToProcessed);
     end;
 
 end;
