@@ -34,7 +34,7 @@ object FormMain: TFormMain
     WordWrap = True
   end
   object SpeedButtonPlay: TSpeedButton
-    Left = 424
+    Left = 425
     Top = 240
     Width = 73
     Height = 65
@@ -340,7 +340,7 @@ object FormMain: TFormMain
     OnMouseUp = SpeedButtonPlayMouseUp
   end
   object SpeedButtonStop: TSpeedButton
-    Left = 424
+    Left = 425
     Top = 240
     Width = 73
     Height = 65
@@ -647,7 +647,7 @@ object FormMain: TFormMain
     OnMouseUp = SpeedButtonStopMouseUp
   end
   object LabelAutoProcessingInterval: TLabel
-    Left = 47
+    Left = 48
     Top = 263
     Width = 148
     Height = 19
@@ -660,7 +660,7 @@ object FormMain: TFormMain
     ParentFont = False
   end
   object LabelMin: TLabel
-    Left = 279
+    Left = 280
     Top = 265
     Width = 25
     Height = 17
@@ -673,7 +673,7 @@ object FormMain: TFormMain
     ParentFont = False
   end
   object LabelSec: TLabel
-    Left = 380
+    Left = 381
     Top = 265
     Width = 21
     Height = 17
@@ -686,7 +686,7 @@ object FormMain: TFormMain
     ParentFont = False
   end
   object LabelAutoProcessingState: TLabel
-    Left = 536
+    Left = 537
     Top = 288
     Width = 217
     Height = 17
@@ -699,11 +699,11 @@ object FormMain: TFormMain
     Font.Style = [fsItalic]
     ParentFont = False
   end
-  object Label1: TLabel
+  object LabelInvoicePath: TLabel
     Left = 47
-    Top = 127
+    Top = 119
     Width = 142
-    Height = 36
+    Height = 38
     Caption = #1044#1080#1088#1077#1082#1090#1086#1088#1080#1103' '#1076#1083#1103' '#1089#1095#1077#1090#1086#1074
     Color = clBlack
     Font.Charset = DEFAULT_CHARSET
@@ -715,9 +715,9 @@ object FormMain: TFormMain
     ParentFont = False
     WordWrap = True
   end
-  object Label2: TLabel
+  object LabelInvoiceMTRpath: TLabel
     Left = 47
-    Top = 179
+    Top = 171
     Width = 142
     Height = 38
     Caption = #1044#1080#1088#1077#1082#1090#1086#1088#1080#1103' '#1076#1083#1103' '#1089#1095#1077#1090#1086#1074'-'#1052#1058#1056
@@ -741,7 +741,7 @@ object FormMain: TFormMain
       01000000}
   end
   object ButtonManualProcessing: TButton
-    Left = 535
+    Left = 536
     Top = 240
     Width = 170
     Height = 33
@@ -758,7 +758,7 @@ object FormMain: TFormMain
   object MemoLog: TMemo
     Left = 8
     Top = 328
-    Width = 761
+    Width = 377
     Height = 473
     Alignment = taCenter
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -784,7 +784,7 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 3
-    Text = '\\192.168.200.142\Obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\AutoProcessing\'
+    Text = 'E:\Proba\AutoProcessingFiles'
   end
   object ButtonPath: TButton
     Left = 536
@@ -802,7 +802,7 @@ object FormMain: TFormMain
     OnClick = ButtonPathClick
   end
   object SpinEditMin: TSpinEdit
-    Left = 216
+    Left = 217
     Top = 260
     Width = 57
     Height = 29
@@ -821,7 +821,7 @@ object FormMain: TFormMain
     OnKeyPress = SpinEditMinKeyPress
   end
   object SpinEditSec: TSpinEdit
-    Left = 317
+    Left = 318
     Top = 260
     Width = 57
     Height = 29
@@ -839,9 +839,9 @@ object FormMain: TFormMain
     OnChange = SpinEditSecChange
     OnKeyPress = SpinEditSecKeyPress
   end
-  object Edit1: TEdit
+  object EditInvoicePath: TEdit
     Left = 225
-    Top = 133
+    Top = 125
     Width = 305
     Height = 27
     Font.Charset = DEFAULT_CHARSET
@@ -851,10 +851,11 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 7
+    Text = 'E:\Proba\AutoProcessingFiles\Tanya'
   end
-  object Button1: TButton
+  object ButtonInvoicePath: TButton
     Left = 536
-    Top = 133
+    Top = 125
     Width = 170
     Height = 27
     Caption = #1042#1099#1073#1088#1072#1090#1100' '#1076#1080#1088#1077#1082#1090#1086#1088#1080#1102
@@ -865,6 +866,56 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 8
+    OnClick = ButtonInvoicePathClick
+  end
+  object EditInvoiceMTRpath: TEdit
+    Left = 225
+    Top = 178
+    Width = 305
+    Height = 27
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 9
+    Text = 'E:\Proba\AutoProcessingFiles\Kotchetova'
+  end
+  object ButtonInvoiceMTRpath: TButton
+    Left = 536
+    Top = 178
+    Width = 170
+    Height = 27
+    Caption = #1042#1099#1073#1088#1072#1090#1100' '#1076#1080#1088#1077#1082#1090#1086#1088#1080#1102
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 10
+    OnClick = ButtonInvoiceMTRpathClick
+  end
+  object RichEditLog: TRichEdit
+    Left = 391
+    Top = 328
+    Width = 378
+    Height = 473
+    Alignment = taCenter
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Font.Charset = RUSSIAN_CHARSET
+    Font.Color = clWhite
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    HideScrollBars = False
+    Lines.Strings = (
+      'RichEditLog')
+    ParentFont = False
+    ReadOnly = True
+    ScrollBars = ssVertical
+    TabOrder = 11
   end
   object frxReportProtocolConfirmed: TfrxReport
     Tag = 21650
@@ -884,7 +935,7 @@ object FormMain: TFormMain
       'end.')
     OnReportPrint = 'frxReportAbstractOnReportPrint'
     Left = 80
-    Top = 344
+    Top = 336
     Datasets = <>
     Variables = <>
     Style = <>
@@ -8389,7 +8440,7 @@ object FormMain: TFormMain
       'end.')
     OnReportPrint = 'frxReportAbstractOnReportPrint'
     Left = 80
-    Top = 400
+    Top = 392
     Datasets = <>
     Variables = <>
     Style = <>
@@ -15981,7 +16032,7 @@ object FormMain: TFormMain
     PrintScaling = False
     CheckboxAsShape = False
     Left = 656
-    Top = 344
+    Top = 336
   end
   object frxReportTypeProtocol: TfrxReport
     Version = '4.15.11'
@@ -15999,7 +16050,7 @@ object FormMain: TFormMain
       ''
       'end.')
     Left = 656
-    Top = 400
+    Top = 392
     Datasets = <>
     Variables = <>
     Style = <>

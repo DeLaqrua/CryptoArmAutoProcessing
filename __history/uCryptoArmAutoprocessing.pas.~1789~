@@ -8,7 +8,7 @@ uses
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.OleCtrls, MSScriptControl_TLB,
   Vcl.StdCtrls, ActiveX, Vcl.FileCtrl, System.Masks, DateUtils,
   Vcl.Buttons, Vcl.Samples.Spin, Vcl.ExtCtrls, frxClass, frxGradient,
-  frxExportPDF;
+  frxExportPDF, Vcl.ComCtrls;
 
 type
   TFormMain = class(TForm)
@@ -38,6 +38,7 @@ type
     ButtonInvoicePath: TButton;
     EditInvoiceMTRpath: TEdit;
     ButtonInvoiceMTRpath: TButton;
+    RichEditLog: TRichEdit;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -91,6 +92,11 @@ type
 
     procedure Processed(inputArchiveFileName: string);
     procedure MoveFilesToProcessedAndOtherFolders(inputArchiveFileName, inputNotSigFile: string; inputSigFilesArray: array of string);
+
+    procedure AddLog(inputString: string; LogType: integer); //LogType бывает:
+                                                             //isError – цвет текста Красный
+                                                             //isSuccess – цвет текста Зелёный
+                                                             //isInformation – цвет текста Чёрный
   end;
 
   TSignatureFile = class(TObject)
@@ -119,6 +125,10 @@ const
   SIGN_CORRECT = 1;
   REGULAR_INVOICE = 1;
   MTR_INVOICE = 2;
+
+  isError = 0;
+  isSuccess = 1;
+  isInformation = 2;
 
 implementation
 
@@ -187,7 +197,8 @@ begin
             if CheckFileName(SearchResult.Name) and CheckErrorsWithinArchive(SearchResult.Name) then
               begin
                 MoveFilesToErrors(SearchResult.Name);
-                MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10);
+                MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10 );
+                AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10, isError);
 
                 CreateResponceFileToOutput(SearchResult.Name, descriptionErrorArchive);
               end
@@ -276,7 +287,8 @@ begin
   CloseFile(NotSigFile);
 
   SetLength(SignatureFiles, Length(InputFileNameSignature));
-  MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной подписи около 30 секунд. Ожидайте...' + #13#10);
+  MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной длится подписи до 30 секунд. Ожидайте...' + #13#10);
+  AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной длится подписи до 30 секунд. Ожидайте...' + #13#10, isInformation);
   for i := 0 to High(SignatureFiles) do
     begin
       SignatureFiles[i] := TSignatureFile.Create;
@@ -364,6 +376,7 @@ begin
       frxSigInformation.Memo.Text := TrimRight(frxSigInformation.Memo.Text);
       frxSigStatus.Memo.Text := TrimRight(frxSigStatus.Memo.Text);
       MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '"' + #13#10);
+      AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '"' + #13#10, false);
 
       frxReportTypeProtocol.PrepareReport(true);
       frxPDFexportProtocol.Compressed := True;
@@ -535,7 +548,7 @@ procedure TFormMain.MoveFilesToProcessedAndOtherFolders(inputArchiveFileName: st
 var DirectoryFrom, DirectoryToProcessed, DirectoryToInvoice, DirectoryToInvoiceMTR: string;
     fileDirectoryFrom, fileDirectoryToProcessed, fileDirectoryToInvoice, fileDirectoryToInvoiceMTR: string;
     pointerFileDirectoryFrom, pointerFileDirectoryToProcessed, pointerFileDirectoryToInvoice, pointerFileDirectoryToInvoiceMTR: PWideChar;
-    MO: string;
+    MO, SMO: string;
     Year: integer;
     Month: string;
     i: integer;
@@ -573,7 +586,8 @@ begin
 
   if InvoiceType = REGULAR_INVOICE then
     begin
-      DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
+      SMO := Copy(inputArchiveFileName, AnsiPos(MO, inputArchiveFileName)+7, 5);
+      DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + SMO + '\' +
                             StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
       DirectoryToInvoice := ifFolderExistsRename(DirectoryToInvoice);
       if System.SysUtils.DirectoryExists(DirectoryToInvoice) = False then
@@ -914,6 +928,28 @@ procedure TFormMain.SpinEditMinChange(Sender: TObject);
 begin
   if SpinEditMin.Text = '' then
     SpinEditMin.Text := '0';
+end;
+
+procedure TFormMain.AddLog(inputString: string; LogType: integer); //LogType бывает:
+                                                                   //isError – цвет текста Красный
+                                                                   //isSuccess – цвет текста Зелёный
+                                                                   //isInformation – цвет текста Чёрный
+begin
+  case LogType of
+    isError: begin
+               RichEditLog.SelAttributes.Color := clRed;
+               RichEditLog.Lines.Add(inputString);
+             end;
+    isSuccess: begin
+                 RichEditLog.SelAttributes.Color := clGreen;
+                 RichEditLog.Lines.Add(inputString);
+               end;
+    isInformation: begin
+                     RichEditLog.SelAttributes.Color := clBlack;
+                     RichEditLog.Lines.Add(inputString);
+                   end;
+  end;
+
 end;
 
 end.

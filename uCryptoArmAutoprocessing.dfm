@@ -755,23 +755,6 @@ object FormMain: TFormMain
     TabOrder = 1
     OnClick = ButtonManualProcessingClick
   end
-  object MemoLog: TMemo
-    Left = 8
-    Top = 328
-    Width = 377
-    Height = 473
-    Alignment = taCenter
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlack
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ParentFont = False
-    ReadOnly = True
-    ScrollBars = ssVertical
-    TabOrder = 2
-  end
   object EditPath: TEdit
     Left = 225
     Top = 62
@@ -783,7 +766,7 @@ object FormMain: TFormMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 3
+    TabOrder = 2
     Text = 'E:\Proba\AutoProcessingFiles'
   end
   object ButtonPath: TButton
@@ -798,7 +781,7 @@ object FormMain: TFormMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 4
+    TabOrder = 3
     OnClick = ButtonPathClick
   end
   object SpinEditMin: TSpinEdit
@@ -815,7 +798,7 @@ object FormMain: TFormMain
     MaxValue = 59
     MinValue = 0
     ParentFont = False
-    TabOrder = 5
+    TabOrder = 4
     Value = 0
     OnChange = SpinEditMinChange
     OnKeyPress = SpinEditMinKeyPress
@@ -834,7 +817,7 @@ object FormMain: TFormMain
     MaxValue = 59
     MinValue = 0
     ParentFont = False
-    TabOrder = 6
+    TabOrder = 5
     Value = 30
     OnChange = SpinEditSecChange
     OnKeyPress = SpinEditSecKeyPress
@@ -850,7 +833,7 @@ object FormMain: TFormMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 7
+    TabOrder = 6
     Text = 'E:\Proba\AutoProcessingFiles\Tanya'
   end
   object ButtonInvoicePath: TButton
@@ -865,7 +848,7 @@ object FormMain: TFormMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 8
+    TabOrder = 7
     OnClick = ButtonInvoicePathClick
   end
   object EditInvoiceMTRpath: TEdit
@@ -879,7 +862,7 @@ object FormMain: TFormMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 9
+    TabOrder = 8
     Text = 'E:\Proba\AutoProcessingFiles\Kotchetova'
   end
   object ButtonInvoiceMTRpath: TButton
@@ -894,13 +877,13 @@ object FormMain: TFormMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 10
+    TabOrder = 9
     OnClick = ButtonInvoiceMTRpathClick
   end
   object RichEditLog: TRichEdit
-    Left = 391
+    Left = 8
     Top = 328
-    Width = 378
+    Width = 761
     Height = 473
     Alignment = taCenter
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -915,7 +898,7 @@ object FormMain: TFormMain
     ParentFont = False
     ReadOnly = True
     ScrollBars = ssVertical
-    TabOrder = 11
+    TabOrder = 10
   end
   object frxReportProtocolConfirmed: TfrxReport
     Tag = 21650
