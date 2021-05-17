@@ -829,25 +829,25 @@ end;
 
 procedure TFormMain.ButtonPathClick(Sender: TObject);
 begin
-  if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdValidateDir]) then
+  if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditPath.Text := DirectoryRoot;
 end;
 
 procedure TFormMain.ButtonInvoicePathClick(Sender: TObject);
 begin
-  if SelectDirectory('Выберите папку для выгрузки счетов:', '', DirectoryInvoice, [sdNewFolder, sdShowShares, sdValidateDir]) then
+  if SelectDirectory('Выберите папку для выгрузки счетов:', '', DirectoryInvoice, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditInvoicePath.Text := DirectoryInvoice;
 end;
 
 procedure TFormMain.ButtonInvoiceMTRpathClick(Sender: TObject);
 begin
-  if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdValidateDir]) then
+  if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditInvoiceMTRpath.Text := DirectoryInvoiceMTR;
 end;
 
 procedure TFormMain.ButtonOutputClick(Sender: TObject);
 begin
-  if SelectDirectory('Выберите папку для отправки протоколов и файлов с ошибками:', '', DirectoryOutput, [sdNewFolder, sdShowShares, sdValidateDir]) then
+  if SelectDirectory('Выберите папку для отправки протоколов и файлов с ошибками:', '', DirectoryOutput, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditOutput.Text := DirectoryOutput;
 end;
 
