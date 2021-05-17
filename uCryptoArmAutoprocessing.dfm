@@ -2,7 +2,7 @@ object FormMain: TFormMain
   Left = 0
   Top = 0
   Caption = 'FormMain'
-  ClientHeight = 809
+  ClientHeight = 843
   ClientWidth = 777
   Color = clBlack
   Font.Charset = DEFAULT_CHARSET
@@ -14,7 +14,7 @@ object FormMain: TFormMain
   OnCreate = FormCreate
   DesignSize = (
     777
-    809)
+    843)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelPath: TLabel
@@ -35,7 +35,7 @@ object FormMain: TFormMain
   end
   object SpeedButtonPlay: TSpeedButton
     Left = 425
-    Top = 240
+    Top = 312
     Width = 73
     Height = 65
     Glyph.Data = {
@@ -341,7 +341,7 @@ object FormMain: TFormMain
   end
   object SpeedButtonStop: TSpeedButton
     Left = 425
-    Top = 240
+    Top = 312
     Width = 73
     Height = 65
     Glyph.Data = {
@@ -647,8 +647,8 @@ object FormMain: TFormMain
     OnMouseUp = SpeedButtonStopMouseUp
   end
   object LabelAutoProcessingInterval: TLabel
-    Left = 48
-    Top = 263
+    Left = 47
+    Top = 335
     Width = 148
     Height = 19
     Caption = #1048#1085#1090#1077#1088#1074#1072#1083' '#1088#1072#1073#1086#1090#1099
@@ -661,7 +661,7 @@ object FormMain: TFormMain
   end
   object LabelMin: TLabel
     Left = 280
-    Top = 265
+    Top = 337
     Width = 25
     Height = 17
     Caption = #1084#1080#1085
@@ -674,7 +674,7 @@ object FormMain: TFormMain
   end
   object LabelSec: TLabel
     Left = 381
-    Top = 265
+    Top = 337
     Width = 21
     Height = 17
     Caption = #1089#1077#1082
@@ -687,7 +687,7 @@ object FormMain: TFormMain
   end
   object LabelAutoProcessingState: TLabel
     Left = 537
-    Top = 288
+    Top = 360
     Width = 217
     Height = 17
     AutoSize = False
@@ -731,6 +731,22 @@ object FormMain: TFormMain
     ParentFont = False
     WordWrap = True
   end
+  object LabelOutput: TLabel
+    Left = 47
+    Top = 227
+    Width = 142
+    Height = 57
+    Caption = #1044#1080#1088#1077#1082#1090#1086#1088#1080#1103' '#1076#1083#1103' '#1086#1090#1087#1088#1072#1074#1082#1080' '#1086#1090#1074#1077#1090#1086#1074
+    Color = clBlack
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+    WordWrap = True
+  end
   object ScriptControlVB: TScriptControl
     Left = 737
     Top = 8
@@ -742,7 +758,7 @@ object FormMain: TFormMain
   end
   object ButtonManualProcessing: TButton
     Left = 536
-    Top = 240
+    Top = 312
     Width = 170
     Height = 33
     Caption = #1054#1073#1088#1072#1073#1086#1090#1072#1090#1100' '#1074#1088#1091#1095#1085#1091#1102
@@ -786,7 +802,7 @@ object FormMain: TFormMain
   end
   object SpinEditMin: TSpinEdit
     Left = 217
-    Top = 260
+    Top = 332
     Width = 57
     Height = 29
     Font.Charset = DEFAULT_CHARSET
@@ -805,7 +821,7 @@ object FormMain: TFormMain
   end
   object SpinEditSec: TSpinEdit
     Left = 318
-    Top = 260
+    Top = 332
     Width = 57
     Height = 29
     Font.Charset = DEFAULT_CHARSET
@@ -882,9 +898,9 @@ object FormMain: TFormMain
   end
   object RichEditLog: TRichEdit
     Left = 8
-    Top = 328
+    Top = 400
     Width = 761
-    Height = 473
+    Height = 435
     Alignment = taCenter
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = RUSSIAN_CHARSET
@@ -899,6 +915,35 @@ object FormMain: TFormMain
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 10
+  end
+  object EditOutput: TEdit
+    Left = 225
+    Top = 242
+    Width = 305
+    Height = 27
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 11
+    Text = 'E:\Proba\AutoProcessingFiles\Output'
+  end
+  object ButtonOutput: TButton
+    Left = 536
+    Top = 242
+    Width = 170
+    Height = 27
+    Caption = #1042#1099#1073#1088#1072#1090#1100' '#1076#1080#1088#1077#1082#1090#1086#1088#1080#1102
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 12
+    OnClick = ButtonOutputClick
   end
   object frxReportProtocolConfirmed: TfrxReport
     Tag = 21650
@@ -918,7 +963,7 @@ object FormMain: TFormMain
       'end.')
     OnReportPrint = 'frxReportAbstractOnReportPrint'
     Left = 80
-    Top = 336
+    Top = 408
     Datasets = <>
     Variables = <>
     Style = <>
@@ -8423,7 +8468,7 @@ object FormMain: TFormMain
       'end.')
     OnReportPrint = 'frxReportAbstractOnReportPrint'
     Left = 80
-    Top = 392
+    Top = 464
     Datasets = <>
     Variables = <>
     Style = <>
@@ -16015,7 +16060,7 @@ object FormMain: TFormMain
     PrintScaling = False
     CheckboxAsShape = False
     Left = 656
-    Top = 336
+    Top = 408
   end
   object frxReportTypeProtocol: TfrxReport
     Version = '4.15.11'
@@ -16033,7 +16078,7 @@ object FormMain: TFormMain
       ''
       'end.')
     Left = 656
-    Top = 392
+    Top = 464
     Datasets = <>
     Variables = <>
     Style = <>

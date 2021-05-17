@@ -38,6 +38,9 @@ type
     EditInvoiceMTRpath: TEdit;
     ButtonInvoiceMTRpath: TButton;
     RichEditLog: TRichEdit;
+    LabelOutput: TLabel;
+    EditOutput: TEdit;
+    ButtonOutput: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -59,6 +62,7 @@ type
     procedure SpinEditMinChange(Sender: TObject);
     procedure ButtonInvoicePathClick(Sender: TObject);
     procedure ButtonInvoiceMTRpathClick(Sender: TObject);
+    procedure ButtonOutputClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -184,9 +188,11 @@ begin
   DirectoryRoot := CorrectPath(EditPath.Text);
   DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
   DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+  DirectoryOutput := CorrectPath(EditOutput.Text);
   if (System.SysUtils.DirectoryExists(DirectoryRoot) = False) or
      (System.SysUtils.DirectoryExists(DirectoryInvoice) = False) or
-     (System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False) then
+     (System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False) or
+     (System.SysUtils.DirectoryExists(DirectoryOutput) = False) then
     ShowMessage('Проверьте путь к директории. Папки не существует.')
   else
     begin
@@ -819,9 +825,6 @@ begin
 
   DirectoryProcessed := DirectoryRoot + 'Processed';
   DirectoryProcessed := CorrectPath(DirectoryProcessed);
-
-  DirectoryOutput := DirectoryRoot + 'Output';
-  DirectoryOutput := CorrectPath(DirectoryOutput);
 end;
 
 procedure TFormMain.ButtonPathClick(Sender: TObject);
@@ -840,6 +843,12 @@ procedure TFormMain.ButtonInvoiceMTRpathClick(Sender: TObject);
 begin
   if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdValidateDir]) then
     EditInvoiceMTRpath.Text := DirectoryInvoiceMTR;
+end;
+
+procedure TFormMain.ButtonOutputClick(Sender: TObject);
+begin
+  if SelectDirectory('Выберите папку для отправки протоколов и файлов с ошибками:', '', DirectoryOutput, [sdNewFolder, sdShowShares, sdValidateDir]) then
+    EditOutput.Text := DirectoryOutput;
 end;
 
 procedure TFormMain.SpeedButtonPlayClick(Sender: TObject);

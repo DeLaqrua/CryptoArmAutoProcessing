@@ -14,7 +14,6 @@ type
   TFormMain = class(TForm)
     ScriptControlVB: TScriptControl;
     ButtonManualProcessing: TButton;
-    MemoLog: TMemo;
     frxReportProtocolConfirmed: TfrxReport;
     frxReportProtocolNotConfirmed: TfrxReport;
     LabelPath: TLabel;
@@ -117,14 +116,19 @@ type
 
 var
   FormMain: TFormMain;
+
 var
   DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR: string;
   descriptionErrorArchive: string;
   InvoiceType: integer;
+  protocolVerifyStatusResult: integer; //содержит два значения: CONFIRMED и NOT_CONFIRMED
 const
   SIGN_CORRECT = 1;
   REGULAR_INVOICE = 1;
   MTR_INVOICE = 2;
+
+  CONFIRMED = 1;
+  NOT_CONFIRMED = 0;
 
   isError = 0;
   isSuccess = 1;
@@ -197,7 +201,6 @@ begin
             if CheckFileName(SearchResult.Name) and CheckErrorsWithinArchive(SearchResult.Name) then
               begin
                 MoveFilesToErrors(SearchResult.Name);
-                MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10 );
                 AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10, isError);
 
                 CreateResponceFileToOutput(SearchResult.Name, descriptionErrorArchive);
@@ -269,11 +272,6 @@ var SignatureFiles: array of TSignatureFile;
 
     protocolName: string;
 
-    protocolVerifyStatusResult: integer;
-
-const CONFIRMED = 1;
-      NOT_CONFIRMED = 0;
-
 begin
   NotSignatureFile := TNotSignatureFile.Create;
   NotSignatureFile.Name := directoryFiles + inputFileName;
@@ -287,7 +285,6 @@ begin
   CloseFile(NotSigFile);
 
   SetLength(SignatureFiles, Length(InputFileNameSignature));
-  MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной длится подписи до 30 секунд. Ожидайте...' + #13#10);
   AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной длится подписи до 30 секунд. Ожидайте...' + #13#10, isInformation);
   for i := 0 to High(SignatureFiles) do
     begin
@@ -368,15 +365,21 @@ begin
           frxCertInformation.Memo.Text := frxCertInformation.Memo.Text + SignatureFiles[i].CertificateInformation[j];
           frxSigInformation.Memo.Text := frxSigInformation.Memo.Text + SignatureFiles[i].SignatureInformation[j];
           if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
-            frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j]
+            begin
+              frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
+              //В будущем в этой строчке добавится Зелёный цвет текста протокола <<< Не забыть!
+              AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isSuccess);
+            end
           else
-            frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
+            begin
+              frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
+              //В будущем в этой строчке добавится Красный цвет текста протокола <<< Не забыть!
+              AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isError);
+            end
         end;
       frxCertInformation.Memo.Text := TrimRight(frxCertInformation.Memo.Text);
       frxSigInformation.Memo.Text := TrimRight(frxSigInformation.Memo.Text);
       frxSigStatus.Memo.Text := TrimRight(frxSigStatus.Memo.Text);
-      MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '"' + #13#10);
-      AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '"' + #13#10, false);
 
       frxReportTypeProtocol.PrepareReport(true);
       frxPDFexportProtocol.Compressed := True;
@@ -404,12 +407,16 @@ begin
       if (protocolVerifyStatusResult = CONFIRMED) and (InvoiceType = REGULAR_INVOICE) then
         begin
           //Формируем протокол в Invoice
+          if System.SysUtils.DirectoryExists(DirectoryExportToInvoice) = False then
+            System.SysUtils.ForceDirectories(DirectoryExportToInvoice);
           frxPDFexportProtocol.FileName := directoryExportToInvoice + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
           frxReportTypeProtocol.Export(frxPDFexportProtocol);
         end;
       if (protocolVerifyStatusResult = CONFIRMED) and (InvoiceType = MTR_INVOICE) then
         begin
           //Формируем протокол в InvoiceMTR
+          if System.SysUtils.DirectoryExists(DirectoryExportToInvoiceMTR) = False then
+            System.SysUtils.ForceDirectories(DirectoryExportToInvoiceMTR);
           frxPDFexportProtocol.FileName := directoryExportToInvoiceMTR + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
           frxReportTypeProtocol.Export(frxPDFexportProtocol);
         end;
@@ -510,7 +517,7 @@ begin
           begin
             MoveFilesToErrors(SearchResult.Name);
             descriptionError := 'Неверное имя файла "' + SearchResult.Name + '"';
-            MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionError + #13#10);
+            AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionError + #13#10, isError);
 
             CreateResponceFileToOutput(SearchResult.Name, descriptionError + #13#10
                                                           + 'Верные имена файлов должны соответствовать маскам(фигурные скобки убираются):' + #13#10
@@ -590,16 +597,12 @@ begin
       DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + SMO + '\' +
                             StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
       DirectoryToInvoice := ifFolderExistsRename(DirectoryToInvoice);
-      if System.SysUtils.DirectoryExists(DirectoryToInvoice) = False then
-        System.SysUtils.ForceDirectories(DirectoryToInvoice)
     end
   else
     begin
       DirectoryToInvoiceMTR := DirectoryInvoiceMTR + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
                                StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
       DirectoryToInvoiceMTR := ifFolderExistsRename(DirectoryToInvoiceMTR);
-      if System.SysUtils.DirectoryExists(DirectoryToInvoiceMTR) = False then
-        System.SysUtils.ForceDirectories(DirectoryToInvoiceMTR);
     end;
 
   //Создаём протокол
@@ -616,13 +619,13 @@ begin
   //– копируем файл-счёт в папку с счетами / МТР-счетами и переносим его в папку Processed
   fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
   pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-  if InvoiceType = REGULAR_INVOICE then
+  if (InvoiceType = REGULAR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
     begin
       fileDirectoryToInvoice := DirectoryToInvoice + inputNotSigFile;
       pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
       CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
-    end
-  else
+    end;
+  if (InvoiceType = MTR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
     begin
       fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputNotSigFile;
       pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
@@ -637,13 +640,13 @@ begin
     begin
       fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[i];
       pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-      if InvoiceType = REGULAR_INVOICE then
+      if (InvoiceType = REGULAR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
         begin
           fileDirectoryToInvoice := DirectoryToInvoice + inputSigFilesArray[i];
           pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
           CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
-        end
-      else
+        end;
+      if (InvoiceType = MTR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
         begin
           fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputSigFilesArray[i];
           pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
@@ -939,14 +942,17 @@ begin
     isError: begin
                RichEditLog.SelAttributes.Color := clRed;
                RichEditLog.Lines.Add(inputString);
+               RichEditLog.Refresh;
              end;
     isSuccess: begin
                  RichEditLog.SelAttributes.Color := clGreen;
                  RichEditLog.Lines.Add(inputString);
+                 RichEditLog.Refresh;
                end;
     isInformation: begin
                      RichEditLog.SelAttributes.Color := clBlack;
                      RichEditLog.Lines.Add(inputString);
+                     RichEditLog.Refresh;
                    end;
   end;
 
