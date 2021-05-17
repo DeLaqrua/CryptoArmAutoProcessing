@@ -14,7 +14,6 @@ type
   TFormMain = class(TForm)
     ScriptControlVB: TScriptControl;
     ButtonManualProcessing: TButton;
-    MemoLog: TMemo;
     frxReportProtocolConfirmed: TfrxReport;
     frxReportProtocolNotConfirmed: TfrxReport;
     LabelPath: TLabel;
@@ -39,6 +38,9 @@ type
     EditInvoiceMTRpath: TEdit;
     ButtonInvoiceMTRpath: TButton;
     RichEditLog: TRichEdit;
+    LabelOutput: TLabel;
+    EditOutput: TEdit;
+    ButtonOutput: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -60,6 +62,7 @@ type
     procedure SpinEditMinChange(Sender: TObject);
     procedure ButtonInvoicePathClick(Sender: TObject);
     procedure ButtonInvoiceMTRpathClick(Sender: TObject);
+    procedure ButtonOutputClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -117,14 +120,19 @@ type
 
 var
   FormMain: TFormMain;
+
 var
   DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR: string;
   descriptionErrorArchive: string;
   InvoiceType: integer;
+  protocolVerifyStatusResult: integer; //содержит два значения: CONFIRMED и NOT_CONFIRMED
 const
   SIGN_CORRECT = 1;
   REGULAR_INVOICE = 1;
   MTR_INVOICE = 2;
+
+  CONFIRMED = 1;
+  NOT_CONFIRMED = 0;
 
   isError = 0;
   isSuccess = 1;
@@ -180,9 +188,11 @@ begin
   DirectoryRoot := CorrectPath(EditPath.Text);
   DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
   DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+  DirectoryOutput := CorrectPath(EditOutput.Text);
   if (System.SysUtils.DirectoryExists(DirectoryRoot) = False) or
      (System.SysUtils.DirectoryExists(DirectoryInvoice) = False) or
-     (System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False) then
+     (System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False) or
+     (System.SysUtils.DirectoryExists(DirectoryOutput) = False) then
     ShowMessage('Проверьте путь к директории. Папки не существует.')
   else
     begin
@@ -197,7 +207,6 @@ begin
             if CheckFileName(SearchResult.Name) and CheckErrorsWithinArchive(SearchResult.Name) then
               begin
                 MoveFilesToErrors(SearchResult.Name);
-                MemoLog.Lines.Add( DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10 );
                 AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10, isError);
 
                 CreateResponceFileToOutput(SearchResult.Name, descriptionErrorArchive);
@@ -269,11 +278,6 @@ var SignatureFiles: array of TSignatureFile;
 
     protocolName: string;
 
-    protocolVerifyStatusResult: integer;
-
-const CONFIRMED = 1;
-      NOT_CONFIRMED = 0;
-
 begin
   NotSignatureFile := TNotSignatureFile.Create;
   NotSignatureFile.Name := directoryFiles + inputFileName;
@@ -287,7 +291,6 @@ begin
   CloseFile(NotSigFile);
 
   SetLength(SignatureFiles, Length(InputFileNameSignature));
-  MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной длится подписи до 30 секунд. Ожидайте...' + #13#10);
   AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной длится подписи до 30 секунд. Ожидайте...' + #13#10, isInformation);
   for i := 0 to High(SignatureFiles) do
     begin
@@ -371,19 +374,18 @@ begin
             begin
               frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
               //В будущем в этой строчке добавится Зелёный цвет текста протокола <<< Не забыть!
-              AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10, isSuccess);
+              AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isSuccess);
             end
           else
             begin
               frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
               //В будущем в этой строчке добавится Красный цвет текста протокола <<< Не забыть!
-              AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10, isError);
+              AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isError);
             end
         end;
       frxCertInformation.Memo.Text := TrimRight(frxCertInformation.Memo.Text);
       frxSigInformation.Memo.Text := TrimRight(frxSigInformation.Memo.Text);
       frxSigStatus.Memo.Text := TrimRight(frxSigStatus.Memo.Text);
-      MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '"' + #13#10);
 
       frxReportTypeProtocol.PrepareReport(true);
       frxPDFexportProtocol.Compressed := True;
@@ -411,12 +413,16 @@ begin
       if (protocolVerifyStatusResult = CONFIRMED) and (InvoiceType = REGULAR_INVOICE) then
         begin
           //Формируем протокол в Invoice
+          if System.SysUtils.DirectoryExists(DirectoryExportToInvoice) = False then
+            System.SysUtils.ForceDirectories(DirectoryExportToInvoice);
           frxPDFexportProtocol.FileName := directoryExportToInvoice + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
           frxReportTypeProtocol.Export(frxPDFexportProtocol);
         end;
       if (protocolVerifyStatusResult = CONFIRMED) and (InvoiceType = MTR_INVOICE) then
         begin
           //Формируем протокол в InvoiceMTR
+          if System.SysUtils.DirectoryExists(DirectoryExportToInvoiceMTR) = False then
+            System.SysUtils.ForceDirectories(DirectoryExportToInvoiceMTR);
           frxPDFexportProtocol.FileName := directoryExportToInvoiceMTR + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
           frxReportTypeProtocol.Export(frxPDFexportProtocol);
         end;
@@ -517,7 +523,6 @@ begin
           begin
             MoveFilesToErrors(SearchResult.Name);
             descriptionError := 'Неверное имя файла "' + SearchResult.Name + '"';
-            MemoLog.Lines.Add(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionError + #13#10);
             AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionError + #13#10, isError);
 
             CreateResponceFileToOutput(SearchResult.Name, descriptionError + #13#10
@@ -598,16 +603,12 @@ begin
       DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + SMO + '\' +
                             StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
       DirectoryToInvoice := ifFolderExistsRename(DirectoryToInvoice);
-      if System.SysUtils.DirectoryExists(DirectoryToInvoice) = False then
-        System.SysUtils.ForceDirectories(DirectoryToInvoice)
     end
   else
     begin
       DirectoryToInvoiceMTR := DirectoryInvoiceMTR + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
                                StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
       DirectoryToInvoiceMTR := ifFolderExistsRename(DirectoryToInvoiceMTR);
-      if System.SysUtils.DirectoryExists(DirectoryToInvoiceMTR) = False then
-        System.SysUtils.ForceDirectories(DirectoryToInvoiceMTR);
     end;
 
   //Создаём протокол
@@ -624,13 +625,13 @@ begin
   //– копируем файл-счёт в папку с счетами / МТР-счетами и переносим его в папку Processed
   fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
   pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-  if InvoiceType = REGULAR_INVOICE then
+  if (InvoiceType = REGULAR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
     begin
       fileDirectoryToInvoice := DirectoryToInvoice + inputNotSigFile;
       pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
       CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
-    end
-  else
+    end;
+  if (InvoiceType = MTR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
     begin
       fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputNotSigFile;
       pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
@@ -645,13 +646,13 @@ begin
     begin
       fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[i];
       pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-      if InvoiceType = REGULAR_INVOICE then
+      if (InvoiceType = REGULAR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
         begin
           fileDirectoryToInvoice := DirectoryToInvoice + inputSigFilesArray[i];
           pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
           CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
-        end
-      else
+        end;
+      if (InvoiceType = MTR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
         begin
           fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputSigFilesArray[i];
           pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
@@ -824,27 +825,30 @@ begin
 
   DirectoryProcessed := DirectoryRoot + 'Processed';
   DirectoryProcessed := CorrectPath(DirectoryProcessed);
-
-  DirectoryOutput := DirectoryRoot + 'Output';
-  DirectoryOutput := CorrectPath(DirectoryOutput);
 end;
 
 procedure TFormMain.ButtonPathClick(Sender: TObject);
 begin
-  if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdValidateDir]) then
+  if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditPath.Text := DirectoryRoot;
 end;
 
 procedure TFormMain.ButtonInvoicePathClick(Sender: TObject);
 begin
-  if SelectDirectory('Выберите папку для выгрузки счетов:', '', DirectoryInvoice, [sdNewFolder, sdShowShares, sdValidateDir]) then
+  if SelectDirectory('Выберите папку для выгрузки счетов:', '', DirectoryInvoice, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditInvoicePath.Text := DirectoryInvoice;
 end;
 
 procedure TFormMain.ButtonInvoiceMTRpathClick(Sender: TObject);
 begin
-  if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdValidateDir]) then
+  if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditInvoiceMTRpath.Text := DirectoryInvoiceMTR;
+end;
+
+procedure TFormMain.ButtonOutputClick(Sender: TObject);
+begin
+  if SelectDirectory('Выберите папку для отправки протоколов и файлов с ошибками:', '', DirectoryOutput, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
+    EditOutput.Text := DirectoryOutput;
 end;
 
 procedure TFormMain.SpeedButtonPlayClick(Sender: TObject);

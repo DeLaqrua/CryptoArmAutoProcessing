@@ -286,6 +286,11 @@ begin
   NotSignatureFile.DateCreate := DateTimeToStr(NotSigFileDateTime);
 
   AssignFile(NotSigFile, NotSignatureFile.Name);
+  FileMode := fmOpenRead; // Дорогой новичок, иногда при работе попадаются файлы "Только для чтения"
+                          // Метод reset открывает такие файлы с ошибкой,
+                          // потому что по умолчанию системная переменная FileMode,
+                          // отвечающая за режим открытия файла методом reset имеет значение 2 (fmOpenReadWrite).
+                          // Значение необходимо поменять на 0 (fmOpenRead)
   reset(NotSigFile);
   NotSignatureFile.Size := IntToStr(FileSize(NotSigFile)) + ' байт';
   CloseFile(NotSigFile);

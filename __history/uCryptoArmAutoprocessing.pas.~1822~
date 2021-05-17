@@ -38,6 +38,9 @@ type
     EditInvoiceMTRpath: TEdit;
     ButtonInvoiceMTRpath: TButton;
     RichEditLog: TRichEdit;
+    LabelOutput: TLabel;
+    EditOutput: TEdit;
+    ButtonOutput: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -59,6 +62,7 @@ type
     procedure SpinEditMinChange(Sender: TObject);
     procedure ButtonInvoicePathClick(Sender: TObject);
     procedure ButtonInvoiceMTRpathClick(Sender: TObject);
+    procedure ButtonOutputClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -116,6 +120,7 @@ type
 
 var
   FormMain: TFormMain;
+
 var
   DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR: string;
   descriptionErrorArchive: string;
@@ -174,8 +179,12 @@ end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
+    NotSigFile: File;
 begin
-  ButtonManualProcessing.Enabled := False;
+  AssignFile(NotSigFile, 'E:\Proba\AutoProcessingFiles\SH_830080_83001_ос.xls');
+  reset(NotSigFile);
+  CloseFile(NotSigFile);
+{  ButtonManualProcessing.Enabled := False;
   TimerAutoProcessing.Enabled := False;
   SpeedButtonPlay.Enabled := False;
   SpeedButtonStop.Enabled := False;
@@ -183,9 +192,11 @@ begin
   DirectoryRoot := CorrectPath(EditPath.Text);
   DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
   DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+  DirectoryOutput := CorrectPath(EditOutput.Text);
   if (System.SysUtils.DirectoryExists(DirectoryRoot) = False) or
      (System.SysUtils.DirectoryExists(DirectoryInvoice) = False) or
-     (System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False) then
+     (System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False) or
+     (System.SysUtils.DirectoryExists(DirectoryOutput) = False) then
     ShowMessage('Проверьте путь к директории. Папки не существует.')
   else
     begin
@@ -213,7 +224,7 @@ begin
 
   ButtonManualProcessing.Enabled := True;
   SpeedButtonPlay.Enabled := True;
-  SpeedButtonStop.Enabled := True;
+  SpeedButtonStop.Enabled := True;}
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -406,12 +417,16 @@ begin
       if (protocolVerifyStatusResult = CONFIRMED) and (InvoiceType = REGULAR_INVOICE) then
         begin
           //Формируем протокол в Invoice
+          if System.SysUtils.DirectoryExists(DirectoryExportToInvoice) = False then
+            System.SysUtils.ForceDirectories(DirectoryExportToInvoice);
           frxPDFexportProtocol.FileName := directoryExportToInvoice + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
           frxReportTypeProtocol.Export(frxPDFexportProtocol);
         end;
       if (protocolVerifyStatusResult = CONFIRMED) and (InvoiceType = MTR_INVOICE) then
         begin
           //Формируем протокол в InvoiceMTR
+          if System.SysUtils.DirectoryExists(DirectoryExportToInvoiceMTR) = False then
+            System.SysUtils.ForceDirectories(DirectoryExportToInvoiceMTR);
           frxPDFexportProtocol.FileName := directoryExportToInvoiceMTR + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
           frxReportTypeProtocol.Export(frxPDFexportProtocol);
         end;
@@ -592,16 +607,12 @@ begin
       DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + SMO + '\' +
                             StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
       DirectoryToInvoice := ifFolderExistsRename(DirectoryToInvoice);
-      if System.SysUtils.DirectoryExists(DirectoryToInvoice) = False then
-        System.SysUtils.ForceDirectories(DirectoryToInvoice)
     end
   else
     begin
       DirectoryToInvoiceMTR := DirectoryInvoiceMTR + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
                                StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
       DirectoryToInvoiceMTR := ifFolderExistsRename(DirectoryToInvoiceMTR);
-      if System.SysUtils.DirectoryExists(DirectoryToInvoiceMTR) = False then
-        System.SysUtils.ForceDirectories(DirectoryToInvoiceMTR);
     end;
 
   //Создаём протокол
@@ -618,13 +629,13 @@ begin
   //– копируем файл-счёт в папку с счетами / МТР-счетами и переносим его в папку Processed
   fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
   pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-  if InvoiceType = REGULAR_INVOICE then
+  if (InvoiceType = REGULAR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
     begin
       fileDirectoryToInvoice := DirectoryToInvoice + inputNotSigFile;
       pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
       CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
-    end
-  else
+    end;
+  if (InvoiceType = MTR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
     begin
       fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputNotSigFile;
       pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
@@ -639,13 +650,13 @@ begin
     begin
       fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[i];
       pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-      if InvoiceType = REGULAR_INVOICE then
+      if (InvoiceType = REGULAR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
         begin
           fileDirectoryToInvoice := DirectoryToInvoice + inputSigFilesArray[i];
           pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
           CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
-        end
-      else
+        end;
+      if (InvoiceType = MTR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
         begin
           fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputSigFilesArray[i];
           pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
@@ -818,27 +829,30 @@ begin
 
   DirectoryProcessed := DirectoryRoot + 'Processed';
   DirectoryProcessed := CorrectPath(DirectoryProcessed);
-
-  DirectoryOutput := DirectoryRoot + 'Output';
-  DirectoryOutput := CorrectPath(DirectoryOutput);
 end;
 
 procedure TFormMain.ButtonPathClick(Sender: TObject);
 begin
-  if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdValidateDir]) then
+  if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditPath.Text := DirectoryRoot;
 end;
 
 procedure TFormMain.ButtonInvoicePathClick(Sender: TObject);
 begin
-  if SelectDirectory('Выберите папку для выгрузки счетов:', '', DirectoryInvoice, [sdNewFolder, sdShowShares, sdValidateDir]) then
+  if SelectDirectory('Выберите папку для выгрузки счетов:', '', DirectoryInvoice, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditInvoicePath.Text := DirectoryInvoice;
 end;
 
 procedure TFormMain.ButtonInvoiceMTRpathClick(Sender: TObject);
 begin
-  if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdValidateDir]) then
+  if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditInvoiceMTRpath.Text := DirectoryInvoiceMTR;
+end;
+
+procedure TFormMain.ButtonOutputClick(Sender: TObject);
+begin
+  if SelectDirectory('Выберите папку для отправки протоколов и файлов с ошибками:', '', DirectoryOutput, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
+    EditOutput.Text := DirectoryOutput;
 end;
 
 procedure TFormMain.SpeedButtonPlayClick(Sender: TObject);
