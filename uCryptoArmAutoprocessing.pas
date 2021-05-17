@@ -116,14 +116,19 @@ type
 
 var
   FormMain: TFormMain;
+
 var
   DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR: string;
   descriptionErrorArchive: string;
   InvoiceType: integer;
+  protocolVerifyStatusResult: integer; //содержит два значени€: CONFIRMED и NOT_CONFIRMED
 const
   SIGN_CORRECT = 1;
   REGULAR_INVOICE = 1;
   MTR_INVOICE = 2;
+
+  CONFIRMED = 1;
+  NOT_CONFIRMED = 0;
 
   isError = 0;
   isSuccess = 1;
@@ -267,11 +272,6 @@ var SignatureFiles: array of TSignatureFile;
 
     protocolName: string;
 
-    protocolVerifyStatusResult: integer;
-
-const CONFIRMED = 1;
-      NOT_CONFIRMED = 0;
-
 begin
   NotSignatureFile := TNotSignatureFile.Create;
   NotSignatureFile.Name := directoryFiles + inputFileName;
@@ -407,12 +407,16 @@ begin
       if (protocolVerifyStatusResult = CONFIRMED) and (InvoiceType = REGULAR_INVOICE) then
         begin
           //‘ормируем протокол в Invoice
+          if System.SysUtils.DirectoryExists(DirectoryExportToInvoice) = False then
+            System.SysUtils.ForceDirectories(DirectoryExportToInvoice);
           frxPDFexportProtocol.FileName := directoryExportToInvoice + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
           frxReportTypeProtocol.Export(frxPDFexportProtocol);
         end;
       if (protocolVerifyStatusResult = CONFIRMED) and (InvoiceType = MTR_INVOICE) then
         begin
           //‘ормируем протокол в InvoiceMTR
+          if System.SysUtils.DirectoryExists(DirectoryExportToInvoiceMTR) = False then
+            System.SysUtils.ForceDirectories(DirectoryExportToInvoiceMTR);
           frxPDFexportProtocol.FileName := directoryExportToInvoiceMTR + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
           frxReportTypeProtocol.Export(frxPDFexportProtocol);
         end;
@@ -593,16 +597,12 @@ begin
       DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + SMO + '\' +
                             StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
       DirectoryToInvoice := ifFolderExistsRename(DirectoryToInvoice);
-      if System.SysUtils.DirectoryExists(DirectoryToInvoice) = False then
-        System.SysUtils.ForceDirectories(DirectoryToInvoice)
     end
   else
     begin
       DirectoryToInvoiceMTR := DirectoryInvoiceMTR + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
                                StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
       DirectoryToInvoiceMTR := ifFolderExistsRename(DirectoryToInvoiceMTR);
-      if System.SysUtils.DirectoryExists(DirectoryToInvoiceMTR) = False then
-        System.SysUtils.ForceDirectories(DirectoryToInvoiceMTR);
     end;
 
   //—оздаЄм протокол
@@ -619,13 +619,13 @@ begin
   //Ц копируем файл-счЄт в папку с счетами / ћ“–-счетами и переносим его в папку Processed
   fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
   pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-  if InvoiceType = REGULAR_INVOICE then
+  if (InvoiceType = REGULAR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
     begin
       fileDirectoryToInvoice := DirectoryToInvoice + inputNotSigFile;
       pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
       CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
-    end
-  else
+    end;
+  if (InvoiceType = MTR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
     begin
       fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputNotSigFile;
       pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
@@ -640,13 +640,13 @@ begin
     begin
       fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[i];
       pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-      if InvoiceType = REGULAR_INVOICE then
+      if (InvoiceType = REGULAR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
         begin
           fileDirectoryToInvoice := DirectoryToInvoice + inputSigFilesArray[i];
           pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
           CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
-        end
-      else
+        end;
+      if (InvoiceType = MTR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
         begin
           fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputSigFilesArray[i];
           pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
