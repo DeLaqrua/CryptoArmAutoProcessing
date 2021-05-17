@@ -185,42 +185,45 @@ begin
   SpeedButtonPlay.Enabled := False;
   SpeedButtonStop.Enabled := False;
 
-  DirectoryRoot := CorrectPath(EditPath.Text);
-  DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
-  DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
-  DirectoryOutput := CorrectPath(EditOutput.Text);
-  if (System.SysUtils.DirectoryExists(DirectoryRoot) = False) or
-     (System.SysUtils.DirectoryExists(DirectoryInvoice) = False) or
-     (System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False) or
-     (System.SysUtils.DirectoryExists(DirectoryOutput) = False) then
-    ShowMessage('Проверьте путь к директории. Папки не существует.')
-  else
-    begin
+  try
+    DirectoryRoot := CorrectPath(EditPath.Text);
+    DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
+    DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+    DirectoryOutput := CorrectPath(EditOutput.Text);
+    if (System.SysUtils.DirectoryExists(DirectoryRoot) = False) or
+       (System.SysUtils.DirectoryExists(DirectoryInvoice) = False) or
+       (System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False) or
+       (System.SysUtils.DirectoryExists(DirectoryOutput) = False) then
+      ShowMessage('Проверьте путь к директории. Папки не существует.')
+    else
+      begin
 
-      UpdateDirectories(DirectoryRoot);
+        UpdateDirectories(DirectoryRoot);
 
-      SortErrorFiles;
+        SortErrorFiles;
 
-      if FindFirst(DirectoryRoot + '*.*', faNormal, SearchResult) = 0 then
-        begin
-          repeat
-            if CheckFileName(SearchResult.Name) and CheckErrorsWithinArchive(SearchResult.Name) then
-              begin
-                MoveFilesToErrors(SearchResult.Name);
-                AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10, isError);
+        if FindFirst(DirectoryRoot + '*.*', faNormal, SearchResult) = 0 then
+          begin
+            repeat
+              if CheckFileName(SearchResult.Name) and CheckErrorsWithinArchive(SearchResult.Name) then
+                begin
+                  MoveFilesToErrors(SearchResult.Name);
+                  AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10, isError);
 
-                CreateResponceFileToOutput(SearchResult.Name, descriptionErrorArchive);
-              end
-            else Processed(SearchResult.Name);
-          until FindNext(SearchResult) <> 0;
-          FindClose(SearchResult);
-        end;
+                  CreateResponceFileToOutput(SearchResult.Name, descriptionErrorArchive);
+                end
+              else Processed(SearchResult.Name);
+            until FindNext(SearchResult) <> 0;
+            FindClose(SearchResult);
+          end;
 
-    end;
+      end;
 
-  ButtonManualProcessing.Enabled := True;
-  SpeedButtonPlay.Enabled := True;
-  SpeedButtonStop.Enabled := True;
+  finally
+    ButtonManualProcessing.Enabled := True;
+    SpeedButtonPlay.Enabled := True;
+    SpeedButtonStop.Enabled := True;
+  end;
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
