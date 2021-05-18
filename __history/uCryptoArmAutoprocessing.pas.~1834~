@@ -185,42 +185,52 @@ begin
   SpeedButtonPlay.Enabled := False;
   SpeedButtonStop.Enabled := False;
 
-  DirectoryRoot := CorrectPath(EditPath.Text);
-  DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
-  DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
-  DirectoryOutput := CorrectPath(EditOutput.Text);
-  if (System.SysUtils.DirectoryExists(DirectoryRoot) = False) or
-     (System.SysUtils.DirectoryExists(DirectoryInvoice) = False) or
-     (System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False) or
-     (System.SysUtils.DirectoryExists(DirectoryOutput) = False) then
-    ShowMessage('Проверьте путь к директории. Папки не существует.')
-  else
-    begin
+  try
+    DirectoryRoot := CorrectPath(EditPath.Text);
+    DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
+    DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+    DirectoryOutput := CorrectPath(EditOutput.Text);
+    if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
+      ShowMessage('Проверьте путь к директории для работы Автопроцессинга. Папки не существует')
+    else
+    if System.SysUtils.DirectoryExists(DirectoryInvoice) = False then
+      ShowMessage('Проверьте путь к директории с Счетами. Папки не существует')
+    else
+    if System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False then
+      ShowMessage('Проверьте путь к директории с Счетами-МТР. Папки не существует')
+    else
+    if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
+      ShowMessage('Проверьте путь к директории для отправки Ответов. Папки не существует')
 
-      UpdateDirectories(DirectoryRoot);
+    else
+      begin
 
-      SortErrorFiles;
+        UpdateDirectories(DirectoryRoot);
 
-      if FindFirst(DirectoryRoot + '*.*', faNormal, SearchResult) = 0 then
-        begin
-          repeat
-            if CheckFileName(SearchResult.Name) and CheckErrorsWithinArchive(SearchResult.Name) then
-              begin
-                MoveFilesToErrors(SearchResult.Name);
-                AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10, isError);
+        SortErrorFiles;
 
-                CreateResponceFileToOutput(SearchResult.Name, descriptionErrorArchive);
-              end
-            else Processed(SearchResult.Name);
-          until FindNext(SearchResult) <> 0;
-          FindClose(SearchResult);
-        end;
+        if FindFirst(DirectoryRoot + '*.*', faNormal, SearchResult) = 0 then
+          begin
+            repeat
+              if CheckFileName(SearchResult.Name) and CheckErrorsWithinArchive(SearchResult.Name) then
+                begin
+                  MoveFilesToErrors(SearchResult.Name);
+                  AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10, isError);
 
-    end;
+                  CreateResponceFileToOutput(SearchResult.Name, descriptionErrorArchive);
+                end
+              else Processed(SearchResult.Name);
+            until FindNext(SearchResult) <> 0;
+            FindClose(SearchResult);
+          end;
 
-  ButtonManualProcessing.Enabled := True;
-  SpeedButtonPlay.Enabled := True;
-  SpeedButtonStop.Enabled := True;
+      end;
+
+  finally
+    ButtonManualProcessing.Enabled := True;
+    SpeedButtonPlay.Enabled := True;
+    SpeedButtonStop.Enabled := True;
+  end;
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -286,6 +296,11 @@ begin
   NotSignatureFile.DateCreate := DateTimeToStr(NotSigFileDateTime);
 
   AssignFile(NotSigFile, NotSignatureFile.Name);
+  FileMode := fmOpenRead; // Дорогой новичок, иногда при работе попадаются файлы "Только для чтения"
+                          // Метод reset открывает такие файлы с ошибкой,
+                          // потому что по умолчанию системная переменная FileMode,
+                          // отвечающая за режим открытия файла методом reset имеет значение 2 (fmOpenReadWrite).
+                          // Значение необходимо поменять на 0 (fmOpenRead)
   reset(NotSigFile);
   NotSignatureFile.Size := IntToStr(FileSize(NotSigFile)) + ' байт';
   CloseFile(NotSigFile);
@@ -673,9 +688,12 @@ begin
      MatchesMask(inputFileName, 'SHO_*_*_*.zip') or
      MatchesMask(inputFileName, 'SMP_*_*_*.zip') or
      MatchesMask(inputFileName, 'SHCP_*_*_основной.zip') or
-     MatchesMask(inputFileName, 'MSHO_*_MTR_*.zip') or
-     MatchesMask(inputFileName, 'MSH_*_MTR_*.zip') or
-     MatchesMask(inputFileName, 'MSMP_*_MTR_*.zip') then
+     MatchesMask(inputFileName, 'MSHO_*_MTP_*.zip') or //MTP – по-английски
+     MatchesMask(inputFileName, 'MSHO_*_МТР_*.zip') or //MTP – по-русски
+     MatchesMask(inputFileName, 'MSH_*_MTP_*.zip') or //MTP – по-английски
+     MatchesMask(inputFileName, 'MSH_*_МТР_*.zip') or //MTP – по-русски
+     MatchesMask(inputFileName, 'MSMP_*_MTP_*.zip') or //MTP – по-английски
+     MatchesMask(inputFileName, 'MSMP_*_МТР_*.zip') then //MTP – по-русски
     begin
       Result := True;
     end;
@@ -847,7 +865,7 @@ end;
 
 procedure TFormMain.ButtonOutputClick(Sender: TObject);
 begin
-  if SelectDirectory('Выберите папку для отправки протоколов и файлов с ошибками:', '', DirectoryOutput, [sdNewFolder, sdShowShares, sdValidateDir]) then
+  if SelectDirectory('Выберите папку для отправки протоколов и файлов с ошибками:', '', DirectoryOutput, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditOutput.Text := DirectoryOutput;
 end;
 

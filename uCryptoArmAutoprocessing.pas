@@ -175,6 +175,11 @@ begin
       Exit;
     end;
 
+  if DirectoryExists('\\192.168.200.142\obmen\') = False then //Строка только для того, чтобы обратиться и пробудить локальную Сеть
+    AddLog('Сеть не пробудилась', isError)
+  else
+    AddLog('Сеть пробудилась', isSuccess);
+
 end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
@@ -607,7 +612,8 @@ begin
   if System.SysUtils.DirectoryExists(DirectoryToProcessed) = False then
     System.SysUtils.ForceDirectories(DirectoryToProcessed);
 
-  if AnsiPos('MTR', UpperCase(inputArchiveFileName)) = 0 then
+  if (AnsiPos('MTP', UpperCase(inputArchiveFileName)) = 0) and
+     (AnsiPos('МТР', UpperCase(inputArchiveFileName)) = 0) then //Проверяем "МТР" в имени файла как по-русски, так и по-английски
     InvoiceType := REGULAR_INVOICE
   else
     InvoiceType := MTR_INVOICE;
