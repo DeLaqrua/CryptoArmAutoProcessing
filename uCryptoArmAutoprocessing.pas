@@ -190,11 +190,18 @@ begin
     DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
     DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
     DirectoryOutput := CorrectPath(EditOutput.Text);
-    if (System.SysUtils.DirectoryExists(DirectoryRoot) = False) or
-       (System.SysUtils.DirectoryExists(DirectoryInvoice) = False) or
-       (System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False) or
-       (System.SysUtils.DirectoryExists(DirectoryOutput) = False) then
-      ShowMessage('Проверьте путь к директории. Папки не существует.')
+    if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
+      ShowMessage('Проверьте путь к директории для работы Автопроцессинга. Папки не существует')
+    else
+    if System.SysUtils.DirectoryExists(DirectoryInvoice) = False then
+      ShowMessage('Проверьте путь к директории с Счетами. Папки не существует')
+    else
+    if System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False then
+      ShowMessage('Проверьте путь к директории с Счетами-МТР. Папки не существует')
+    else
+    if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
+      ShowMessage('Проверьте путь к директории для отправки Ответов. Папки не существует')
+
     else
       begin
 
