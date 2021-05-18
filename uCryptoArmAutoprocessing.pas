@@ -681,9 +681,12 @@ begin
      MatchesMask(inputFileName, 'SHO_*_*_*.zip') or
      MatchesMask(inputFileName, 'SMP_*_*_*.zip') or
      MatchesMask(inputFileName, 'SHCP_*_*_основной.zip') or
-     MatchesMask(inputFileName, 'MSHO_*_MTR_*.zip') or
-     MatchesMask(inputFileName, 'MSH_*_MTR_*.zip') or
-     MatchesMask(inputFileName, 'MSMP_*_MTR_*.zip') then
+     MatchesMask(inputFileName, 'MSHO_*_MTP_*.zip') or //MTP Ц по-английски
+     MatchesMask(inputFileName, 'MSHO_*_ћ“–_*.zip') or //MTP Ц по-русски
+     MatchesMask(inputFileName, 'MSH_*_MTP_*.zip') or //MTP Ц по-английски
+     MatchesMask(inputFileName, 'MSH_*_ћ“–_*.zip') or //MTP Ц по-русски
+     MatchesMask(inputFileName, 'MSMP_*_MTP_*.zip') or //MTP Ц по-английски
+     MatchesMask(inputFileName, 'MSMP_*_ћ“–_*.zip') then //MTP Ц по-русски
     begin
       Result := True;
     end;
