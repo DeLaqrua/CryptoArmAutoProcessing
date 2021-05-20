@@ -81,6 +81,10 @@ type
 
     function BrowseForFolder(var Foldr: string; Title: string): Boolean;
 
+    function ExtractArchiveItemFileName(inputArchiveItemFileName: string): string; //Внутри архива могут встречаться папки.
+                                                                                   //С названия файла внутри архива вычленяются названия папок,
+                                                                                   //в которых лежит файл.
+
     procedure CreateResponceFileToOutput(inputFileName, descriptionError: string);
 
     procedure CreateProtocol(inputFileName: string;
@@ -184,15 +188,7 @@ var SearchResult: TSearchRec;
     Archive: TFWZipReader;
     i: integer;
 begin
-  Archive := TFWZipReader.Create;
-  Archive.LoadFromFile('E:\Proba\AutoProcessingFiles\SHCP_830007_83001_основной.zip');
-  for i := 0 to Archive.Count-1 do
-    begin
-      Archive.Item[i].Extract('E:\Proba\AutoProcessingFiles', StringReplace(Archive.Item[i].FileName, ExtractFileDir(Archive.Item[i].FileName), '', [rfIgnoreCase]), '');
-      AddLog(StringReplace(Archive.Item[i].FileName, ExtractFileDir(Archive.Item[i].FileName), '', [rfIgnoreCase]), isInformation);
-    end;
-  Archive.Free;
-  {ButtonManualProcessing.Enabled := False;
+  ButtonManualProcessing.Enabled := False;
   TimerAutoProcessing.Enabled := False;
   SpeedButtonPlay.Enabled := False;
   SpeedButtonStop.Enabled := False;
@@ -242,7 +238,7 @@ begin
     ButtonManualProcessing.Enabled := True;
     SpeedButtonPlay.Enabled := True;
     SpeedButtonStop.Enabled := True;
-  end;}
+  end;
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -254,7 +250,6 @@ begin
   Archive := TFWZipReader.Create;
   try
     Archive.LoadFromFile(DirectoryRoot + inputArchiveFileName);
-    Archive.ExtractAll(DirectoryRoot);
 
     arrayIndex := 0;
     for i := 0 to Archive.Count-1 do
@@ -262,12 +257,14 @@ begin
         if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
           begin
             SetLength(SigFilesArray, arrayIndex + 1);
-            SigFilesArray[arrayIndex] := Archive.item[i].FileName;
+            SigFilesArray[arrayIndex] := ExtractArchiveItemFileName(Archive.item[i].FileName);
             arrayIndex := arrayIndex + 1;
+            Archive.Item[i].Extract(DirectoryRoot, ExtractArchiveItemFileName(Archive.item[i].FileName), '');
           end
         else
           begin
-            NotSigFile := Archive.item[i].FileName;
+            NotSigFile := ExtractArchiveItemFileName(Archive.item[i].FileName);
+            Archive.Item[i].Extract(DirectoryRoot, ExtractArchiveItemFileName(Archive.item[i].FileName), '');
           end;
       end;
 
@@ -759,10 +756,10 @@ begin
     for i := 0 to Archive.Count-1 do
       begin
         if ( LowerCase(ExtractFileExt(Archive.Item[i].FileName)) <> '.sig' ) and
-           ( Not MatchesMask(Archive.item[i].FileName, StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '*') ) then
+           ( Not MatchesMask(ExtractArchiveItemFileName(Archive.item[i].FileName), StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '*') ) then
           begin
             Result := True;
-            descriptionErrorArchive := 'Файл-счёт "' + Archive.Item[i].FileName + '" внутри zip-архива "' + inputArchiveFileName + '" не соответствует его названию';
+            descriptionErrorArchive := 'Файл-счёт "' + ExtractArchiveItemFileName(Archive.Item[i].FileName) + '" внутри zip-архива "' + inputArchiveFileName + '" не соответствует его названию';
           end;
       end;
 
@@ -847,6 +844,13 @@ begin
       else
         Result := inputDirectory;
     end;
+end;
+
+function TFormMain.ExtractArchiveItemFileName(inputArchiveItemFileName: string): string;  //Внутри архива могут встречаться папки.
+                                                                                          //С названия файла внутри архива вычленяются названия папок,
+                                                                                          //в которых лежит файл.
+begin
+  result := ExtractFileName(StringReplace(inputArchiveItemFileName, '/', '\', []))
 end;
 
 procedure TFormMain.UpdateDirectories(inputDirectoryRoot: string);

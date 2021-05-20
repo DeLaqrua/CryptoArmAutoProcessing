@@ -876,10 +876,7 @@ end;
 
 procedure TFormMain.ButtonInvoiceMTRpathClick(Sender: TObject);
 begin
-  {if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
-    EditInvoiceMTRpath.Text := DirectoryInvoiceMTR;}
-
-  if BrowseForFolder(DirectoryInvoiceMTR, 'Выберите папку для выгрузки счетов-МТР:') then
+  if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditInvoiceMTRpath.Text := DirectoryInvoiceMTR;
 end;
 
@@ -1003,30 +1000,6 @@ begin
                    end;
   end;
 
-end;
-
-//Функция для открытия диалогового окна в новой оболочке, в котором выбираешь директорию
-//Замена устаревшего SelectDirectory
-function TFormMain.BrowseForFolder(var Foldr: string; Title: string): Boolean;
-var
-  BrowseInfo: TBrowseInfo;
-  ItemIDList: PItemIDList;
-  DisplayName: array[0..MAX_PATH] of Char;
-begin
-  Result := False;
-  FillChar(BrowseInfo, SizeOf(BrowseInfo), #0);
-  with BrowseInfo do begin
-    hwndOwner := Application.Handle;
-    pszDisplayName := @DisplayName[0];
-    lpszTitle := PChar(Title);
-    ulFlags := BIF_RETURNONLYFSDIRS;
-  end;
-  ItemIDList := SHBrowseForFolder(BrowseInfo);
-  if Assigned(ItemIDList) then
-    if SHGetPathFromIDList(ItemIDList, DisplayName) then begin
-      Foldr := DisplayName;
-      Result := True;
-    end;
 end;
 
 end.
