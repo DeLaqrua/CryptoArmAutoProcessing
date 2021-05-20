@@ -783,7 +783,7 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 2
-    Text = '\\192.168.200.142\obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\in'
+    Text = '\\192.168.200.142\obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\in\'
   end
   object ButtonPath: TButton
     Left = 536
@@ -852,7 +852,7 @@ object FormMain: TFormMain
     TabOrder = 6
     Text = 
       '\\192.168.200.142\obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\'#1055#1088#1086#1074#1077#1088#1077#1085#1085#1099#1077' '#1089#1095#1077 +
-      #1090#1072
+      #1090#1072'\'
   end
   object ButtonInvoicePath: TButton
     Left = 536
@@ -881,7 +881,7 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 8
-    Text = '\\192.168.200.142\obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\'#1052#1058#1056
+    Text = '\\192.168.200.142\obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\'#1052#1058#1056'\'
   end
   object ButtonInvoiceMTRpath: TButton
     Left = 536
@@ -906,13 +906,11 @@ object FormMain: TFormMain
     Alignment = taCenter
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = RUSSIAN_CHARSET
-    Font.Color = clWhite
+    Font.Color = clBlack
     Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []
     HideScrollBars = False
-    Lines.Strings = (
-      'RichEditLog')
     ParentFont = False
     ReadOnly = True
     ScrollBars = ssVertical
@@ -930,7 +928,7 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 11
-    Text = '\\192.168.200.142\obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\out'
+    Text = '\\192.168.200.142\obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\out\'
   end
   object ButtonOutput: TButton
     Left = 536

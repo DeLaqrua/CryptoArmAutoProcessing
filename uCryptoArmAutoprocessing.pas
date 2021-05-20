@@ -8,7 +8,7 @@ uses
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.OleCtrls, MSScriptControl_TLB,
   Vcl.StdCtrls, ActiveX, Vcl.FileCtrl, System.Masks, DateUtils,
   Vcl.Buttons, Vcl.Samples.Spin, Vcl.ExtCtrls, frxClass, frxGradient,
-  frxExportPDF, Vcl.ComCtrls;
+  frxExportPDF, Vcl.ComCtrls, SHLOBJ, FWZipReader;
 
 type
   TFormMain = class(TForm)
@@ -79,6 +79,12 @@ type
 
     function CorrectPath(inputDirectory: string): string;
 
+    function BrowseForFolder(var Foldr: string; Title: string): Boolean;
+
+    function ExtractArchiveItemFileName(inputArchiveItemFileName: string): string; //Внутри архива могут встречаться папки.
+                                                                                   //С названия файла внутри архива вычленяются названия папок,
+                                                                                   //в которых лежит файл.
+
     procedure CreateResponceFileToOutput(inputFileName, descriptionError: string);
 
     procedure CreateProtocol(inputFileName: string;
@@ -140,9 +146,6 @@ const
 
 implementation
 
-uses
-  FWZipReader;
-
 {$R *.dfm}
 
 procedure TFormMain.FormCreate(Sender: TObject);
@@ -175,15 +178,15 @@ begin
       Exit;
     end;
 
-  if DirectoryExists('\\192.168.200.142\obmen\') = False then //Строка только для того, чтобы обратиться и пробудить локальную Сеть
-    AddLog('Сеть не пробудилась', isError)
-  else
-    AddLog('Сеть пробудилась', isSuccess);
+  AddLog('Дата открытия программы: ' + DateToStr(Now) + ' ' + TimeToStr(Now) + #13#10, isSuccess);
 
 end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
+
+    Archive: TFWZipReader;
+    i: integer;
 begin
   ButtonManualProcessing.Enabled := False;
   TimerAutoProcessing.Enabled := False;
@@ -247,7 +250,6 @@ begin
   Archive := TFWZipReader.Create;
   try
     Archive.LoadFromFile(DirectoryRoot + inputArchiveFileName);
-    Archive.ExtractAll(DirectoryRoot);
 
     arrayIndex := 0;
     for i := 0 to Archive.Count-1 do
@@ -255,12 +257,14 @@ begin
         if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
           begin
             SetLength(SigFilesArray, arrayIndex + 1);
-            SigFilesArray[arrayIndex] := Archive.item[i].FileName;
+            SigFilesArray[arrayIndex] := ExtractArchiveItemFileName(Archive.item[i].FileName);
             arrayIndex := arrayIndex + 1;
+            Archive.Item[i].Extract(DirectoryRoot, ExtractArchiveItemFileName(Archive.item[i].FileName), '');
           end
         else
           begin
-            NotSigFile := Archive.item[i].FileName;
+            NotSigFile := ExtractArchiveItemFileName(Archive.item[i].FileName);
+            Archive.Item[i].Extract(DirectoryRoot, ExtractArchiveItemFileName(Archive.item[i].FileName), '');
           end;
       end;
 
@@ -752,10 +756,10 @@ begin
     for i := 0 to Archive.Count-1 do
       begin
         if ( LowerCase(ExtractFileExt(Archive.Item[i].FileName)) <> '.sig' ) and
-           ( Not MatchesMask(Archive.item[i].FileName, StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '*') ) then
+           ( Not MatchesMask(ExtractArchiveItemFileName(Archive.item[i].FileName), StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '*') ) then
           begin
             Result := True;
-            descriptionErrorArchive := 'Файл-счёт "' + Archive.Item[i].FileName + '" внутри zip-архива "' + inputArchiveFileName + '" не соответствует его названию';
+            descriptionErrorArchive := 'Файл-счёт "' + ExtractArchiveItemFileName(Archive.Item[i].FileName) + '" внутри zip-архива "' + inputArchiveFileName + '" не соответствует его названию';
           end;
       end;
 
@@ -842,6 +846,13 @@ begin
     end;
 end;
 
+function TFormMain.ExtractArchiveItemFileName(inputArchiveItemFileName: string): string;  //Внутри архива могут встречаться папки.
+                                                                                          //С названия файла внутри архива вычленяются названия папок,
+                                                                                          //в которых лежит файл.
+begin
+  result := ExtractFileName(StringReplace(inputArchiveItemFileName, '/', '\', []))
+end;
+
 procedure TFormMain.UpdateDirectories(inputDirectoryRoot: string);
 begin
   DirectoryErrors := DirectoryRoot + 'Errors';
@@ -865,7 +876,10 @@ end;
 
 procedure TFormMain.ButtonInvoiceMTRpathClick(Sender: TObject);
 begin
-  if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
+  {if SelectDirectory('Выберите папку для выгрузки счетов-МТР:', '', DirectoryInvoiceMTR, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
+    EditInvoiceMTRpath.Text := DirectoryInvoiceMTR;}
+
+  if BrowseForFolder(DirectoryInvoiceMTR, 'Выберите папку для выгрузки счетов-МТР:') then
     EditInvoiceMTRpath.Text := DirectoryInvoiceMTR;
 end;
 
@@ -989,6 +1003,30 @@ begin
                    end;
   end;
 
+end;
+
+//Функция для открытия диалогового окна в новой оболочке, в котором выбираешь директорию
+//Замена устаревшего SelectDirectory
+function TFormMain.BrowseForFolder(var Foldr: string; Title: string): Boolean;
+var
+  BrowseInfo: TBrowseInfo;
+  ItemIDList: PItemIDList;
+  DisplayName: array[0..MAX_PATH] of Char;
+begin
+  Result := False;
+  FillChar(BrowseInfo, SizeOf(BrowseInfo), #0);
+  with BrowseInfo do begin
+    hwndOwner := Application.Handle;
+    pszDisplayName := @DisplayName[0];
+    lpszTitle := PChar(Title);
+    ulFlags := BIF_RETURNONLYFSDIRS;
+  end;
+  ItemIDList := SHBrowseForFolder(BrowseInfo);
+  if Assigned(ItemIDList) then
+    if SHGetPathFromIDList(ItemIDList, DisplayName) then begin
+      Foldr := DisplayName;
+      Result := True;
+    end;
 end;
 
 end.
