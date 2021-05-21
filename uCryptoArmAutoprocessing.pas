@@ -179,6 +179,11 @@ begin
 
   AddLog('Дата открытия программы: ' + DateToStr(Now) + ' ' + TimeToStr(Now) + #13#10, isSuccess);
 
+  DirectoryRoot := CorrectPath(EditPath.Text);
+  DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
+  DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+  DirectoryOutput := CorrectPath(EditOutput.Text);
+
 end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
