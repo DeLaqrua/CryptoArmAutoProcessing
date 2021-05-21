@@ -79,8 +79,6 @@ type
 
     function CorrectPath(inputDirectory: string): string;
 
-    function BrowseForFolder(var Foldr: string; Title: string): Boolean;
-
     function ExtractArchiveItemFileName(inputArchiveItemFileName: string): string; //Внутри архива могут встречаться папки.
                                                                                    //С названия файла внутри архива вычленяются названия папок,
                                                                                    //в которых лежит файл.
@@ -106,6 +104,7 @@ type
                                                              //isError – цвет текста Красный
                                                              //isSuccess – цвет текста Зелёный
                                                              //isInformation – цвет текста Чёрный
+
   end;
 
   TSignatureFile = class(TObject)
@@ -184,9 +183,6 @@ end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
-
-    Archive: TFWZipReader;
-    i: integer;
 begin
   ButtonManualProcessing.Enabled := False;
   TimerAutoProcessing.Enabled := False;
@@ -254,17 +250,20 @@ begin
     arrayIndex := 0;
     for i := 0 to Archive.Count-1 do
       begin
-        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
+        if Not Archive.Item[i].IsFolder then
           begin
-            SetLength(SigFilesArray, arrayIndex + 1);
-            SigFilesArray[arrayIndex] := ExtractArchiveItemFileName(Archive.item[i].FileName);
-            arrayIndex := arrayIndex + 1;
-            Archive.Item[i].Extract(DirectoryRoot, ExtractArchiveItemFileName(Archive.item[i].FileName), '');
-          end
-        else
-          begin
-            NotSigFile := ExtractArchiveItemFileName(Archive.item[i].FileName);
-            Archive.Item[i].Extract(DirectoryRoot, ExtractArchiveItemFileName(Archive.item[i].FileName), '');
+            if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
+              begin
+                SetLength(SigFilesArray, arrayIndex + 1);
+                SigFilesArray[arrayIndex] := ExtractArchiveItemFileName(Archive.item[i].FileName);
+                arrayIndex := arrayIndex + 1;
+                Archive.Item[i].Extract(DirectoryRoot, ExtractArchiveItemFileName(Archive.item[i].FileName), '');
+              end
+            else
+              begin
+                NotSigFile := ExtractArchiveItemFileName(Archive.item[i].FileName);
+                Archive.Item[i].Extract(DirectoryRoot, ExtractArchiveItemFileName(Archive.item[i].FileName), '');
+              end;
           end;
       end;
 
@@ -713,6 +712,7 @@ end;
 function TFormMain.CheckErrorsWithinArchive(inputArchiveFileName: string): boolean;
 var i, Counter: integer;
     Archive: TFWZipReader;
+
 begin
 
   Result := False;
@@ -725,8 +725,11 @@ begin
     //Проверка на количество файлов, прилагаемых в zip-архиве для подписания. По регламенту в архиве должен быть 1 файл-счёт для подписания.
     for i := 0 to Archive.Count-1 do
       begin
-        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) <> '.sig' then
-          Counter := Counter + 1;
+        if Not Archive.Item[i].IsFolder then
+          begin
+            if LowerCase(ExtractFileExt(Archive.item[i].FileName)) <> '.sig' then
+              Counter := Counter + 1;
+          end;
       end;
     if Counter > 1 then
       begin
@@ -755,11 +758,14 @@ begin
     //Проверка на правильность имён файлов внутри zip-архива
     for i := 0 to Archive.Count-1 do
       begin
-        if ( LowerCase(ExtractFileExt(Archive.Item[i].FileName)) <> '.sig' ) and
-           ( Not MatchesMask(ExtractArchiveItemFileName(Archive.item[i].FileName), StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '*') ) then
+        if Not Archive.Item[i].IsFolder then
           begin
-            Result := True;
-            descriptionErrorArchive := 'Файл-счёт "' + ExtractArchiveItemFileName(Archive.Item[i].FileName) + '" внутри zip-архива "' + inputArchiveFileName + '" не соответствует его названию';
+            if ( LowerCase(ExtractFileExt(Archive.Item[i].FileName)) <> '.sig' ) and
+               ( Not MatchesMask(ExtractArchiveItemFileName(Archive.item[i].FileName), StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '*') ) then
+              begin
+                Result := True;
+                descriptionErrorArchive := 'Файл-счёт "' + ExtractArchiveItemFileName(Archive.Item[i].FileName) + '" внутри zip-архива "' + inputArchiveFileName + '" не соответствует его названию';
+              end;
           end;
       end;
 

@@ -1,0 +1,66 @@
+#------------------------------------------------------------------------------
+VERSION = BWS.01
+#------------------------------------------------------------------------------
+!ifndef ROOT
+ROOT = $(MAKEDIR)\..
+!endif
+#------------------------------------------------------------------------------
+MAKE = $(ROOT)\bin\make.exe -$(MAKEFLAGS) -f$**
+DCC = $(ROOT)\bin\dcc32.exe $**
+BRCC = $(ROOT)\bin\brcc32.exe $**
+#------------------------------------------------------------------------------
+PROJECTS = CreateZIPDemo1.exe CreateZIPDemo2.exe ExctractZIPDemo1.exe \
+  ExctractZIPDemo2.exe MergeZip.exe ReplaceZipItemData.exe SplitZip.exe \
+  CreateMultiPartZip.exe ModifyMultiPartZip.exe ReadMultiPartZip.exe \
+  FWZipPerfomance.exe BuildWithException.exe UseExDataBlob.exe ZipAnalizer.exe \
+  ZipAnalizer2.exe
+#------------------------------------------------------------------------------
+default: $(PROJECTS)
+#------------------------------------------------------------------------------
+
+CreateZIPDemo1.exe: Create ZIP 1\CreateZIPDemo1.dpr
+  $(DCC)
+
+CreateZIPDemo2.exe: Create ZIP 2\CreateZIPDemo2.dpr
+  $(DCC)
+
+ExctractZIPDemo1.exe: Extract ZIP 1\ExctractZIPDemo1.dpr
+  $(DCC)
+
+ExctractZIPDemo2.exe: Extract ZIP 2\ExctractZIPDemo2.dpr
+  $(DCC)
+
+MergeZip.exe: Modify ZIP\Merge two ZIP\MergeZip.dpr
+  $(DCC)
+
+ReplaceZipItemData.exe: Modify ZIP\Replace data in ZIP\ReplaceZipItemData.dpr
+  $(DCC)
+
+SplitZip.exe: Modify ZIP\Split ZIP\SplitZip.dpr
+  $(DCC)
+
+CreateMultiPartZip.exe: MultyPart ZIP\Create MultiPart ZIP\CreateMultiPartZip.dpr
+  $(DCC)
+
+ModifyMultiPartZip.exe: MultyPart ZIP\Modify MultiPart Zip\ModifyMultiPartZip.dpr
+  $(DCC)
+
+ReadMultiPartZip.exe: MultyPart ZIP\Read MultiPart ZIP\ReadMultiPartZip.dpr
+  $(DCC)
+
+FWZipPerfomance.exe: PerfomanceTest\FWZipPerfomance.dpr
+  $(DCC)
+
+BuildWithException.exe: Test Build With Exception\BuildWithException.dpr
+  $(DCC)
+
+UseExDataBlob.exe: Use ZIP ExData\UseExDataBlob.dpr
+  $(DCC)
+
+ZipAnalizer.exe: ZipAnalizer\ZipAnalizer.dpr
+  $(DCC)
+
+ZipAnalizer2.exe: ZipAnalizer2\ZipAnalizer2.dpr
+  $(DCC)
+
+
