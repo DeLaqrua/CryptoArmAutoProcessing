@@ -846,6 +846,8 @@ begin
     Result := ''
   else
     begin
+      inputDirectory := Trim(inputDirectory);
+
       if Pos('/', inputDirectory) <> 0 then
         begin
           inputDirectory := StringReplace(inputDirectory, '/', '\', [rfReplaceAll]);
