@@ -179,6 +179,7 @@ begin
 
   AddLog('Дата открытия программы: ' + DateToStr(Now) + ' ' + TimeToStr(Now) + #13#10, isSuccess);
 
+  //Удалить, когда разберусь с сетевыми путями
   DirectoryRoot := CorrectPath(EditPath.Text);
   DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
   DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);

@@ -413,7 +413,7 @@ begin
     Result := PChar(Result)
   else
     Result := Value;
-  Result := IncludeLongNamePrefix(Result);
+//  Result := IncludeLongNamePrefix(Result);
 end;
 
 function MakeUniqueName(const Value: string): string;
