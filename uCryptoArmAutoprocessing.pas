@@ -194,19 +194,7 @@ var SearchResult: TSearchRec;
     StartPIDL, ResPIDL: PItemIDList;
     DisplayName: array[0..MAX_PATH] of Char;
 begin
-  SHGetFolderLocation(handle, CSIDL_DRIVES, 0, FCS_FLAG_DRAGDROP, StartPIDL);
-  BI.hwndOwner := Application.Handle;
-  BI.pszDisplayName := @DisplayName[0];
-  BI.lpszTitle := 'Папку выбери, хули ты:';
-  BI.ulFlags := BIF_RETURNONLYFSDIRS;
-  BI.pidlRoot := StartPIDL;
-  BI.lpfn := nil;
-  BI.iImage := 1;
-  ResPIDL := SHBrowseForFolderW(BI);
-  if SHGETPathFromIDList(ResPIDL, DisplayName) then
-    AddLog(DisplayName, isInformation);
-
-{  ButtonManualProcessing.Enabled := False;
+  ButtonManualProcessing.Enabled := False;
   TimerAutoProcessing.Enabled := False;
   SpeedButtonPlay.Enabled := False;
   SpeedButtonStop.Enabled := False;
@@ -256,7 +244,7 @@ begin
     ButtonManualProcessing.Enabled := True;
     SpeedButtonPlay.Enabled := True;
     SpeedButtonStop.Enabled := True;
-  end;}
+  end;
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -1020,7 +1008,7 @@ begin
              end;
     isSuccess: begin
                  RichEditLog.SelAttributes.Color := clBlack;
-                 RichEditLog.SelAttributes.Style := [fsBold];
+                 RichEditLog.SelAttributes.Style := [fsItalic];
                  RichEditLog.Lines.Add(inputString);
                  RichEditLog.Refresh;
                end;
