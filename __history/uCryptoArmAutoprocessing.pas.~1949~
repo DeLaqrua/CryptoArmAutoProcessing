@@ -189,8 +189,22 @@ end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
+
+    BI: TBrowseInfo;
+    StartPIDL: PItemIDList;
+    DisplayName: array[0..MAX_PATH] of WideChar;
 begin
-  ButtonManualProcessing.Enabled := False;
+  SHGetFolderLocation(handle, CSIDL_DRIVES, null, FCS_FLAG_DRAGDROP, StartPIDL);
+  BI.hwndOwner := Application.Handle;
+  BI.pszDisplayName := @DisplayName;
+  BI.lpszTitle := 'Папку выбери, хули ты:';
+  BI.ulFlags := BIF_RETURNONLYFSDIRS;
+  BI.pidlRoot := StartPIDL;
+  BI.lpfn := nil;
+  BI.iImage := 1;
+
+
+{  ButtonManualProcessing.Enabled := False;
   TimerAutoProcessing.Enabled := False;
   SpeedButtonPlay.Enabled := False;
   SpeedButtonStop.Enabled := False;
@@ -240,7 +254,7 @@ begin
     ButtonManualProcessing.Enabled := True;
     SpeedButtonPlay.Enabled := True;
     SpeedButtonStop.Enabled := True;
-  end;
+  end;}
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -846,7 +860,7 @@ begin
     Result := ''
   else
     begin
-      Trim(inputDirectory);
+      inputDirectory := Trim(inputDirectory);
 
       if Pos('/', inputDirectory) <> 0 then
         begin

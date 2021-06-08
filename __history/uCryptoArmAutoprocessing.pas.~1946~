@@ -179,12 +179,26 @@ begin
 
   AddLog('Дата открытия программы: ' + DateToStr(Now) + ' ' + TimeToStr(Now) + #13#10, isSuccess);
 
+  //Удалить, когда разберусь с сетевыми путями
+  DirectoryRoot := CorrectPath(EditPath.Text);
+  DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
+  DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+  DirectoryOutput := CorrectPath(EditOutput.Text);
+
 end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
+
+    BI: TBrowseInfo;
+    StartPIDL: PItemIDList;
+    DisplayName: array[0..MAX_PATH] of WideChar;
 begin
-  ButtonManualProcessing.Enabled := False;
+  SHGetFolderLocation(handle, CSIDL_DRIVES, null, FCS_FLAG_DRAGDROP, StartPIDL);
+  BI.hwndOwner := Application.Handle;
+  BI.pszDisplayName := @DisplayName;
+
+{  ButtonManualProcessing.Enabled := False;
   TimerAutoProcessing.Enabled := False;
   SpeedButtonPlay.Enabled := False;
   SpeedButtonStop.Enabled := False;
@@ -234,7 +248,7 @@ begin
     ButtonManualProcessing.Enabled := True;
     SpeedButtonPlay.Enabled := True;
     SpeedButtonStop.Enabled := True;
-  end;
+  end;}
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -840,6 +854,8 @@ begin
     Result := ''
   else
     begin
+      inputDirectory := Trim(inputDirectory);
+
       if Pos('/', inputDirectory) <> 0 then
         begin
           inputDirectory := StringReplace(inputDirectory, '/', '\', [rfReplaceAll]);

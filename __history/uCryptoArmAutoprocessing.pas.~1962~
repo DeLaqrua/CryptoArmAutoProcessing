@@ -179,12 +179,34 @@ begin
 
   AddLog('Дата открытия программы: ' + DateToStr(Now) + ' ' + TimeToStr(Now) + #13#10, isSuccess);
 
+  //Удалить, когда разберусь с сетевыми путями
+  DirectoryRoot := CorrectPath(EditPath.Text);
+  DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
+  DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+  DirectoryOutput := CorrectPath(EditOutput.Text);
+
 end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
+
+    BI: TBrowseInfo;
+    StartPIDL, ResPIDL: PItemIDList;
+    DisplayName: array[0..MAX_PATH] of Char;
 begin
-  ButtonManualProcessing.Enabled := False;
+  SHGetFolderLocation(handle, CSIDL_DRIVES, 0, FCS_FLAG_DRAGDROP, StartPIDL);
+  BI.hwndOwner := Application.Handle;
+  BI.pszDisplayName := @DisplayName[0];
+  BI.lpszTitle := 'Папку выбери, хули ты:';
+  BI.ulFlags := BIF_RETURNONLYFSDIRS;
+  BI.pidlRoot := StartPIDL;
+  BI.lpfn := nil;
+  BI.iImage := 1;
+  ResPIDL := SHBrowseForFolderW(BI);
+  if SHGETPathFromIDList(ResPIDL, DisplayName) then
+    AddLog(DisplayName, isInformation);
+
+{  ButtonManualProcessing.Enabled := False;
   TimerAutoProcessing.Enabled := False;
   SpeedButtonPlay.Enabled := False;
   SpeedButtonStop.Enabled := False;
@@ -234,7 +256,7 @@ begin
     ButtonManualProcessing.Enabled := True;
     SpeedButtonPlay.Enabled := True;
     SpeedButtonStop.Enabled := True;
-  end;
+  end;}
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -746,11 +768,8 @@ begin
     Counter := 0;
     for i := 0 to Archive.Count-1 do
       begin
-        if Not Archive.Item[i].IsFolder then
-          begin
-            if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
-              counter := Counter + 1;
-          end;
+        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
+          counter := Counter + 1;
       end;
     if Counter = 0 then
       begin
@@ -761,11 +780,14 @@ begin
     //Проверка на правильность имён файлов внутри zip-архива
     for i := 0 to Archive.Count-1 do
       begin
-        if ( LowerCase(ExtractFileExt(Archive.Item[i].FileName)) <> '.sig' ) and
-           ( Not MatchesMask(ExtractArchiveItemFileName(Archive.item[i].FileName), StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '*') ) then
+        if Not Archive.Item[i].IsFolder then
           begin
-            Result := True;
-            descriptionErrorArchive := 'Файл-счёт "' + ExtractArchiveItemFileName(Archive.Item[i].FileName) + '" внутри zip-архива "' + inputArchiveFileName + '" не соответствует его названию';
+            if ( LowerCase(ExtractFileExt(Archive.Item[i].FileName)) <> '.sig' ) and
+               ( Not MatchesMask(ExtractArchiveItemFileName(Archive.item[i].FileName), StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '*') ) then
+              begin
+                Result := True;
+                descriptionErrorArchive := 'Файл-счёт "' + ExtractArchiveItemFileName(Archive.Item[i].FileName) + '" внутри zip-архива "' + inputArchiveFileName + '" не соответствует его названию';
+              end;
           end;
       end;
 
@@ -840,6 +862,8 @@ begin
     Result := ''
   else
     begin
+      inputDirectory := Trim(inputDirectory);
+
       if Pos('/', inputDirectory) <> 0 then
         begin
           inputDirectory := StringReplace(inputDirectory, '/', '\', [rfReplaceAll]);
@@ -995,7 +1019,8 @@ begin
                RichEditLog.Refresh;
              end;
     isSuccess: begin
-                 RichEditLog.SelAttributes.Color := clGreen;
+                 RichEditLog.SelAttributes.Color := clBlack;
+                 RichEditLog.SelAttributes.Style[fsBold] := true;
                  RichEditLog.Lines.Add(inputString);
                  RichEditLog.Refresh;
                end;
