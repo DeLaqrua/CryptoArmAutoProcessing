@@ -189,6 +189,10 @@ end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
+
+    BI: TBrowseInfo;
+    StartPIDL, ResPIDL: PItemIDList;
+    DisplayName: array[0..MAX_PATH] of Char;
 begin
   ButtonManualProcessing.Enabled := False;
   TimerAutoProcessing.Enabled := False;
@@ -846,7 +850,7 @@ begin
     Result := ''
   else
     begin
-    inputDirectory := Trim(inputDirectory);
+      inputDirectory := Trim(inputDirectory);
 
       if Pos('/', inputDirectory) <> 0 then
         begin
@@ -1003,7 +1007,8 @@ begin
                RichEditLog.Refresh;
              end;
     isSuccess: begin
-                 RichEditLog.SelAttributes.Color := clGreen;
+                 RichEditLog.SelAttributes.Color := clBlack;
+                 RichEditLog.SelAttributes.Style := [fsItalic];
                  RichEditLog.Lines.Add(inputString);
                  RichEditLog.Refresh;
                end;

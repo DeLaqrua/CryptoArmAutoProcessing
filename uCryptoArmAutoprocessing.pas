@@ -561,12 +561,14 @@ begin
             CreateResponceFileToOutput(SearchResult.Name, descriptionError + #13#10
                                                           + 'Верные имена файлов должны соответствовать маскам(фигурные скобки убираются):' + #13#10
                                                           + 'SH_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
+                                                          + 'SH3_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
                                                           + 'SHO_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
+                                                          + 'SHUD_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
                                                           + 'SMP_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
                                                           + 'SHCP_{Код МО}_{Код СМО}_основной.zip' + #13#10
-                                                          + 'MSHO_{Код МО}_MTR_{основной/доплата}.zip' + #13#10
-                                                          + 'MSH_{Код МО}_MTR_{основной/доплата}.zip' + #13#10
-                                                          + 'MSMP_{Код МО}_MTR_{основной/доплата}.zip');
+                                                          + 'MSHO_{Код МО}_МТР_{основной/доплата}.zip' + #13#10
+                                                          + 'MSH_{Код МО}_МТР_{основной/доплата}.zip' + #13#10
+                                                          + 'MSMP_{Код МО}_МТР_{основной/доплата}.zip');
           end;
       until FindNext(SearchResult) <> 0;
       FindClose(SearchResult);
@@ -704,7 +706,9 @@ begin
   Result := False;
 
   if MatchesMask(inputFileName, 'SH_*_*_*.zip') or
+     MatchesMask(inputFileName, 'SH3_*_*_*.zip') or
      MatchesMask(inputFileName, 'SHO_*_*_*.zip') or
+     MatchesMask(inputFileName, 'SHUD_*_*_*.zip') or
      MatchesMask(inputFileName, 'SMP_*_*_*.zip') or
      MatchesMask(inputFileName, 'SHCP_*_*_основной.zip') or
      MatchesMask(inputFileName, 'MSHO_*_MTP_*.zip') or //MTP – по-английски
