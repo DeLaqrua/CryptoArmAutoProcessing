@@ -555,11 +555,11 @@ begin
            (CheckFileName(SearchResult.Name) = false) then
           begin
             MoveFilesToErrors(SearchResult.Name);
-            descriptionError := 'Неверное имя файла "' + SearchResult.Name + '"';
+            descriptionError := 'Неверное имя и/или расширение файла "' + SearchResult.Name + '"';
             AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionError + #13#10, isError);
 
             CreateResponceFileToOutput(SearchResult.Name, descriptionError + #13#10
-                                                          + 'Верные имена файлов должны соответствовать маскам(фигурные скобки убираются):' + #13#10
+                                                          + 'Верные имена и расширения файлов должны соответствовать маскам (фигурные скобки убираются):' + #13#10
                                                           + 'SH_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
                                                           + 'SH3_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
                                                           + 'SHO_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
