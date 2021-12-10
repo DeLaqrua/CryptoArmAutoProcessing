@@ -194,19 +194,7 @@ var SearchResult: TSearchRec;
     StartPIDL, ResPIDL: PItemIDList;
     DisplayName: array[0..MAX_PATH] of Char;
 begin
-  SHGetFolderLocation(handle, CSIDL_DRIVES, 0, FCS_FLAG_DRAGDROP, StartPIDL);
-  BI.hwndOwner := Application.Handle;
-  BI.pszDisplayName := @DisplayName[0];
-  BI.lpszTitle := 'Папку выбери, хули ты:';
-  BI.ulFlags := BIF_RETURNONLYFSDIRS;
-  BI.pidlRoot := StartPIDL;
-  BI.lpfn := nil;
-  BI.iImage := 1;
-  ResPIDL := SHBrowseForFolder(BI);
-  if SHGETPathFromIDList(ResPIDL, DisplayName) then
-    AddLog(DisplayName, isInformation);
-
-{  ButtonManualProcessing.Enabled := False;
+  ButtonManualProcessing.Enabled := False;
   TimerAutoProcessing.Enabled := False;
   SpeedButtonPlay.Enabled := False;
   SpeedButtonStop.Enabled := False;
@@ -256,7 +244,7 @@ begin
     ButtonManualProcessing.Enabled := True;
     SpeedButtonPlay.Enabled := True;
     SpeedButtonStop.Enabled := True;
-  end;}
+  end;
 end;
 
 procedure TFormMain.Processed(inputArchiveFileName: string);
@@ -418,13 +406,11 @@ begin
           if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
             begin
               frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
-              //В будущем в этой строчке добавится Зелёный цвет текста протокола <<< Не забыть!
               AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isSuccess);
             end
           else
             begin
               frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
-              //В будущем в этой строчке добавится Красный цвет текста протокола <<< Не забыть!
               AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isError);
             end
         end;
@@ -496,7 +482,9 @@ begin
         case arrayResults[i] of
           1 : arrayResultsD[i] := 'Успех';
           3 : arrayResultsD[i] := 'Подпись некорректна или к ней нет доверия';
-        else arrayResultsD[i] := 'Статус не определён';
+          15 : arrayResultsD[i] := 'Подписи математически корректны, но нет полного доверия к одному или нескольким сертификатам подписи. Возможно необходимо обновить корневой сертификат.';
+          23 : arrayResultsD[i] := 'Одна или несколько подписей некорректна или нет доверия. Возможно необходимо обновить корневой сертификат и перезагрузить компьютер';
+        else arrayResultsD[i] := 'Статус не определён. Номер неизвестной ошибки ' + IntToStr(arrayResults[i]) + '.';
         end;
       end;
 
@@ -567,18 +555,20 @@ begin
            (CheckFileName(SearchResult.Name) = false) then
           begin
             MoveFilesToErrors(SearchResult.Name);
-            descriptionError := 'Неверное имя файла "' + SearchResult.Name + '"';
+            descriptionError := 'Неверное имя и/или расширение файла "' + SearchResult.Name + '"';
             AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionError + #13#10, isError);
 
             CreateResponceFileToOutput(SearchResult.Name, descriptionError + #13#10
-                                                          + 'Верные имена файлов должны соответствовать маскам(фигурные скобки убираются):' + #13#10
+                                                          + 'Верные имена и расширения файлов должны соответствовать маскам (фигурные скобки убираются):' + #13#10
                                                           + 'SH_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
+                                                          + 'SH3_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
                                                           + 'SHO_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
+                                                          + 'SHUD_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
                                                           + 'SMP_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
                                                           + 'SHCP_{Код МО}_{Код СМО}_основной.zip' + #13#10
-                                                          + 'MSHO_{Код МО}_MTR_{основной/доплата}.zip' + #13#10
-                                                          + 'MSH_{Код МО}_MTR_{основной/доплата}.zip' + #13#10
-                                                          + 'MSMP_{Код МО}_MTR_{основной/доплата}.zip');
+                                                          + 'MSHO_{Код МО}_МТР_{основной/доплата}.zip' + #13#10
+                                                          + 'MSH_{Код МО}_МТР_{основной/доплата}.zip' + #13#10
+                                                          + 'MSMP_{Код МО}_МТР_{основной/доплата}.zip');
           end;
       until FindNext(SearchResult) <> 0;
       FindClose(SearchResult);
@@ -716,7 +706,9 @@ begin
   Result := False;
 
   if MatchesMask(inputFileName, 'SH_*_*_*.zip') or
+     MatchesMask(inputFileName, 'SH3_*_*_*.zip') or
      MatchesMask(inputFileName, 'SHO_*_*_*.zip') or
+     MatchesMask(inputFileName, 'SHUD_*_*_*.zip') or
      MatchesMask(inputFileName, 'SMP_*_*_*.zip') or
      MatchesMask(inputFileName, 'SHCP_*_*_основной.zip') or
      MatchesMask(inputFileName, 'MSHO_*_MTP_*.zip') or //MTP – по-английски
@@ -1019,7 +1011,8 @@ begin
                RichEditLog.Refresh;
              end;
     isSuccess: begin
-                 RichEditLog.SelAttributes.Color := clGreen;
+                 RichEditLog.SelAttributes.Color := clBlack;
+                 RichEditLog.SelAttributes.Style := [fsItalic];
                  RichEditLog.Lines.Add(inputString);
                  RichEditLog.Refresh;
                end;

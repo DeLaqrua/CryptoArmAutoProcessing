@@ -406,13 +406,11 @@ begin
           if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
             begin
               frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
-              //В будущем в этой строчке добавится Зелёный цвет текста протокола <<< Не забыть!
               AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isSuccess);
             end
           else
             begin
               frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
-              //В будущем в этой строчке добавится Красный цвет текста протокола <<< Не забыть!
               AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isError);
             end
         end;
@@ -912,6 +910,8 @@ end;
 
 procedure TFormMain.SpeedButtonPlayClick(Sender: TObject);
 begin
+  buttonManualProcessing.Enabled := False;
+
   SpeedButtonPlay.Visible := False;
   SpeedButtonStop.Visible := True;
 
@@ -932,6 +932,8 @@ end;
 
 procedure TFormMain.SpeedButtonStopClick(Sender: TObject);
 begin
+  buttonManualProcessing.Enabled := True;
+
   SpeedButtonStop.Visible := False;
   SpeedButtonPlay.Visible := True;
 
