@@ -127,7 +127,7 @@ var
   FormMain: TFormMain;
 
 var
-  DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR: string;
+  DirectoryRoot, DirectoryErrors, DirectoryUnknownErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR: string;
   descriptionErrorArchive: string;
   InvoiceType: integer;
   protocolVerifyStatusResult: integer; //содержит два значения: CONFIRMED и NOT_CONFIRMED
@@ -886,6 +886,9 @@ procedure TFormMain.UpdateDirectories(inputDirectoryRoot: string);
 begin
   DirectoryErrors := DirectoryRoot + 'Errors';
   DirectoryErrors := CorrectPath(DirectoryErrors);
+
+  DirectoryUnknownErrors := DirectoryRoot + 'Unknown Errors';
+  DirectoryUnknownErrors := CorrectPath(DirectoryUnknownErrors);
 
   DirectoryProcessed := DirectoryRoot + 'Processed';
   DirectoryProcessed := CorrectPath(DirectoryProcessed);
