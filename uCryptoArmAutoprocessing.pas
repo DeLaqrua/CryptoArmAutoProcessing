@@ -298,7 +298,7 @@ var SignatureFiles: array of TSignatureFile;
     NotSigFileDateTime, SigFileDateTime: TDateTime;
     NotSigFile, SigFile: File of Byte;
 
-    i, j, counterCorrectStatus: integer;
+    i, j, k, counterCorrectStatus: integer;
 
     frxNotSigFileName, frxNotSigFileDateCreate, frxNotSigFileSize: TfrxMemoView;
     frxSigFileName, frxSigFileDateCreate, frxSigFileSize: TfrxMemoView;
@@ -307,157 +307,164 @@ var SignatureFiles: array of TSignatureFile;
     protocolName: string;
 
 begin
-  NotSignatureFile := TNotSignatureFile.Create;
-  NotSignatureFile.Name := directoryFiles + inputFileName;
+  try
+    NotSignatureFile := TNotSignatureFile.Create;
+    NotSignatureFile.Name := directoryFiles + inputFileName;
 
-  FileAge(NotSignatureFile.Name, NotSigFileDateTime, True);
-  NotSignatureFile.DateCreate := DateTimeToStr(NotSigFileDateTime);
+    FileAge(NotSignatureFile.Name, NotSigFileDateTime, True);
+    NotSignatureFile.DateCreate := DateTimeToStr(NotSigFileDateTime);
 
-  AssignFile(NotSigFile, NotSignatureFile.Name);
-  FileMode := fmOpenRead; // Дорогой новичок, иногда при работе попадаются файлы "Только для чтения"
-                          // Метод reset открывает такие файлы с ошибкой,
-                          // потому что по умолчанию системная переменная FileMode,
-                          // отвечающая за режим открытия файла методом reset имеет значение 2 (fmOpenReadWrite).
-                          // Значение необходимо поменять на 0 (fmOpenRead)
-  reset(NotSigFile);
-  NotSignatureFile.Size := IntToStr(FileSize(NotSigFile)) + ' байт';
-  CloseFile(NotSigFile);
+    AssignFile(NotSigFile, NotSignatureFile.Name);
+    FileMode := fmOpenRead; // Дорогой новичок, иногда при работе попадаются файлы "Только для чтения"
+                            // Метод reset открывает такие файлы с ошибкой,
+                            // потому что по умолчанию системная переменная FileMode,
+                            // отвечающая за режим открытия файла методом reset имеет значение 2 (fmOpenReadWrite).
+                            // Значение необходимо поменять на 0 (fmOpenRead)
+    reset(NotSigFile);
+    NotSignatureFile.Size := IntToStr(FileSize(NotSigFile)) + ' байт';
+    CloseFile(NotSigFile);
 
-  SetLength(SignatureFiles, Length(InputFileNameSignature));
-  AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной длится подписи до 30 секунд. Ожидайте...' + #13#10, isInformation);
-  for i := 0 to High(SignatureFiles) do
-    begin
-      SignatureFiles[i] := TSignatureFile.Create;
-      SignatureFiles[i].Name := directoryFiles + inputFileNameSignature[i];
+    SetLength(SignatureFiles, Length(InputFileNameSignature));
+    AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной длится подписи до 30 секунд. Ожидайте...' + #13#10, isInformation);
+    for i := 0 to High(SignatureFiles) do
+      begin
+        SignatureFiles[i] := TSignatureFile.Create;
+        SignatureFiles[i].Name := directoryFiles + inputFileNameSignature[i];
 
-      FileAge(SignatureFiles[i].Name, SigFileDateTime, True);
-      SignatureFiles[i].DateCreate := DateTimeToStr(SigFileDateTime);
+        FileAge(SignatureFiles[i].Name, SigFileDateTime, True);
+        SignatureFiles[i].DateCreate := DateTimeToStr(SigFileDateTime);
 
-      AssignFile(SigFile, SignatureFiles[i].Name);
-      reset(SigFile);
-      SignatureFiles[i].Size := IntToStr(FileSize(SigFile)) + ' байт';
-      CloseFile(SigFile);
+        AssignFile(SigFile, SignatureFiles[i].Name);
+        reset(SigFile);
+        SignatureFiles[i].Size := IntToStr(FileSize(SigFile)) + ' байт';
+        CloseFile(SigFile);
 
-      SignatureFiles[i].CertificateInformation := CertificateInformation(SignatureFiles[i].Name);
-      SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
+        SignatureFiles[i].CertificateInformation := CertificateInformation(SignatureFiles[i].Name);
+        SignatureFiles[i].SignatureInformation := SignatureInformation(SignatureFiles[i].Name);
 
-      SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
-      For j := 0 to High(SignatureFiles[i].VerifyStatusDesctiption) do
-        begin
-          if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
-            SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
-                                                          + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
-                                                          + 'ПОДПИСЬ ПОДТВЕРЖДЕНА' + #13#10 + #13#10
-          else
-            SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
-                                                          + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
-                                                          + 'ПОДПИСЬ НЕ ПОДТВЕРЖДЕНА' + #13#10 + #13#10
-        end;
+        SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
+        For j := 0 to High(SignatureFiles[i].VerifyStatusDesctiption) do
+          begin
+            if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
+              SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
+                                                            + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
+                                                            + 'ПОДПИСЬ ПОДТВЕРЖДЕНА' + #13#10 + #13#10
+            else
+              SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
+                                                            + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
+                                                            + 'ПОДПИСЬ НЕ ПОДТВЕРЖДЕНА' + #13#10 + #13#10
+          end;
 
-      //Если внутри файла *.sig попадётся хотя бы одна некорректная подпись,
-      //то используется шаблон протокола для неподтверждённых подписей
-      counterCorrectStatus := 0;
-      For j := 0 to High(SignatureFiles[i].VerifyStatus) do
-        begin
-          if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
-            begin
-              counterCorrectStatus := counterCorrectStatus + 1;
-            end
-          else
-            begin
-              frxReportTypeProtocol := frxReportProtocolNotConfirmed;
-              protocolName := 'ProtocolNotConfirmed_';
-              protocolVerifyStatusResult := NOT_CONFIRMED;
-              Break;
-            end;
-        end;
-      if counterCorrectStatus = Length(SignatureFiles[i].VerifyStatus) then
-        begin
-          frxReportTypeProtocol := frxReportProtocolConfirmed;
-          protocolName := 'ProtocolConfirmed_';
-          protocolVerifyStatusResult := CONFIRMED;
-        end;
+        //Если внутри файла *.sig попадётся хотя бы одна некорректная подпись,
+        //то используется шаблон протокола для неподтверждённых подписей
+        counterCorrectStatus := 0;
+        For j := 0 to High(SignatureFiles[i].VerifyStatus) do
+          begin
+            if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
+              begin
+                counterCorrectStatus := counterCorrectStatus + 1;
+              end
+            else
+              begin
+                frxReportTypeProtocol := frxReportProtocolNotConfirmed;
+                protocolName := 'ProtocolNotConfirmed_';
+                protocolVerifyStatusResult := NOT_CONFIRMED;
+                Break;
+              end;
+          end;
+        if counterCorrectStatus = Length(SignatureFiles[i].VerifyStatus) then
+          begin
+            frxReportTypeProtocol := frxReportProtocolConfirmed;
+            protocolName := 'ProtocolConfirmed_';
+            protocolVerifyStatusResult := CONFIRMED;
+          end;
 
-      frxNotSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileName'));
-      frxNotSigFileName.Memo.Text := ExtractFileName(NotSignatureFile.Name);
-      frxSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileName'));
-      frxSigFileName.Memo.Text := ExtractFileName(SignatureFiles[i].Name);
+        frxNotSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileName'));
+        frxNotSigFileName.Memo.Text := ExtractFileName(NotSignatureFile.Name);
+        frxSigFileName := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileName'));
+        frxSigFileName.Memo.Text := ExtractFileName(SignatureFiles[i].Name);
 
-      frxNotSigFileDateCreate := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileDateCreate'));
-      frxNotSigFileDateCreate.Memo.Text := NotSignatureFile.DateCreate;
-      frxSigFileDateCreate := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileDateCreate'));
-      frxSigFileDateCreate.Memo.Text := SignatureFiles[i].DateCreate;
+        frxNotSigFileDateCreate := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileDateCreate'));
+        frxNotSigFileDateCreate.Memo.Text := NotSignatureFile.DateCreate;
+        frxSigFileDateCreate := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileDateCreate'));
+        frxSigFileDateCreate.Memo.Text := SignatureFiles[i].DateCreate;
 
-      frxNotSigFileSize := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileSize'));
-      frxNotSigFileSize.Memo.Text := NotSignatureFile.Size;
-      frxSigFileSize := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileSize'));
-      frxSigFileSize.Memo.Text := SignatureFiles[i].Size;
+        frxNotSigFileSize := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoNotSigFileSize'));
+        frxNotSigFileSize.Memo.Text := NotSignatureFile.Size;
+        frxSigFileSize := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSigFileSize'));
+        frxSigFileSize.Memo.Text := SignatureFiles[i].Size;
 
-      frxCertInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoCertificateInformation'));
-      frxCertInformation.Memo.Text := '';
-      frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
-      frxSigInformation.Memo.Text := '';
-      frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
-      frxSigStatus.Memo.Text := '';
-      For j := 0 to High(SignatureFiles[i].VerifyStatus) do
-        begin
-          frxCertInformation.Memo.Text := frxCertInformation.Memo.Text + SignatureFiles[i].CertificateInformation[j];
-          frxSigInformation.Memo.Text := frxSigInformation.Memo.Text + SignatureFiles[i].SignatureInformation[j];
-          if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
-            begin
-              frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
-              AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isSuccess);
-            end
-          else
-            begin
-              frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
-              AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isError);
-            end
-        end;
-      frxCertInformation.Memo.Text := TrimRight(frxCertInformation.Memo.Text);
-      frxSigInformation.Memo.Text := TrimRight(frxSigInformation.Memo.Text);
-      frxSigStatus.Memo.Text := TrimRight(frxSigStatus.Memo.Text);
+        frxCertInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoCertificateInformation'));
+        frxCertInformation.Memo.Text := '';
+        frxSigInformation := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureInformation'));
+        frxSigInformation.Memo.Text := '';
+        frxSigStatus := TfrxMemoView(frxReportTypeProtocol.FindObject('MemoSignatureStatus'));
+        frxSigStatus.Memo.Text := '';
+        For j := 0 to High(SignatureFiles[i].VerifyStatus) do
+          begin
+            frxCertInformation.Memo.Text := frxCertInformation.Memo.Text + SignatureFiles[i].CertificateInformation[j];
+            frxSigInformation.Memo.Text := frxSigInformation.Memo.Text + SignatureFiles[i].SignatureInformation[j];
+            if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
+              begin
+                frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
+                AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isSuccess);
+              end
+            else
+              begin
+                frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
+                AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isError);
+              end
+          end;
+        frxCertInformation.Memo.Text := TrimRight(frxCertInformation.Memo.Text);
+        frxSigInformation.Memo.Text := TrimRight(frxSigInformation.Memo.Text);
+        frxSigStatus.Memo.Text := TrimRight(frxSigStatus.Memo.Text);
 
-      frxReportTypeProtocol.PrepareReport(true);
-      frxPDFexportProtocol.Compressed := True;
-      frxPDFexportProtocol.Background := True;
-      frxPDFexportProtocol.PrintOptimized := False;
-      frxPDFexportProtocol.OpenAfterExport := False;
-      frxPDFexportProtocol.ShowProgress := False;
-      frxPDFexportProtocol.ShowDialog := False;
+        frxReportTypeProtocol.PrepareReport(true);
+        frxPDFexportProtocol.Compressed := True;
+        frxPDFexportProtocol.Background := True;
+        frxPDFexportProtocol.PrintOptimized := False;
+        frxPDFexportProtocol.OpenAfterExport := False;
+        frxPDFexportProtocol.ShowProgress := False;
+        frxPDFexportProtocol.ShowDialog := False;
 
-      frxPDFexportProtocol.FileName := directoryExportToProcessed + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
-      //Формируем протокол в Processed
-      frxReportTypeProtocol.Export(frxPDFexportProtocol);
+        frxPDFexportProtocol.FileName := directoryExportToProcessed + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+        //Формируем протокол в Processed
+        frxReportTypeProtocol.Export(frxPDFexportProtocol);
 
-      //Проверяем существует ли папка "Output"
-      //перед тем как в неё переместить протокол
-      if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
-        System.SysUtils.ForceDirectories(DirectoryOutput);
-      //Проверка существует ли в папке "Output" файл с таким же названием
-      //Если существует, название меняется
-      frxPDFexportProtocol.FileName := DirectoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
-      frxPDFexportProtocol.FileName := ifFileExistsRename(frxPDFexportProtocol.FileName);
-      //Формируем протокол в Output
-      frxReportTypeProtocol.Export(frxPDFexportProtocol);
+        //Проверяем существует ли папка "Output"
+        //перед тем как в неё переместить протокол
+        if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
+          System.SysUtils.ForceDirectories(DirectoryOutput);
+        //Проверка существует ли в папке "Output" файл с таким же названием
+        //Если существует, название меняется
+        frxPDFexportProtocol.FileName := DirectoryOutput + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+        frxPDFexportProtocol.FileName := ifFileExistsRename(frxPDFexportProtocol.FileName);
+        //Формируем протокол в Output
+        frxReportTypeProtocol.Export(frxPDFexportProtocol);
 
-      if (protocolVerifyStatusResult = CONFIRMED) and (InvoiceType = REGULAR_INVOICE) then
-        begin
-          //Формируем протокол в Invoice
-          if System.SysUtils.DirectoryExists(DirectoryExportToInvoice) = False then
-            System.SysUtils.ForceDirectories(DirectoryExportToInvoice);
-          frxPDFexportProtocol.FileName := directoryExportToInvoice + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
-          frxReportTypeProtocol.Export(frxPDFexportProtocol);
-        end;
-      if (protocolVerifyStatusResult = CONFIRMED) and (InvoiceType = MTR_INVOICE) then
-        begin
-          //Формируем протокол в InvoiceMTR
-          if System.SysUtils.DirectoryExists(DirectoryExportToInvoiceMTR) = False then
-            System.SysUtils.ForceDirectories(DirectoryExportToInvoiceMTR);
-          frxPDFexportProtocol.FileName := directoryExportToInvoiceMTR + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
-          frxReportTypeProtocol.Export(frxPDFexportProtocol);
-        end;
-    end;
+        if (protocolVerifyStatusResult = CONFIRMED) and (InvoiceType = REGULAR_INVOICE) then
+          begin
+            //Формируем протокол в Invoice
+            if System.SysUtils.DirectoryExists(DirectoryExportToInvoice) = False then
+              System.SysUtils.ForceDirectories(DirectoryExportToInvoice);
+            frxPDFexportProtocol.FileName := directoryExportToInvoice + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+            frxReportTypeProtocol.Export(frxPDFexportProtocol);
+          end;
+        if (protocolVerifyStatusResult = CONFIRMED) and (InvoiceType = MTR_INVOICE) then
+          begin
+            //Формируем протокол в InvoiceMTR
+            if System.SysUtils.DirectoryExists(DirectoryExportToInvoiceMTR) = False then
+              System.SysUtils.ForceDirectories(DirectoryExportToInvoiceMTR);
+            frxPDFexportProtocol.FileName := directoryExportToInvoiceMTR + ProtocolName + Copy(ExtractFileName(SignatureFiles[i].Name), 1, Length(ExtractFileName(SignatureFiles[i].Name))-4) + '.pdf';
+            frxReportTypeProtocol.Export(frxPDFexportProtocol);
+          end;
+      end;
+  finally
+    NotSignatureFile.Free;
+    if Length(SignatureFiles) > 0 then
+      for k := 0 to High(SignatureFiles) do
+        SignatureFiles[k].Free;
+  end;
 end;
 
 function TFormMain.SignatureVerify (inputFileName, inputFileNameSignature: string; out arrayResultsDescription: TStringDynArray): TSmallIntDynArray;
