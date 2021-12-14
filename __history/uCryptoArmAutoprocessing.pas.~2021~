@@ -83,15 +83,15 @@ type
                                                                                    //С названия файла внутри архива вычленяются названия папок,
                                                                                    //в которых лежит файл.
 
-    procedure CreateResponceFileToOutput(inputFileName, descriptionError: string);
-
-    procedure CreateProtocol(inputFileName: string;
+    function CreateProtocol(inputFileName: string;
                              inputFileNameSignature: array of string;
                              directoryFiles: string;
                              directoryExportToProcessed: string;
                              directoryExportToInvoice: string;
                              directoryExportToInvoiceMTR: string;
-                             inputOriginalArchiveFileName: string);
+                             inputOriginalArchiveFileName: string): boolean;
+
+    procedure CreateResponceFileToOutput(inputFileName, descriptionError: string);
 
     procedure UpdateDirectories(inputDirectoryRoot: string);
     procedure SortErrorFiles;
@@ -127,12 +127,14 @@ var
   FormMain: TFormMain;
 
 var
-  DirectoryRoot, DirectoryErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR: string;
+  DirectoryRoot, DirectoryErrors, DirectoryTFOMSErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR: string;
   descriptionErrorArchive: string;
   InvoiceType: integer;
   protocolVerifyStatusResult: integer; //содержит два значения: CONFIRMED и NOT_CONFIRMED
+
 const
   SIGN_CORRECT = 1;
+  SIGN_UNCORRECT = 3;
   REGULAR_INVOICE = 1;
   MTR_INVOICE = 2;
 
@@ -285,13 +287,13 @@ begin
 
 end;
 
-procedure TFormMain.CreateProtocol(inputFileName: string;
+function TFormMain.CreateProtocol(inputFileName: string;
                                    inputFileNameSignature: array of string;
                                    directoryFiles: string;
                                    directoryExportToProcessed: string;
                                    directoryExportToInvoice: string;
                                    directoryExportToInvoiceMTR: string;
-                                   inputOriginalArchiveFileName: string);
+                                   inputOriginalArchiveFileName: string): boolean;
 var SignatureFiles: array of TSignatureFile;
     NotSignatureFile: TNotSignatureFile;
 
@@ -307,6 +309,8 @@ var SignatureFiles: array of TSignatureFile;
     protocolName: string;
 
 begin
+  Result := False;
+
   try
     NotSignatureFile := TNotSignatureFile.Create;
     NotSignatureFile.Name := directoryFiles + inputFileName;
@@ -325,7 +329,7 @@ begin
     CloseFile(NotSigFile);
 
     SetLength(SignatureFiles, Length(InputFileNameSignature));
-    AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной длится подписи до 30 секунд. Ожидайте...' + #13#10, isInformation);
+    AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Начало проверки подписей из архива: "' + inputOriginalArchiveFileName + '". Время проверки одной подписи длится до 30 секунд. Ожидайте...' + #13#10, isInformation);
     for i := 0 to High(SignatureFiles) do
       begin
         SignatureFiles[i] := TSignatureFile.Create;
@@ -345,14 +349,25 @@ begin
         SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
         For j := 0 to High(SignatureFiles[i].VerifyStatusDesctiption) do
           begin
-            if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
-              SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
-                                                            + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
-                                                            + 'ПОДПИСЬ ПОДТВЕРЖДЕНА' + #13#10 + #13#10
-            else
-              SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
-                                                            + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
-                                                            + 'ПОДПИСЬ НЕ ПОДТВЕРЖДЕНА' + #13#10 + #13#10
+            IF (SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT) or (SignatureFiles[i].VerifyStatus[j] = SIGN_UNCORRECT) then
+              BEGIN
+                Result := True;
+                if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
+                  SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
+                                                                + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
+                                                                + 'ПОДПИСЬ ПОДТВЕРЖДЕНА' + #13#10 + #13#10
+                else
+                  SignatureFiles[i].VerifyStatusDesctiption[j] := 'Статус проверки подписи ' + '№' + IntToStr(j+1) + ': '
+                                                                + SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10
+                                                                + 'ПОДПИСЬ НЕ ПОДТВЕРЖДЕНА' + #13#10 + #13#10
+              END
+            ELSE
+              BEGIN
+                Result := False;
+                AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Ошибка при проверке подписи ' + SignatureFiles[i].Name + '. ' +
+                       SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10, isError);
+                Exit;
+              END;
           end;
 
         //Если внутри файла *.sig попадётся хотя бы одна некорректная подпись,
@@ -489,7 +504,7 @@ begin
         case arrayResults[i] of
           1 : arrayResultsD[i] := 'Успех';
           3 : arrayResultsD[i] := 'Подпись некорректна или к ней нет доверия';
-          15 : arrayResultsD[i] := 'Подписи математически корректны, но нет полного доверия к одному или нескольким сертификатам подписи. Возможно необходимо обновить корневой сертификат.';
+          15 : arrayResultsD[i] := 'Подписи математически корректны, но нет полного доверия к одному или нескольким сертификатам подписи. Возможно необходимо обновить корневой сертификат';
           23 : arrayResultsD[i] := 'Одна или несколько подписей некорректна или нет доверия. Возможно необходимо обновить корневой сертификат и перезагрузить компьютер';
         else arrayResultsD[i] := 'Статус не определён. Номер неизвестной ошибки ' + IntToStr(arrayResults[i]) + '.';
         end;
@@ -600,9 +615,9 @@ begin
 end;
 
 procedure TFormMain.MoveFilesToProcessedAndOtherFolders(inputArchiveFileName: string; inputNotSigFile: string; inputSigFilesArray: array of string);
-var DirectoryFrom, DirectoryToProcessed, DirectoryToInvoice, DirectoryToInvoiceMTR: string;
-    fileDirectoryFrom, fileDirectoryToProcessed, fileDirectoryToInvoice, fileDirectoryToInvoiceMTR: string;
-    pointerFileDirectoryFrom, pointerFileDirectoryToProcessed, pointerFileDirectoryToInvoice, pointerFileDirectoryToInvoiceMTR: PWideChar;
+var DirectoryFrom, DirectoryToProcessed, DirectoryToInvoice, DirectoryToInvoiceMTR, DirectoryToTFOMSErrors: string;
+    fileDirectoryFrom, fileDirectoryToProcessed, fileDirectoryToInvoice, fileDirectoryToInvoiceMTR, fileDirectoryToTFOMSErrors: string;
+    pointerFileDirectoryFrom, pointerFileDirectoryToProcessed, pointerFileDirectoryToInvoice, pointerFileDirectoryToInvoiceMTR, pointerFileDirectoryToTFOMSErrors: PWideChar;
     MO, SMO: string;
     Year: integer;
     Month: string;
@@ -629,7 +644,7 @@ begin
   DirectoryFrom := DirectoryRoot;
 
   DirectoryToProcessed := DirectoryProcessed + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
-                 StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
+                          StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
   DirectoryToProcessed := ifFolderExistsRename(DirectoryToProcessed);
   if System.SysUtils.DirectoryExists(DirectoryToProcessed) = False then
     System.SysUtils.ForceDirectories(DirectoryToProcessed);
@@ -655,56 +670,95 @@ begin
     end;
 
   //Создаём протокол
-  CreateProtocol(inputNotSigFile, inputSigFilesArray, DirectoryFrom, DirectoryToProcessed, DirectoryToInvoice, DirectoryToInvoiceMTR, inputArchiveFileName);
+  IF CreateProtocol(inputNotSigFile, inputSigFilesArray, DirectoryFrom, DirectoryToProcessed, DirectoryToInvoice, DirectoryToInvoiceMTR, inputArchiveFileName) = True THEN
+    BEGIN
+      //Копируем и переносим файлы в папку "Processed":
 
-  //Копируем и переносим файлы в папку Processed:
-  //– переносим оригинальный zip-файл
-  fileDirectoryFrom := DirectoryFrom + inputArchiveFileName;
-  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-  fileDirectoryToProcessed := DirectoryToProcessed + inputArchiveFileName;
-  pointerFileDirectoryToProcessed := Addr(fileDirectoryToProcessed[1]);
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToProcessed);
+      //– переносим оригинальный zip-файл
+      fileDirectoryFrom := DirectoryFrom + inputArchiveFileName;
+      pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+      fileDirectoryToProcessed := DirectoryToProcessed + inputArchiveFileName;
+      pointerFileDirectoryToProcessed := Addr(fileDirectoryToProcessed[1]);
+      MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToProcessed);
 
-  //– копируем файл-счёт в папку с счетами / МТР-счетами и переносим его в папку Processed
-  fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
-  pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-  if (InvoiceType = REGULAR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
-    begin
-      fileDirectoryToInvoice := DirectoryToInvoice + inputNotSigFile;
-      pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
-      CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
-    end;
-  if (InvoiceType = MTR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
-    begin
-      fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputNotSigFile;
-      pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
-      CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoiceMTR, false);
-    end;
-  fileDirectoryToProcessed := DirectoryToProcessed + inputNotSigFile;
-  pointerFileDirectoryToProcessed := Addr(fileDirectoryToProcessed[1]);
-  MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToProcessed);
-
-  //– копируем sig-файлы в папку с счетами / МТР-счетами и переносим их в папку Processed
-  For i := 0 to High(inputSigFilesArray) do
-    begin
-      fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[i];
+      //– копируем файл-счёт в папку с счетами / МТР-счетами и переносим его в папку Processed
+      fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
       pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
       if (InvoiceType = REGULAR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
         begin
-          fileDirectoryToInvoice := DirectoryToInvoice + inputSigFilesArray[i];
+          fileDirectoryToInvoice := DirectoryToInvoice + inputNotSigFile;
           pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
           CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
         end;
       if (InvoiceType = MTR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
         begin
-          fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputSigFilesArray[i];
+          fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputNotSigFile;
           pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
           CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoiceMTR, false);
         end;
-      fileDirectoryToProcessed := DirectoryToProcessed + inputSigFilesArray[i];
+      fileDirectoryToProcessed := DirectoryToProcessed + inputNotSigFile;
       pointerFileDirectoryToProcessed := Addr(fileDirectoryToProcessed[1]);
       MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToProcessed);
-    end;
+
+      //– копируем sig-файлы в папку с счетами / МТР-счетами и переносим их в папку Processed
+      For i := 0 to High(inputSigFilesArray) do
+        begin
+          fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[i];
+          pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+          if (InvoiceType = REGULAR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
+            begin
+              fileDirectoryToInvoice := DirectoryToInvoice + inputSigFilesArray[i];
+              pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
+              CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
+            end;
+          if (InvoiceType = MTR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
+            begin
+              fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputSigFilesArray[i];
+              pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
+              CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoiceMTR, false);
+            end;
+          fileDirectoryToProcessed := DirectoryToProcessed + inputSigFilesArray[i];
+          pointerFileDirectoryToProcessed := Addr(fileDirectoryToProcessed[1]);
+          MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToProcessed);
+        end;
+    END
+  ELSE //Если протокол не создался из-за особенной ошибки, перемещаем файлы в папку "TFOMS Errors" для рассмотрения Саше
+    BEGIN
+      if System.SysUtils.DirectoryExists(DirectoryTFOMSErrors) = False then
+          System.SysUtils.ForceDirectories(DirectoryTFOMSErrors);
+
+      //В папке "TFOMS Errors" создаём папку с именем оригинального zip-файла, присланного МО
+      DirectoryToTFOMSErrors := DirectoryTFOMSErrors + StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
+      DirectoryToTFOMSErrors := ifFileExistsRename(DirectoryToTFOMSErrors);
+
+      //Переносим файлы в папку "TFOMS Errors":
+
+      //- переносим zip-файл
+      fileDirectoryFrom := DirectoryFrom + inputArchiveFileName;
+      pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+      fileDirectoryToTFOMSErrors := DirectoryToTFOMSErrors + inputArchiveFileName;
+      pointerFileDirectoryToTFOMSErrors := Addr(fileDirectoryToTFOMSErrors[1]);
+      MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToTFOMSErrors);
+      AddLog(fileDirectoryToTFOMSErrors, IsInformation);
+      //- переносим файл-счёт
+      fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
+      pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+      fileDirectoryToTFOMSErrors := DirectoryToTFOMSErrors + inputNotSigFile;
+      pointerFileDirectoryToTFOMSErrors := Addr(fileDirectoryToTFOMSErrors[1]);
+      MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToTFOMSErrors);
+
+      //- переносим sig-файлы
+      For i := 0 to High(inputSigFilesArray) do
+        begin
+          fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[i];
+          pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+          fileDirectoryToTFOMSErrors := DirectoryToTFOMSErrors + inputSigFilesArray[i];
+          pointerFileDirectoryToTFOMSErrors := Addr(fileDirectoryToTFOMSErrors[1]);
+          MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToTFOMSErrors);
+        end;
+
+      AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Файлы перенесены в папку "TFOMS Errors" для рассмотрения ошибок' + #13#10 + #13#10, isError);
+    END;
 
 end;
 
@@ -821,7 +875,7 @@ begin
       counterName := counterName + 1;
       if counterName = 1 then
         begin
-          Insert(' (' + IntToStr(counterName) + ')', inputFileName, Length(inputFileName)-3);
+          Insert(' (' + IntToStr(counterName) + ')', inputFileName, Length(inputFileName)-Length(ExtractFileExt(inputFileName))+1);
           result := inputFileName;
         end
       else
@@ -886,6 +940,9 @@ procedure TFormMain.UpdateDirectories(inputDirectoryRoot: string);
 begin
   DirectoryErrors := DirectoryRoot + 'Errors';
   DirectoryErrors := CorrectPath(DirectoryErrors);
+
+  DirectoryTFOMSErrors := DirectoryRoot + 'TFOMS Errors';
+  DirectoryTFOMSErrors := CorrectPath(DirectoryTFOMSErrors);
 
   DirectoryProcessed := DirectoryRoot + 'Processed';
   DirectoryProcessed := CorrectPath(DirectoryProcessed);

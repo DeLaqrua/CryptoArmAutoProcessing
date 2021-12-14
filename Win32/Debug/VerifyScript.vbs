@@ -45,7 +45,7 @@ Function SignatureVerify (ByVal InputFileName, ByVal InputFileNameSignature)
     Dim n : n = oSignatures.Count
     Dim arrayResults()
     Redim Preserve arrayResults(n-1)
-    For  i=0 To n-1
+    For i = 0 To n-1
         Set oSignature = oSignatures.Item(i)
         Status = oSignature.Verify (CERT_AND_SIGN)
         arrayResults(i) = Status
