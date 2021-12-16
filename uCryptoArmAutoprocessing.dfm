@@ -1,7 +1,7 @@
 object FormMain: TFormMain
   Left = 0
   Top = 0
-  Caption = 'FormMain'
+  Caption = #1050#1088#1080#1087#1090#1086#1040#1088#1084' '#1040#1074#1090#1086#1087#1088#1086#1094#1077#1089#1089#1080#1085#1075
   ClientHeight = 843
   ClientWidth = 777
   Color = clBlack
@@ -11,6 +11,7 @@ object FormMain: TFormMain
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnCreate = FormCreate
   DesignSize = (
     777
