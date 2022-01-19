@@ -41,6 +41,7 @@ type
     LabelOutput: TLabel;
     EditOutput: TEdit;
     ButtonOutput: TButton;
+    statusbarProcessing: TStatusBar;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -131,6 +132,7 @@ var
   descriptionErrorArchive: string;
   InvoiceType: integer;
   protocolVerifyStatusResult: integer; //содержит два значения: CONFIRMED и NOT_CONFIRMED
+  statusTotal, statusSignCorrect, statusSignUncorrect: integer;
 
 const
   SIGN_CORRECT = 1;
@@ -191,10 +193,6 @@ end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
-
-    BI: TBrowseInfo;
-    StartPIDL, ResPIDL: PItemIDList;
-    DisplayName: array[0..MAX_PATH] of Char;
 begin
   ButtonManualProcessing.Enabled := False;
   TimerAutoProcessing.Enabled := False;
@@ -504,8 +502,9 @@ begin
         case arrayResults[i] of
           1 : arrayResultsD[i] := 'Успех';
           3 : arrayResultsD[i] := 'Подпись некорректна или к ней нет доверия';
+          5 : arrayResultsD[i] := 'Истёк срок действия Сертификата';
           15 : arrayResultsD[i] := 'Подписи математически корректны, но нет полного доверия к одному или нескольким сертификатам подписи. Возможно необходимо обновить корневой сертификат';
-          23 : arrayResultsD[i] := 'Одна или несколько подписей некорректна или нет доверия. Возможно необходимо обновить корневой сертификат и перезагрузить компьютер';
+          23 : arrayResultsD[i] := 'Одна или несколько подписей некорректна или нет доверия. Возможно необходимо обновить корневой сертификат и перезагрузить компьютер. Либо необходимо переустановить КриптоАрм на более новую версию';
         else arrayResultsD[i] := 'Статус не определён. Номер неизвестной ошибки ' + IntToStr(arrayResults[i]) + '.';
         end;
       end;
@@ -729,7 +728,9 @@ begin
 
       //В папке "TFOMS Errors" создаём папку с именем оригинального zip-файла, присланного МО
       DirectoryToTFOMSErrors := DirectoryTFOMSErrors + StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
-      DirectoryToTFOMSErrors := ifFileExistsRename(DirectoryToTFOMSErrors);
+      DirectoryToTFOMSErrors := ifFolderExistsRename(DirectoryToTFOMSErrors);
+      if System.SysUtils.DirectoryExists(DirectoryToTFOMSErrors) = False then
+          System.SysUtils.ForceDirectories(DirectoryToTFOMSErrors);
 
       //Переносим файлы в папку "TFOMS Errors":
 
@@ -739,7 +740,8 @@ begin
       fileDirectoryToTFOMSErrors := DirectoryToTFOMSErrors + inputArchiveFileName;
       pointerFileDirectoryToTFOMSErrors := Addr(fileDirectoryToTFOMSErrors[1]);
       MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToTFOMSErrors);
-      AddLog(fileDirectoryFrom, IsInformation);
+      MoveFile('E:\Proba\AutoProcessingFiles\SH_830082_83001_основной.zip', 'E:\Proba\AutoProcessingFiles\TFOMS Errors\SH_830082_83001_основной\SH_830082_83001_основной.zip');
+
       //- переносим файл-счёт
       fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
       pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);

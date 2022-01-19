@@ -2,7 +2,7 @@ object FormMain: TFormMain
   Left = 0
   Top = 0
   Caption = #1050#1088#1080#1087#1090#1086#1040#1088#1084' '#1040#1074#1090#1086#1087#1088#1086#1094#1077#1089#1089#1080#1085#1075
-  ClientHeight = 843
+  ClientHeight = 844
   ClientWidth = 777
   Color = clBlack
   Font.Charset = DEFAULT_CHARSET
@@ -15,7 +15,7 @@ object FormMain: TFormMain
   OnCreate = FormCreate
   DesignSize = (
     777
-    843)
+    844)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelPath: TLabel
@@ -903,7 +903,7 @@ object FormMain: TFormMain
     Left = 8
     Top = 400
     Width = 761
-    Height = 435
+    Height = 413
     Alignment = taCenter
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = RUSSIAN_CHARSET
@@ -916,6 +916,7 @@ object FormMain: TFormMain
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 10
+    ExplicitHeight = 410
   end
   object EditOutput: TEdit
     Left = 225
@@ -945,6 +946,26 @@ object FormMain: TFormMain
     ParentFont = False
     TabOrder = 12
     OnClick = ButtonOutputClick
+  end
+  object statusbarProcessing: TStatusBar
+    Left = 0
+    Top = 819
+    Width = 777
+    Height = 25
+    Panels = <
+      item
+        Width = 100
+      end
+      item
+        Width = 200
+      end
+      item
+        Width = 320
+      end
+      item
+        Width = 50
+      end>
+    ExplicitTop = 816
   end
   object frxReportProtocolConfirmed: TfrxReport
     Tag = 21650

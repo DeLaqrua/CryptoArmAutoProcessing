@@ -41,6 +41,7 @@ type
     LabelOutput: TLabel;
     EditOutput: TEdit;
     ButtonOutput: TButton;
+    statusbarProcessing: TStatusBar;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -104,6 +105,7 @@ type
                                                              //isError – цвет текста Красный
                                                              //isSuccess – цвет текста Зелёный
                                                              //isInformation – цвет текста Чёрный
+    procedure updateStatusBar;
 
   end;
 
@@ -131,6 +133,7 @@ var
   descriptionErrorArchive: string;
   InvoiceType: integer;
   protocolVerifyStatusResult: integer; //содержит два значения: CONFIRMED и NOT_CONFIRMED
+  statusTotal, statusSignCorrect, statusSignUncorrect, statusError: integer;
 
 const
   SIGN_CORRECT = 1;
@@ -181,6 +184,13 @@ begin
 
   AddLog('Дата открытия программы: ' + DateToStr(Now) + ' ' + TimeToStr(Now) + #13#10, isSuccess);
 
+  //Для StatusBar'а
+  statusTotal := 0;
+  statusSignCorrect := 0;
+  statusSignUncorrect := 0;
+  statusError := 0;
+  updateStatusBar;
+
   //Удалить, когда разберусь с сетевыми путями
   DirectoryRoot := CorrectPath(EditPath.Text);
   DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
@@ -228,6 +238,9 @@ begin
                 begin
                   MoveFilesToErrors(SearchResult.Name);
                   AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10, isError);
+                  statusTotal := statusTotal + 1;
+                  statusError := statusError + 1;
+                  updateStatusBar;
 
                   CreateResponceFileToOutput(SearchResult.Name, descriptionErrorArchive);
                 end
@@ -362,6 +375,9 @@ begin
                 Result := False;
                 AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Ошибка при проверке подписи ' + SignatureFiles[i].Name + '. ' +
                        SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10, isError);
+                statusTotal := statusTotal + 1;
+                statusError := statusError + 1;
+                updateStatusBar;
                 Exit;
               END;
           end;
@@ -419,11 +435,17 @@ begin
               begin
                 frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
                 AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isSuccess);
+                statusTotal := statusTotal + 1;
+                statusSignCorrect := statusSignCorrect + 1;
+                updateStatusBar;
               end
             else
               begin
                 frxSigStatus.Memo.Text := frxSigStatus.Memo.Text + SignatureFiles[i].VerifyStatusDesctiption[j];
                 AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isError);
+                statusTotal := statusTotal + 1;
+                statusSignUncorrect := statusSignUncorrect + 1;
+                updateStatusBar;
               end
           end;
         frxCertInformation.Memo.Text := TrimRight(frxCertInformation.Memo.Text);
@@ -576,6 +598,9 @@ begin
             MoveFilesToErrors(SearchResult.Name);
             descriptionError := 'Неверное имя и/или расширение файла "' + SearchResult.Name + '"';
             AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionError + #13#10, isError);
+            statusTotal := statusTotal + 1;
+            statusError := statusError + 1;
+            updateStatusBar;
 
             CreateResponceFileToOutput(SearchResult.Name, descriptionError + #13#10
                                                           + 'Верные имена и расширения файлов должны соответствовать маскам (фигурные скобки убираются):' + #13#10
@@ -1091,6 +1116,14 @@ begin
                    end;
   end;
 
+end;
+
+procedure TFormMain.updateStatusBar;
+begin
+  statusbarProcessing.Panels.Items[0].Text := 'Всего: ' + IntToStr(statusTotal);
+  statusbarProcessing.Panels.Items[1].Text := 'Со статусом "Успех": ' + IntToStr(statusSignCorrect);
+  statusbarProcessing.Panels.Items[2].Text := 'Со статусом "Подпись не подтверждена": ' + IntToStr(statusSignUncorrect);
+  statusbarProcessing.Panels.Items[3].Text := 'Ошибки: ' + IntToStr(statusError);
 end;
 
 end.
