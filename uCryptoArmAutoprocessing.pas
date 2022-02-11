@@ -42,6 +42,8 @@ type
     EditOutput: TEdit;
     ButtonOutput: TButton;
     statusbarProcessing: TStatusBar;
+    buttonSaveLog: TButton;
+    saveDialogLog: TSaveDialog;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -64,6 +66,7 @@ type
     procedure ButtonInvoicePathClick(Sender: TObject);
     procedure ButtonInvoiceMTRpathClick(Sender: TObject);
     procedure ButtonOutputClick(Sender: TObject);
+    procedure buttonSaveLogClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -977,6 +980,31 @@ procedure TFormMain.ButtonPathClick(Sender: TObject);
 begin
   if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditPath.Text := DirectoryRoot;
+end;
+
+procedure TFormMain.buttonSaveLogClick(Sender: TObject);
+begin
+  saveDialogLog.Title := 'Выберите место куда сохранить ваш Лог:';
+  saveDialogLog.InitialDir := GetCurrentDir;
+  saveDialogLog.Filter := 'RTF-файл|*.rtf|Текстовый файл|*.txt';
+
+  if saveDialogLog.FilterIndex = 1 then
+    begin
+      RichEditLog.PlainText := False; //Когда работаем с RTF необходимо ставить False,
+                                      //чтобы документ сохранялся с мета-данными (цвет, жирность текста и т.д.)
+      saveDialogLog.DefaultExt := 'rtf';
+    end
+  else
+    begin
+      RichEditLog.PlainText := True; //Когда работаем с TXT необходимо ставить True,
+                                     //чтобы в документ сохранялся только текст без мета-данных
+      saveDialogLog.DefaultExt := 'txt';
+    end;
+
+  if not saveDialogLog.Execute then
+    exit
+  else
+    RichEditLog.Lines.SaveToFile(saveDialogLog.FileName);
 end;
 
 procedure TFormMain.ButtonInvoicePathClick(Sender: TObject);
