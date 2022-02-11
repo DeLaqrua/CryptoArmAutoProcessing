@@ -42,6 +42,8 @@ type
     EditOutput: TEdit;
     ButtonOutput: TButton;
     statusbarProcessing: TStatusBar;
+    buttonSaveLog: TButton;
+    saveDialogLog: TSaveDialog;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -64,6 +66,7 @@ type
     procedure ButtonInvoicePathClick(Sender: TObject);
     procedure ButtonInvoiceMTRpathClick(Sender: TObject);
     procedure ButtonOutputClick(Sender: TObject);
+    procedure buttonSaveLogClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -240,6 +243,7 @@ begin
                   AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10, isError);
                   statusTotal := statusTotal + 1;
                   statusError := statusError + 1;
+                  updateStatusBar;
 
                   CreateResponceFileToOutput(SearchResult.Name, descriptionErrorArchive);
                 end
@@ -376,6 +380,7 @@ begin
                        SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10, isError);
                 statusTotal := statusTotal + 1;
                 statusError := statusError + 1;
+                updateStatusBar;
                 Exit;
               END;
           end;
@@ -435,6 +440,7 @@ begin
                 AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isSuccess);
                 statusTotal := statusTotal + 1;
                 statusSignCorrect := statusSignCorrect + 1;
+                updateStatusBar;
               end
             else
               begin
@@ -442,6 +448,7 @@ begin
                 AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isError);
                 statusTotal := statusTotal + 1;
                 statusSignUncorrect := statusSignUncorrect + 1;
+                updateStatusBar;
               end
           end;
         frxCertInformation.Memo.Text := TrimRight(frxCertInformation.Memo.Text);
@@ -596,6 +603,7 @@ begin
             AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionError + #13#10, isError);
             statusTotal := statusTotal + 1;
             statusError := statusError + 1;
+            updateStatusBar;
 
             CreateResponceFileToOutput(SearchResult.Name, descriptionError + #13#10
                                                           + 'Верные имена и расширения файлов должны соответствовать маскам (фигурные скобки убираются):' + #13#10
@@ -974,6 +982,31 @@ begin
     EditPath.Text := DirectoryRoot;
 end;
 
+procedure TFormMain.buttonSaveLogClick(Sender: TObject);
+begin
+  saveDialogLog.Title := 'Выберите место куда сохранить ваш Лог:';
+  saveDialogLog.InitialDir := GetCurrentDir;
+  saveDialogLog.Filter := 'RTF-файл|*.rtf|Текстовый файл|*.txt';
+
+  if saveDialogLog.FilterIndex = 1 then
+    begin
+      RichEditLog.PlainText := False; //Когда работаем с RTF необходимо ставить False,
+                                      //чтобы документ сохранялся с мета-данными (цвет, жирность текста и т.д.)
+      saveDialogLog.DefaultExt := 'rtf';
+    end
+  else
+    begin
+      RichEditLog.PlainText := True; //Когда работаем с TXT необходимо ставить True,
+                                     //чтобы в документ сохранялся только текст без мета-данных
+      saveDialogLog.DefaultExt := 'txt';
+    end;
+
+  if not saveDialogLog.Execute then
+    exit
+  else
+    RichEditLog.Lines.SaveToFile(saveDialogLog.FileName);
+end;
+
 procedure TFormMain.ButtonInvoicePathClick(Sender: TObject);
 begin
   if SelectDirectory('Выберите папку для выгрузки счетов:', '', DirectoryInvoice, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
@@ -1117,7 +1150,7 @@ procedure TFormMain.updateStatusBar;
 begin
   statusbarProcessing.Panels.Items[0].Text := 'Всего: ' + IntToStr(statusTotal);
   statusbarProcessing.Panels.Items[1].Text := 'Со статусом "Успех": ' + IntToStr(statusSignCorrect);
-  statusbarProcessing.Panels.Items[2].Text := 'Со статусом "Подпись некорректна": ' + IntToStr(statusSignUncorrect);
+  statusbarProcessing.Panels.Items[2].Text := 'Со статусом "Подпись не подтверждена": ' + IntToStr(statusSignUncorrect);
   statusbarProcessing.Panels.Items[3].Text := 'Ошибки: ' + IntToStr(statusError);
 end;
 

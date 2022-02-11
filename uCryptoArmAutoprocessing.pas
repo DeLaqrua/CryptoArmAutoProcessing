@@ -985,7 +985,6 @@ end;
 procedure TFormMain.buttonSaveLogClick(Sender: TObject);
 begin
   saveDialogLog.Title := 'Выберите место куда сохранить ваш Лог:';
-  saveDialogLog.InitialDir := GetCurrentDir;
   saveDialogLog.Filter := 'RTF-файл|*.rtf|Текстовый файл|*.txt';
 
   if saveDialogLog.FilterIndex = 1 then
