@@ -42,6 +42,8 @@ type
     EditOutput: TEdit;
     ButtonOutput: TButton;
     statusbarProcessing: TStatusBar;
+    buttonSaveLog: TButton;
+    saveDialogLog: TSaveDialog;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -64,6 +66,7 @@ type
     procedure ButtonInvoicePathClick(Sender: TObject);
     procedure ButtonInvoiceMTRpathClick(Sender: TObject);
     procedure ButtonOutputClick(Sender: TObject);
+    procedure buttonSaveLogClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -129,7 +132,7 @@ var
   FormMain: TFormMain;
 
 var
-  DirectoryRoot, DirectoryErrors, DirectoryTFOMSErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR: string;
+  DirectoryRoot, DirectoryErrors, DirectoryTFOMSErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR, DirectoryLog: string;
   descriptionErrorArchive: string;
   InvoiceType: integer;
   protocolVerifyStatusResult: integer; //содержит два значения: CONFIRMED и NOT_CONFIRMED
@@ -971,12 +974,41 @@ begin
 
   DirectoryProcessed := DirectoryRoot + 'Processed';
   DirectoryProcessed := CorrectPath(DirectoryProcessed);
+
+  DirectoryLog := DirectoryRoot + 'Log';
+  DirectoryLog := CorrectPath(DirectoryLog);
 end;
 
 procedure TFormMain.ButtonPathClick(Sender: TObject);
 begin
   if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditPath.Text := DirectoryRoot;
+end;
+
+procedure TFormMain.buttonSaveLogClick(Sender: TObject);
+begin
+  saveDialogLog.Title := 'Выберите место куда сохранить ваш Лог:';
+  saveDialogLog.Filter := 'RTF-файл|*.rtf|Текстовый файл|*.txt';
+
+  if saveDialogLog.FilterIndex = 1 then
+    begin
+      RichEditLog.PlainText := False; //Когда работаем с RTF необходимо ставить False,
+                                      //чтобы документ сохранялся с мета-данными (цвет, жирность текста и т.д.)
+      saveDialogLog.DefaultExt := 'rtf';
+    end
+  else
+    begin
+      RichEditLog.PlainText := True; //Когда работаем с TXT необходимо ставить True,
+                                     //чтобы в документ сохранялся только текст без мета-данных
+      saveDialogLog.DefaultExt := 'txt';
+    end;
+
+  if not saveDialogLog.Execute then
+    exit
+  else
+    RichEditLog.Lines.SaveToFile(saveDialogLog.FileName);
+
+  RichEditLog.PlainText := True; //Всегда возвращаем значение на False для автоматических Логов в TXT-формате
 end;
 
 procedure TFormMain.ButtonInvoicePathClick(Sender: TObject);
@@ -1094,8 +1126,9 @@ end;
 
 procedure TFormMain.AddLog(inputString: string; LogType: integer); //LogType бывает:
                                                                    //isError – цвет текста Красный
-                                                                   //isSuccess – цвет текста Зелёный
+                                                                   //isSuccess – цвет текста Чёрный, Курсив
                                                                    //isInformation – цвет текста Чёрный
+var logTXTFile: TFileStream;
 begin
   case LogType of
     isError: begin
@@ -1115,6 +1148,13 @@ begin
                      RichEditLog.Refresh;
                    end;
   end;
+
+//Проверяем существует ли папка Log. Если нет, создаём новую
+{if System.SysUtils.DirectoryExists(DirectoryLog) = False then
+  System.SysUtils.ForceDirectories(DirectoryLog);}
+//Проверяем существует ли сегодняшний Лог внутри папки Log.
+//Если да, то записываем лог в существующий файл, если нет, то создаём новый файл
+  AssignFile(logTXTFile, 'E:\Proba\AutoProcessingFiles\Log\1.txt');
 
 end;
 

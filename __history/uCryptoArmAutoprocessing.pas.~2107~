@@ -42,6 +42,8 @@ type
     EditOutput: TEdit;
     ButtonOutput: TButton;
     statusbarProcessing: TStatusBar;
+    buttonSaveLog: TButton;
+    saveDialogLog: TSaveDialog;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -64,6 +66,7 @@ type
     procedure ButtonInvoicePathClick(Sender: TObject);
     procedure ButtonInvoiceMTRpathClick(Sender: TObject);
     procedure ButtonOutputClick(Sender: TObject);
+    procedure buttonSaveLogClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -129,7 +132,7 @@ var
   FormMain: TFormMain;
 
 var
-  DirectoryRoot, DirectoryErrors, DirectoryTFOMSErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR: string;
+  DirectoryRoot, DirectoryErrors, DirectoryTFOMSErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR, DirectoryLog: string;
   descriptionErrorArchive: string;
   InvoiceType: integer;
   protocolVerifyStatusResult: integer; //содержит два значения: CONFIRMED и NOT_CONFIRMED
@@ -182,6 +185,13 @@ begin
       Exit;
     end;
 
+  DirectoryRoot := CorrectPath(EditPath.Text);
+  DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
+  DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+  DirectoryOutput := CorrectPath(EditOutput.Text);
+
+  UpdateDirectories(DirectoryRoot);
+
   AddLog('Дата открытия программы: ' + DateToStr(Now) + ' ' + TimeToStr(Now) + #13#10, isSuccess);
 
   //Для StatusBar'а
@@ -190,12 +200,6 @@ begin
   statusSignUncorrect := 0;
   statusError := 0;
   updateStatusBar;
-
-  //Удалить, когда разберусь с сетевыми путями
-  DirectoryRoot := CorrectPath(EditPath.Text);
-  DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
-  DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
-  DirectoryOutput := CorrectPath(EditOutput.Text);
 
 end;
 
@@ -240,6 +244,7 @@ begin
                   AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10, isError);
                   statusTotal := statusTotal + 1;
                   statusError := statusError + 1;
+                  updateStatusBar;
 
                   CreateResponceFileToOutput(SearchResult.Name, descriptionErrorArchive);
                 end
@@ -376,6 +381,7 @@ begin
                        SignatureFiles[i].VerifyStatusDesctiption[j] + #13#10, isError);
                 statusTotal := statusTotal + 1;
                 statusError := statusError + 1;
+                updateStatusBar;
                 Exit;
               END;
           end;
@@ -435,6 +441,7 @@ begin
                 AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isSuccess);
                 statusTotal := statusTotal + 1;
                 statusSignCorrect := statusSignCorrect + 1;
+                updateStatusBar;
               end
             else
               begin
@@ -442,6 +449,7 @@ begin
                 AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Проверена подпись "' + ExtractFileName(SignatureFiles[i].Name) + '". ' + TrimRight(SignatureFiles[i].VerifyStatusDesctiption[j]) + #13#10, isError);
                 statusTotal := statusTotal + 1;
                 statusSignUncorrect := statusSignUncorrect + 1;
+                updateStatusBar;
               end
           end;
         frxCertInformation.Memo.Text := TrimRight(frxCertInformation.Memo.Text);
@@ -596,6 +604,7 @@ begin
             AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionError + #13#10, isError);
             statusTotal := statusTotal + 1;
             statusError := statusError + 1;
+            updateStatusBar;
 
             CreateResponceFileToOutput(SearchResult.Name, descriptionError + #13#10
                                                           + 'Верные имена и расширения файлов должны соответствовать маскам (фигурные скобки убираются):' + #13#10
@@ -966,12 +975,41 @@ begin
 
   DirectoryProcessed := DirectoryRoot + 'Processed';
   DirectoryProcessed := CorrectPath(DirectoryProcessed);
+
+  DirectoryLog := DirectoryRoot + 'Log';
+  DirectoryLog := CorrectPath(DirectoryLog);
 end;
 
 procedure TFormMain.ButtonPathClick(Sender: TObject);
 begin
   if SelectDirectory('Выберите папку для работы Автопроцессинга:', '', DirectoryRoot, [sdNewFolder, sdShowShares, sdNewUI, sdValidateDir]) then
     EditPath.Text := DirectoryRoot;
+end;
+
+procedure TFormMain.buttonSaveLogClick(Sender: TObject);
+begin
+  saveDialogLog.Title := 'Выберите место куда сохранить ваш Лог:';
+  saveDialogLog.Filter := 'RTF-файл|*.rtf|Текстовый файл|*.txt';
+
+  if saveDialogLog.FilterIndex = 1 then
+    begin
+      RichEditLog.PlainText := False; //Когда работаем с RTF необходимо ставить False,
+                                      //чтобы документ сохранялся с мета-данными (цвет, жирность текста и т.д.)
+      saveDialogLog.DefaultExt := 'rtf';
+    end
+  else
+    begin
+      RichEditLog.PlainText := True; //Когда работаем с TXT необходимо ставить True,
+                                     //чтобы в документ сохранялся только текст без мета-данных
+      saveDialogLog.DefaultExt := 'txt';
+    end;
+
+  if not saveDialogLog.Execute then
+    exit
+  else
+    RichEditLog.Lines.SaveToFile(saveDialogLog.FileName);
+
+  RichEditLog.PlainText := True; //Всегда возвращаем значение на False для автоматических Логов в TXT-формате
 end;
 
 procedure TFormMain.ButtonInvoicePathClick(Sender: TObject);
@@ -1089,8 +1127,11 @@ end;
 
 procedure TFormMain.AddLog(inputString: string; LogType: integer); //LogType бывает:
                                                                    //isError – цвет текста Красный
-                                                                   //isSuccess – цвет текста Зелёный
+                                                                   //isSuccess – цвет текста Чёрный, Курсив
                                                                    //isInformation – цвет текста Чёрный
+var logFile: TextFile;
+    logFileName: string;
+    Month, Year, Day: string;
 begin
   case LogType of
     isError: begin
@@ -1111,6 +1152,36 @@ begin
                    end;
   end;
 
+  if System.SysUtils.DirectoryExists(DirectoryLog) = False then
+    System.SysUtils.ForceDirectories(DirectoryLog);
+
+  Year := IntToStr(YearOf(Date));
+  if MonthOf(Date) < 10 then
+    Month := '0' + IntToStr(MonthOf(Date))
+  else
+    Month := IntToStr(MonthOf(Date));
+  if DayOf(Date) < 10 then
+    Day := '0' + IntToStr(DayOf(Date))
+  else
+    Day := IntToStr(DayOf(Date));
+
+  logFileName := DirectoryLog + Day + '-' + Month + '-' + Year + '.txt';
+
+  RichEditLog.Lines.Add(logFileName);
+
+{  AssignFile(logFile, logFileName);
+  if FileExists(logFileName) = True then
+    begin
+      Append(logFile);
+      WriteLN(logFile, inputString);
+      CloseFile(logFile);
+    end
+  else
+    begin
+      ReWrite(logFile);
+      WriteLN(logFile, inputString);
+      CloseFile(logFile);
+    end;}
 end;
 
 procedure TFormMain.updateStatusBar;

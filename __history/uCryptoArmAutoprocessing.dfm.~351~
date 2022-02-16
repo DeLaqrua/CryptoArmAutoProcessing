@@ -2,7 +2,7 @@ object FormMain: TFormMain
   Left = 0
   Top = 0
   Caption = #1050#1088#1080#1087#1090#1086#1040#1088#1084' '#1040#1074#1090#1086#1087#1088#1086#1094#1077#1089#1089#1080#1085#1075
-  ClientHeight = 844
+  ClientHeight = 906
   ClientWidth = 777
   Color = clBlack
   Font.Charset = DEFAULT_CHARSET
@@ -15,7 +15,7 @@ object FormMain: TFormMain
   OnCreate = FormCreate
   DesignSize = (
     777
-    844)
+    906)
   PixelsPerInch = 96
   TextHeight = 13
   object LabelPath: TLabel
@@ -784,7 +784,7 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 2
-    Text = '\\192.168.200.142\obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\in\'
+    Text = 'E:\Proba\AutoProcessingFiles'
   end
   object ButtonPath: TButton
     Left = 536
@@ -851,9 +851,7 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 6
-    Text = 
-      '\\192.168.200.142\obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\'#1055#1088#1086#1074#1077#1088#1077#1085#1085#1099#1077' '#1089#1095#1077 +
-      #1090#1072'\'
+    Text = 'E:\Proba\AutoProcessingFiles\Scheta'
   end
   object ButtonInvoicePath: TButton
     Left = 536
@@ -882,7 +880,7 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 8
-    Text = '\\192.168.200.142\obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\'#1052#1058#1056'\'
+    Text = 'E:\Proba\AutoProcessingFiles\Scheta-MTR'
   end
   object ButtonInvoiceMTRpath: TButton
     Left = 536
@@ -903,7 +901,7 @@ object FormMain: TFormMain
     Left = 8
     Top = 400
     Width = 761
-    Height = 413
+    Height = 434
     Alignment = taCenter
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = RUSSIAN_CHARSET
@@ -916,7 +914,6 @@ object FormMain: TFormMain
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 10
-    ExplicitHeight = 410
   end
   object EditOutput: TEdit
     Left = 225
@@ -930,7 +927,7 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 11
-    Text = '\\192.168.200.142\obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\out\'
+    Text = 'E:\Proba\AutoProcessingFiles\Output'
   end
   object ButtonOutput: TButton
     Left = 536
@@ -949,7 +946,7 @@ object FormMain: TFormMain
   end
   object statusbarProcessing: TStatusBar
     Left = 0
-    Top = 819
+    Top = 881
     Width = 777
     Height = 25
     Panels = <
@@ -965,7 +962,22 @@ object FormMain: TFormMain
       item
         Width = 50
       end>
-    ExplicitTop = 816
+  end
+  object buttonSaveLog: TButton
+    Left = 272
+    Top = 840
+    Width = 233
+    Height = 35
+    Anchors = [akBottom]
+    Caption = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1051#1086#1075
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 14
+    OnClick = buttonSaveLogClick
   end
   object frxReportProtocolConfirmed: TfrxReport
     Tag = 21650
@@ -16104,5 +16116,9 @@ object FormMain: TFormMain
     Datasets = <>
     Variables = <>
     Style = <>
+  end
+  object saveDialogLog: TSaveDialog
+    Left = 520
+    Top = 844
   end
 end
