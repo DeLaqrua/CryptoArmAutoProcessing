@@ -185,6 +185,13 @@ begin
       Exit;
     end;
 
+  DirectoryRoot := CorrectPath(EditPath.Text);
+  DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
+  DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+  DirectoryOutput := CorrectPath(EditOutput.Text);
+
+  UpdateDirectories(DirectoryRoot);
+
   AddLog('Дата открытия программы: ' + DateToStr(Now) + ' ' + TimeToStr(Now) + #13#10, isSuccess);
 
   //Для StatusBar'а
@@ -193,12 +200,6 @@ begin
   statusSignUncorrect := 0;
   statusError := 0;
   updateStatusBar;
-
-  //Удалить, когда разберусь с сетевыми путями
-  DirectoryRoot := CorrectPath(EditPath.Text);
-  DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
-  DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
-  DirectoryOutput := CorrectPath(EditOutput.Text);
 
 end;
 
@@ -527,6 +528,7 @@ begin
           3 : arrayResultsD[i] := 'Подпись некорректна или к ней нет доверия';
           5 : arrayResultsD[i] := 'Истёк срок действия Сертификата';
           15 : arrayResultsD[i] := 'Подписи математически корректны, но нет полного доверия к одному или нескольким сертификатам подписи. Возможно необходимо обновить корневой сертификат';
+          22 : arrayResultsD[i] := 'Сертификат отозван';
           23 : arrayResultsD[i] := 'Одна или несколько подписей некорректна или нет доверия. Возможно необходимо обновить корневой сертификат и перезагрузить компьютер. Либо необходимо переустановить КриптоАрм на более новую версию';
         else arrayResultsD[i] := 'Статус не определён. Номер неизвестной ошибки ' + IntToStr(arrayResults[i]) + '.';
         end;
@@ -1128,7 +1130,9 @@ procedure TFormMain.AddLog(inputString: string; LogType: integer); //LogType быв
                                                                    //isError – цвет текста Красный
                                                                    //isSuccess – цвет текста Чёрный, Курсив
                                                                    //isInformation – цвет текста Чёрный
-var logTXTFile: TextFile;
+var logFile: TextFile;
+    logFileName: string;
+    Month, Year, Day: string;
 begin
   case LogType of
     isError: begin
@@ -1149,15 +1153,34 @@ begin
                    end;
   end;
 
-//Проверяем существует ли папка Log. Если нет, создаём новую
-{if System.SysUtils.DirectoryExists(DirectoryLog) = False then
-  System.SysUtils.ForceDirectories(DirectoryLog);}
-//Проверяем существует ли сегодняшний Лог внутри папки Log.
-//Если да, то записываем лог в существующий файл, если нет, то создаём новый файл
-  AssignFile(logTXTFile, 'E:\Proba\AutoProcessingFiles\Log\1.txt');
-  Append(logTXTFile);
-  WriteLN(logTXTFile, inputString);
-  CloseFile;
+  if System.SysUtils.DirectoryExists(DirectoryLog) = False then
+    System.SysUtils.ForceDirectories(DirectoryLog);
+
+  Year := IntToStr(YearOf(Date));
+  if MonthOf(Date) < 10 then
+    Month := '0' + IntToStr(MonthOf(Date))
+  else
+    Month := IntToStr(MonthOf(Date));
+  if DayOf(Date) < 10 then
+    Day := '0' + IntToStr(DayOf(Date))
+  else
+    Day := IntToStr(DayOf(Date));
+
+  logFileName := DirectoryLog + Day + '-' + Month + '-' + Year + '.txt';
+
+  AssignFile(logFile, logFileName);
+  if FileExists(logFileName) = True then
+    begin
+      Append(logFile);
+      WriteLN(logFile, inputString);
+      CloseFile(logFile);
+    end
+  else
+    begin
+      ReWrite(logFile);
+      WriteLN(logFile, inputString);
+      CloseFile(logFile);
+    end;
 end;
 
 procedure TFormMain.updateStatusBar;

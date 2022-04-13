@@ -141,6 +141,10 @@ var
 const
   SIGN_CORRECT = 1;
   SIGN_UNCORRECT = 3;
+  CERTIFICATE_REVOKED = 22;
+
+  SIGN_STATUS_FOR_PROTOCOL = [SIGN_CORRECT, SIGN_UNCORRECT, CERTIFICATE_REVOKED];
+
   REGULAR_INVOICE = 1;
   MTR_INVOICE = 2;
 
@@ -332,11 +336,11 @@ begin
     NotSignatureFile.DateCreate := DateTimeToStr(NotSigFileDateTime);
 
     AssignFile(NotSigFile, NotSignatureFile.Name);
-    FileMode := fmOpenRead; // Дорогой новичок, иногда при работе попадаются файлы "Только для чтения"
+    FileMode := fmOpenRead; // Дорогой новичок, иногда при работе попадаются файлы "Только для чтения".
                             // Метод reset открывает такие файлы с ошибкой,
                             // потому что по умолчанию системная переменная FileMode,
-                            // отвечающая за режим открытия файла методом reset имеет значение 2 (fmOpenReadWrite).
-                            // Значение необходимо поменять на 0 (fmOpenRead)
+                            // отвечающая за режим открытия файла методом reset, имеет значение 2 (fmOpenReadWrite).
+                            // Значение необходимо поменять на 0 (fmOpenRead).
     reset(NotSigFile);
     NotSignatureFile.Size := IntToStr(FileSize(NotSigFile)) + ' байт';
     CloseFile(NotSigFile);
@@ -362,7 +366,7 @@ begin
         SignatureFiles[i].VerifyStatus := SignatureVerify(NotSignatureFile.Name, SignatureFiles[i].Name, SignatureFiles[i].VerifyStatusDesctiption);
         For j := 0 to High(SignatureFiles[i].VerifyStatusDesctiption) do
           begin
-            IF (SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT) or (SignatureFiles[i].VerifyStatus[j] = SIGN_UNCORRECT) then
+            IF (SignatureFiles[i].VerifyStatus[j] in SIGN_STATUS_FOR_PROTOCOL) then
               BEGIN
                 Result := True;
                 if SignatureFiles[i].VerifyStatus[j] = SIGN_CORRECT then
@@ -527,7 +531,8 @@ begin
           1 : arrayResultsD[i] := 'Успех';
           3 : arrayResultsD[i] := 'Подпись некорректна или к ней нет доверия';
           5 : arrayResultsD[i] := 'Истёк срок действия Сертификата';
-          15 : arrayResultsD[i] := 'Подписи математически корректны, но нет полного доверия к одному или нескольким сертификатам подписи. Возможно необходимо обновить корневой сертификат';
+          15 : arrayResultsD[i] := 'Подписи математически корректны, но нет полного доверия к одному или нескольким сертификатам подписи. Возможно необходимо обновить корневой сертификат или TSL через программу КриптоАрм (Настройки --> Режимы)';
+          22 : arrayResultsD[i] := 'Сертификат отозван';
           23 : arrayResultsD[i] := 'Одна или несколько подписей некорректна или нет доверия. Возможно необходимо обновить корневой сертификат и перезагрузить компьютер. Либо необходимо переустановить КриптоАрм на более новую версию';
         else arrayResultsD[i] := 'Статус не определён. Номер неизвестной ошибки ' + IntToStr(arrayResults[i]) + '.';
         end;

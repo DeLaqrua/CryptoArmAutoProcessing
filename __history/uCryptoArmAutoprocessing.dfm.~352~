@@ -964,7 +964,6 @@ object FormMain: TFormMain
       item
         Width = 50
       end>
-    ExplicitTop = 819
   end
   object buttonSaveLog: TButton
     Left = 272
@@ -980,6 +979,7 @@ object FormMain: TFormMain
     Font.Style = []
     ParentFont = False
     TabOrder = 14
+    OnClick = buttonSaveLogClick
   end
   object frxReportProtocolConfirmed: TfrxReport
     Tag = 21650
@@ -16118,5 +16118,9 @@ object FormMain: TFormMain
     Datasets = <>
     Variables = <>
     Style = <>
+  end
+  object saveDialogLog: TSaveDialog
+    Left = 520
+    Top = 844
   end
 end
