@@ -5,6 +5,8 @@ object FormMain: TFormMain
   ClientHeight = 906
   ClientWidth = 777
   Color = clBlack
+  Constraints.MinHeight = 600
+  Constraints.MinWidth = 777
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWhite
   Font.Height = -11
@@ -12,6 +14,7 @@ object FormMain: TFormMain
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
     777
@@ -23,6 +26,7 @@ object FormMain: TFormMain
     Top = 48
     Width = 146
     Height = 57
+    Hint = #1042#1099#1073#1077#1088#1080#1090#1077' '#1087#1072#1087#1082#1091', '#1075#1076#1077' '#1076#1086#1083#1078#1085#1099' '#1086#1073#1088#1072#1073#1072#1090#1099#1074#1072#1090#1100#1089#1103' '#1092#1072#1081#1083#1099' '#1089#1086' '#1089#1095#1077#1090#1072#1084#1080
     Caption = #1044#1080#1088#1077#1082#1090#1086#1088#1080#1103' '#1076#1083#1103' '#1088#1072#1073#1086#1090#1099' '#1040#1074#1090#1086#1087#1088#1086#1094#1077#1089#1089#1080#1085#1075#1072
     Color = clBlack
     Font.Charset = DEFAULT_CHARSET
@@ -32,6 +36,8 @@ object FormMain: TFormMain
     Font.Style = [fsBold]
     ParentColor = False
     ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
     WordWrap = True
   end
   object SpeedButtonPlay: TSpeedButton
@@ -705,6 +711,7 @@ object FormMain: TFormMain
     Top = 119
     Width = 142
     Height = 38
+    Hint = #1042#1099#1073#1077#1088#1080#1090#1077' '#1087#1072#1087#1082#1091' '#1076#1083#1103' '#1089#1086#1093#1088#1072#1085#1077#1085#1080#1103' '#1091#1089#1087#1077#1096#1085#1086' '#1086#1073#1088#1072#1073#1086#1090#1072#1085#1085#1099#1093' '#1089#1095#1077#1090#1086#1074
     Caption = #1044#1080#1088#1077#1082#1090#1086#1088#1080#1103' '#1076#1083#1103' '#1089#1095#1077#1090#1086#1074
     Color = clBlack
     Font.Charset = DEFAULT_CHARSET
@@ -714,6 +721,8 @@ object FormMain: TFormMain
     Font.Style = [fsBold]
     ParentColor = False
     ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
     WordWrap = True
   end
   object LabelInvoiceMTRpath: TLabel
@@ -721,6 +730,7 @@ object FormMain: TFormMain
     Top = 171
     Width = 142
     Height = 38
+    Hint = #1042#1099#1073#1077#1088#1080#1090#1077' '#1087#1072#1087#1082#1091' '#1076#1083#1103' '#1089#1086#1093#1088#1072#1085#1077#1085#1080#1103' '#1091#1089#1087#1077#1096#1085#1086' '#1086#1073#1088#1072#1073#1086#1090#1072#1085#1085#1099#1093' '#1089#1095#1077#1090#1086#1074'-'#1052#1058#1056
     Caption = #1044#1080#1088#1077#1082#1090#1086#1088#1080#1103' '#1076#1083#1103' '#1089#1095#1077#1090#1086#1074'-'#1052#1058#1056
     Color = clBlack
     Font.Charset = DEFAULT_CHARSET
@@ -730,6 +740,8 @@ object FormMain: TFormMain
     Font.Style = [fsBold]
     ParentColor = False
     ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
     WordWrap = True
   end
   object LabelOutput: TLabel
@@ -737,6 +749,9 @@ object FormMain: TFormMain
     Top = 227
     Width = 142
     Height = 57
+    Hint = 
+      #1042#1099#1073#1077#1088#1080#1090#1077' '#1087#1072#1087#1082#1091' '#1076#1083#1103' '#1089#1086#1093#1088#1072#1085#1077#1085#1080#1103' '#1087#1088#1086#1090#1086#1082#1086#1083#1086#1074' '#1086#1073#1088#1072#1073#1086#1090#1082#1080' '#1089#1095#1077#1090#1086#1074', '#1082#1086#1090#1086#1088 +
+      #1099#1077' '#1085#1077#1086#1073#1093#1086#1076#1080#1084#1086' '#1086#1090#1087#1088#1072#1074#1080#1090#1100' '#1074' '#1052#1054
     Caption = #1044#1080#1088#1077#1082#1090#1086#1088#1080#1103' '#1076#1083#1103' '#1086#1090#1087#1088#1072#1074#1082#1080' '#1086#1090#1074#1077#1090#1086#1074
     Color = clBlack
     Font.Charset = DEFAULT_CHARSET
@@ -746,7 +761,23 @@ object FormMain: TFormMain
     Font.Style = [fsBold]
     ParentColor = False
     ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
     WordWrap = True
+  end
+  object labelSearch: TLabel
+    Left = 478
+    Top = 402
+    Width = 50
+    Height = 19
+    Anchors = [akTop, akRight]
+    Caption = #1055#1086#1080#1089#1082
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
   end
   object ScriptControlVB: TScriptControl
     Left = 737
@@ -777,12 +808,16 @@ object FormMain: TFormMain
     Top = 62
     Width = 305
     Height = 27
+    Hint = #1042#1099#1073#1077#1088#1080#1090#1077' '#1087#1072#1087#1082#1091', '#1075#1076#1077' '#1076#1086#1083#1078#1085#1099' '#1086#1073#1088#1072#1073#1072#1090#1099#1074#1072#1090#1100#1089#1103' '#1092#1072#1081#1083#1099' '#1089#1086' '#1089#1095#1077#1090#1072#1084#1080
+    Anchors = [akLeft, akTop, akRight]
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -16
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 2
     Text = '\\192.168.200.142\obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\in\'
   end
@@ -791,6 +826,8 @@ object FormMain: TFormMain
     Top = 62
     Width = 170
     Height = 27
+    Hint = #1042#1099#1073#1077#1088#1080#1090#1077' '#1087#1072#1087#1082#1091', '#1075#1076#1077' '#1076#1086#1083#1078#1085#1099' '#1086#1073#1088#1072#1073#1072#1090#1099#1074#1072#1090#1100#1089#1103' '#1092#1072#1081#1083#1099' '#1089#1086' '#1089#1095#1077#1090#1072#1084#1080
+    Anchors = [akTop, akRight]
     Caption = #1042#1099#1073#1088#1072#1090#1100' '#1076#1080#1088#1077#1082#1090#1086#1088#1080#1102
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -798,6 +835,8 @@ object FormMain: TFormMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 3
     OnClick = ButtonPathClick
   end
@@ -844,12 +883,16 @@ object FormMain: TFormMain
     Top = 125
     Width = 305
     Height = 27
+    Hint = #1042#1099#1073#1077#1088#1080#1090#1077' '#1087#1072#1087#1082#1091' '#1076#1083#1103' '#1089#1086#1093#1088#1072#1085#1077#1085#1080#1103' '#1091#1089#1087#1077#1096#1085#1086' '#1086#1073#1088#1072#1073#1086#1090#1072#1085#1085#1099#1093' '#1089#1095#1077#1090#1086#1074
+    Anchors = [akLeft, akTop, akRight]
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -16
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 6
     Text = 
       '\\192.168.200.142\obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\'#1055#1088#1086#1074#1077#1088#1077#1085#1085#1099#1077' '#1089#1095#1077 +
@@ -860,6 +903,8 @@ object FormMain: TFormMain
     Top = 125
     Width = 170
     Height = 27
+    Hint = #1042#1099#1073#1077#1088#1080#1090#1077' '#1087#1072#1087#1082#1091' '#1076#1083#1103' '#1089#1086#1093#1088#1072#1085#1077#1085#1080#1103' '#1091#1089#1087#1077#1096#1085#1086' '#1086#1073#1088#1072#1073#1086#1090#1072#1085#1085#1099#1093' '#1089#1095#1077#1090#1086#1074
+    Anchors = [akTop, akRight]
     Caption = #1042#1099#1073#1088#1072#1090#1100' '#1076#1080#1088#1077#1082#1090#1086#1088#1080#1102
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -867,6 +912,8 @@ object FormMain: TFormMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 7
     OnClick = ButtonInvoicePathClick
   end
@@ -875,12 +922,16 @@ object FormMain: TFormMain
     Top = 178
     Width = 305
     Height = 27
+    Hint = #1042#1099#1073#1077#1088#1080#1090#1077' '#1087#1072#1087#1082#1091' '#1076#1083#1103' '#1089#1086#1093#1088#1072#1085#1077#1085#1080#1103' '#1091#1089#1087#1077#1096#1085#1086' '#1086#1073#1088#1072#1073#1086#1090#1072#1085#1085#1099#1093' '#1089#1095#1077#1090#1086#1074'-'#1052#1058#1056
+    Anchors = [akLeft, akTop, akRight]
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -16
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 8
     Text = '\\192.168.200.142\obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\'#1052#1058#1056'\'
   end
@@ -889,6 +940,8 @@ object FormMain: TFormMain
     Top = 178
     Width = 170
     Height = 27
+    Hint = #1042#1099#1073#1077#1088#1080#1090#1077' '#1087#1072#1087#1082#1091' '#1076#1083#1103' '#1089#1086#1093#1088#1072#1085#1077#1085#1080#1103' '#1091#1089#1087#1077#1096#1085#1086' '#1086#1073#1088#1072#1073#1086#1090#1072#1085#1085#1099#1093' '#1089#1095#1077#1090#1086#1074'-'#1052#1058#1056
+    Anchors = [akTop, akRight]
     Caption = #1042#1099#1073#1088#1072#1090#1100' '#1076#1080#1088#1077#1082#1090#1086#1088#1080#1102
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -896,14 +949,16 @@ object FormMain: TFormMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 9
     OnClick = ButtonInvoiceMTRpathClick
   end
   object RichEditLog: TRichEdit
     Left = 8
-    Top = 432
+    Top = 440
     Width = 761
-    Height = 402
+    Height = 394
     Alignment = taCenter
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = RUSSIAN_CHARSET
@@ -922,12 +977,18 @@ object FormMain: TFormMain
     Top = 242
     Width = 305
     Height = 27
+    Hint = 
+      #1042#1099#1073#1077#1088#1080#1090#1077' '#1087#1072#1087#1082#1091' '#1076#1083#1103' '#1089#1086#1093#1088#1072#1085#1077#1085#1080#1103' '#1087#1088#1086#1090#1086#1082#1086#1083#1086#1074' '#1086#1073#1088#1072#1073#1086#1090#1082#1080' '#1089#1095#1077#1090#1086#1074', '#1082#1086#1090#1086#1088 +
+      #1099#1077' '#1085#1077#1086#1073#1093#1086#1076#1080#1084#1086' '#1086#1090#1087#1088#1072#1074#1080#1090#1100' '#1074' '#1052#1054
+    Anchors = [akLeft, akTop, akRight]
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -16
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 11
     Text = '\\192.168.200.142\obmen\'#1054#1090#1076#1077#1083' '#1054' '#1080' '#1040' '#1091#1095'.'#1054#1052#1057'\'#1057#1095#1077#1090#1072'\out\'
   end
@@ -936,6 +997,10 @@ object FormMain: TFormMain
     Top = 242
     Width = 170
     Height = 27
+    Hint = 
+      #1042#1099#1073#1077#1088#1080#1090#1077' '#1087#1072#1087#1082#1091' '#1076#1083#1103' '#1089#1086#1093#1088#1072#1085#1077#1085#1080#1103' '#1087#1088#1086#1090#1086#1082#1086#1083#1086#1074' '#1086#1073#1088#1072#1073#1086#1090#1082#1080' '#1089#1095#1077#1090#1086#1074', '#1082#1086#1090#1086#1088 +
+      #1099#1077' '#1085#1077#1086#1073#1093#1086#1076#1080#1084#1086' '#1086#1090#1087#1088#1072#1074#1080#1090#1100' '#1074' '#1052#1054
+    Anchors = [akTop, akRight]
     Caption = #1042#1099#1073#1088#1072#1090#1100' '#1076#1080#1088#1077#1082#1090#1086#1088#1080#1102
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -943,6 +1008,8 @@ object FormMain: TFormMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 12
     OnClick = ButtonOutputClick
   end
@@ -981,6 +1048,21 @@ object FormMain: TFormMain
     TabOrder = 14
     OnClick = buttonSaveLogClick
   end
+  object editSearch: TEdit
+    Left = 536
+    Top = 399
+    Width = 213
+    Height = 27
+    Anchors = [akTop, akRight]
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlack
+    Font.Height = -16
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 15
+    OnChange = editSearchChange
+  end
   object frxReportProtocolConfirmed: TfrxReport
     Tag = 21650
     Version = '4.15.11'
@@ -999,7 +1081,7 @@ object FormMain: TFormMain
       'end.')
     OnReportPrint = 'frxReportAbstractOnReportPrint'
     Left = 80
-    Top = 440
+    Top = 464
     Datasets = <>
     Variables = <>
     Style = <>
@@ -8504,7 +8586,7 @@ object FormMain: TFormMain
       'end.')
     OnReportPrint = 'frxReportAbstractOnReportPrint'
     Left = 80
-    Top = 496
+    Top = 512
     Datasets = <>
     Variables = <>
     Style = <>
@@ -16096,7 +16178,7 @@ object FormMain: TFormMain
     PrintScaling = False
     CheckboxAsShape = False
     Left = 656
-    Top = 440
+    Top = 456
   end
   object frxReportTypeProtocol: TfrxReport
     Version = '4.15.11'
@@ -16114,7 +16196,7 @@ object FormMain: TFormMain
       ''
       'end.')
     Left = 656
-    Top = 496
+    Top = 512
     Datasets = <>
     Variables = <>
     Style = <>

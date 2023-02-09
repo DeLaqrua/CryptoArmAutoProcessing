@@ -8,7 +8,7 @@ uses
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.OleCtrls, MSScriptControl_TLB,
   Vcl.StdCtrls, ActiveX, Vcl.FileCtrl, System.Masks, DateUtils,
   Vcl.Buttons, Vcl.Samples.Spin, Vcl.ExtCtrls, frxClass, frxGradient,
-  frxExportPDF, Vcl.ComCtrls, SHLOBJ, FWZipReader;
+  frxExportPDF, Vcl.ComCtrls, SHLOBJ, FWZipReader, RichEdit;
 
 type
   TFormMain = class(TForm)
@@ -44,6 +44,8 @@ type
     statusbarProcessing: TStatusBar;
     buttonSaveLog: TButton;
     saveDialogLog: TSaveDialog;
+    editSearch: TEdit;
+    labelSearch: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -67,6 +69,8 @@ type
     procedure ButtonInvoiceMTRpathClick(Sender: TObject);
     procedure ButtonOutputClick(Sender: TObject);
     procedure buttonSaveLogClick(Sender: TObject);
+    procedure editSearchChange(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
 
   private
     { Private declarations }
@@ -109,6 +113,9 @@ type
                                                              //isSuccess Ц цвет текста «елЄный
                                                              //isInformation Ц цвет текста „Єрный
     procedure updateStatusBar;
+
+    procedure setFocusSearch;
+    procedure hotkey(var Message: TMessage); message WM_HOTKEY; //дл€ вызова процедуры setFocusSearch с помощью гор€чих клавиш
 
   end;
 
@@ -205,6 +212,13 @@ begin
   statusError := 0;
   updateStatusBar;
 
+  RegisterHotKey(Handle, 0, MOD_CONTROL, $46); //регистрируем сочетание клавиш Ctrl+F
+
+end;
+
+procedure TFormMain.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  UnRegisterHotKey(Handle, 0); //затераем сочетание клавиш Ctrl+F
 end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
@@ -1129,6 +1143,45 @@ procedure TFormMain.SpinEditMinChange(Sender: TObject);
 begin
   if SpinEditMin.Text = '' then
     SpinEditMin.Text := '0';
+end;
+
+procedure TFormMain.editSearchChange(Sender: TObject);
+var formatText: CHARFORMAT2;
+    positionCursorFindText: integer;
+begin
+  //ћен€ем цвет фона букв в RichEdit на белый цвет
+  RichEditLog.SelStart := 0;
+  RichEditLog.SelLength := Length(richEditLog.Text);
+  FillChar(formatText, SizeOf(formatText), 0);
+  formatText.cbSize := SizeOf(formatText);
+  formatText.dwMask := CFM_BACKCOLOR;
+  formatText.crBackColor := clWhite;
+  RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
+
+  positionCursorFindText := RichEditLog.FindText(editSearch.Text, 0, length(richEditLog.Text), []); //—тавим курсор на начало найденного текста
+
+  if positionCursorFindText <> -1 then
+  begin
+    RichEditLog.SelStart := positionCursorFindText;
+    RichEditLog.SelLength := Length(editSearch.Text);
+    FillChar(formatText, SizeOf(formatText), 0);
+    formatText.cbSize := SizeOf(formatText);
+    formatText.dwMask := CFM_BACKCOLOR;
+    formatText.crBackColor := clMoneyGreen;
+    RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
+  end;
+
+  RichEditLog.SelLength := 0;
+end;
+
+procedure TFormMain.setFocusSearch;
+begin
+  editSearch.SetFocus;
+end;
+
+procedure TFormMain.hotkey;
+begin
+  setFocusSearch;
 end;
 
 procedure TFormMain.AddLog(inputString: string; LogType: integer); //LogType бывает:
