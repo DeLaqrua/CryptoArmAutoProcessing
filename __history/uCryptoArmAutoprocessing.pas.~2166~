@@ -70,6 +70,7 @@ type
     procedure ButtonOutputClick(Sender: TObject);
     procedure buttonSaveLogClick(Sender: TObject);
     procedure editSearchChange(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
 
   private
     { Private declarations }
@@ -112,6 +113,9 @@ type
                                                              //isSuccess Ц цвет текста «елЄный
                                                              //isInformation Ц цвет текста „Єрный
     procedure updateStatusBar;
+
+    procedure setFocusSearch;
+    procedure hotkey(var Message: TMessage); message WM_HOTKEY; //дл€ вызова процедуры setFocusSearch с помощью гор€чих клавиш
 
   end;
 
@@ -208,6 +212,13 @@ begin
   statusError := 0;
   updateStatusBar;
 
+  RegisterHotKey(Handle, 0, MOD_CONTROL, $46); //регистрируем сочетание клавиш Ctrl+F
+
+end;
+
+procedure TFormMain.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  UnRegisterHotKey(Handle, 0); //затераем сочетание клавиш Ctrl+F
 end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
@@ -810,12 +821,15 @@ begin
      MatchesMask(inputFileName, 'SHUD_*_*_*.zip') or
      MatchesMask(inputFileName, 'SMP_*_*_*.zip') or
      MatchesMask(inputFileName, 'SHCP_*_*_основной.zip') or
-     MatchesMask(inputFileName, 'MSHO_*_MTP_*.zip') or //MTP Ц по-английски
      MatchesMask(inputFileName, 'MSHO_*_ћ“–_*.zip') or //MTP Ц по-русски
-     MatchesMask(inputFileName, 'MSH_*_MTP_*.zip') or //MTP Ц по-английски
+     MatchesMask(inputFileName, 'MSHO_*_MTP_*.zip') or //MTP Ц по-английски
      MatchesMask(inputFileName, 'MSH_*_ћ“–_*.zip') or //MTP Ц по-русски
+     MatchesMask(inputFileName, 'MSH_*_MTP_*.zip') or //MTP Ц по-английски
+     MatchesMask(inputFileName, 'MSMP_*_ћ“–_*.zip') or //MTP Ц по-русски
      MatchesMask(inputFileName, 'MSMP_*_MTP_*.zip') or //MTP Ц по-английски
-     MatchesMask(inputFileName, 'MSMP_*_ћ“–_*.zip') then //MTP Ц по-русски
+     MatchesMask(inputFileName, 'CON_*_ћ“–_*.zip') or //MTP Ц по-русски
+     MatchesMask(inputFileName, 'CON_*_MTP_*.zip') or //MTP Ц по-английски
+      then
     begin
       Result := True;
     end;
@@ -900,33 +914,6 @@ begin
   ReWrite(responceTextFile);
   WriteLn(responceTextFile, descriptionError);
   CloseFile(responceTextFile);
-end;
-
-procedure TFormMain.editSearchChange(Sender: TObject);
-var formatText: CHARFORMAT2;
-int: integer;
-begin
-  richEditLog.SelStart := richEditLog.FindText(editSearch.Text, 0, length(richEditLog.Text), []);
-  if richEditLog.SelStart <> -1 then
-  begin
-    richEditLog.SelLength := length(editSearch.Text);
-    FillChar(formatText, SizeOf(formatText), 0);
-    formatText.cbSize := SizeOf(formatText);
-    formatText.dwMask := CFM_BACKCOLOR;
-    formatText.crBackColor := clMoneyGreen;
-    richEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
-  end
-  else
-  begin
-    richEditLog.SelStart := 0;
-    richEditLog.SelLength := length(richEditLog.Text);
-    richEditLog.SelAttributes.Color := clBlue;
-    FillChar(formatText, SizeOf(formatText), 0);
-    formatText.cbSize := SizeOf(formatText);
-    formatText.dwMask := CFM_BACKCOLOR;
-    formatText.crBackColor := clWhite;
-    richEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
-  end;
 end;
 
 function TFormMain.ifFileExistsRename(inputFileName: string): string;
@@ -1159,6 +1146,45 @@ procedure TFormMain.SpinEditMinChange(Sender: TObject);
 begin
   if SpinEditMin.Text = '' then
     SpinEditMin.Text := '0';
+end;
+
+procedure TFormMain.editSearchChange(Sender: TObject);
+var formatText: CHARFORMAT2;
+    positionCursorFindText: integer;
+begin
+  //ћен€ем цвет фона букв в RichEdit на белый цвет
+  RichEditLog.SelStart := 0;
+  RichEditLog.SelLength := Length(richEditLog.Text);
+  FillChar(formatText, SizeOf(formatText), 0);
+  formatText.cbSize := SizeOf(formatText);
+  formatText.dwMask := CFM_BACKCOLOR;
+  formatText.crBackColor := clWhite;
+  RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
+
+  positionCursorFindText := RichEditLog.FindText(editSearch.Text, 0, length(richEditLog.Text), []); //—тавим курсор на начало найденного текста
+
+  if positionCursorFindText <> -1 then
+  begin
+    RichEditLog.SelStart := positionCursorFindText;
+    RichEditLog.SelLength := Length(editSearch.Text);
+    FillChar(formatText, SizeOf(formatText), 0);
+    formatText.cbSize := SizeOf(formatText);
+    formatText.dwMask := CFM_BACKCOLOR;
+    formatText.crBackColor := clMoneyGreen;
+    RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
+  end;
+
+  RichEditLog.SelLength := 0;
+end;
+
+procedure TFormMain.setFocusSearch;
+begin
+  editSearch.SetFocus;
+end;
+
+procedure TFormMain.hotkey;
+begin
+  setFocusSearch;
 end;
 
 procedure TFormMain.AddLog(inputString: string; LogType: integer); //LogType бывает:
