@@ -754,7 +754,7 @@ object FormMain: TFormMain
     Width = 32
     Height = 32
     ControlData = {
-      2143341208000000ED030000ED030000D2F1594E010000001400000030750000
+      2143341208000000ED030000ED030000D2F1594E010000001400000060EA0000
       01000000}
   end
   object ButtonManualProcessing: TButton
@@ -964,7 +964,6 @@ object FormMain: TFormMain
       item
         Width = 50
       end>
-    ExplicitTop = 819
   end
   object buttonSaveLog: TButton
     Left = 272
@@ -16119,5 +16118,9 @@ object FormMain: TFormMain
     Datasets = <>
     Variables = <>
     Style = <>
+  end
+  object saveDialogLog: TSaveDialog
+    Left = 520
+    Top = 844
   end
 end

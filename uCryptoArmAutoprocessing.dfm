@@ -901,9 +901,9 @@ object FormMain: TFormMain
   end
   object RichEditLog: TRichEdit
     Left = 8
-    Top = 400
+    Top = 432
     Width = 761
-    Height = 434
+    Height = 402
     Alignment = taCenter
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = RUSSIAN_CHARSET
@@ -999,7 +999,7 @@ object FormMain: TFormMain
       'end.')
     OnReportPrint = 'frxReportAbstractOnReportPrint'
     Left = 80
-    Top = 408
+    Top = 440
     Datasets = <>
     Variables = <>
     Style = <>
@@ -8504,7 +8504,7 @@ object FormMain: TFormMain
       'end.')
     OnReportPrint = 'frxReportAbstractOnReportPrint'
     Left = 80
-    Top = 464
+    Top = 496
     Datasets = <>
     Variables = <>
     Style = <>
@@ -16096,7 +16096,7 @@ object FormMain: TFormMain
     PrintScaling = False
     CheckboxAsShape = False
     Left = 656
-    Top = 408
+    Top = 440
   end
   object frxReportTypeProtocol: TfrxReport
     Version = '4.15.11'
@@ -16114,7 +16114,7 @@ object FormMain: TFormMain
       ''
       'end.')
     Left = 656
-    Top = 464
+    Top = 496
     Datasets = <>
     Variables = <>
     Style = <>

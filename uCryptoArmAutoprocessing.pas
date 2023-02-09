@@ -305,12 +305,12 @@ begin
 end;
 
 function TFormMain.CreateProtocol(inputFileName: string;
-                                   inputFileNameSignature: array of string;
-                                   directoryFiles: string;
-                                   directoryExportToProcessed: string;
-                                   directoryExportToInvoice: string;
-                                   directoryExportToInvoiceMTR: string;
-                                   inputOriginalArchiveFileName: string): boolean;
+                                  inputFileNameSignature: array of string;
+                                  directoryFiles: string;
+                                  directoryExportToProcessed: string;
+                                  directoryExportToInvoice: string;
+                                  directoryExportToInvoiceMTR: string;
+                                  inputOriginalArchiveFileName: string): boolean;
 var SignatureFiles: array of TSignatureFile;
     NotSignatureFile: TNotSignatureFile;
 
@@ -534,6 +534,7 @@ begin
           15 : arrayResultsD[i] := 'Подписи математически корректны, но нет полного доверия к одному или нескольким сертификатам подписи. Возможно необходимо обновить корневой сертификат или TSL через программу КриптоАрм (Настройки --> Режимы)';
           22 : arrayResultsD[i] := 'Сертификат отозван';
           23 : arrayResultsD[i] := 'Одна или несколько подписей некорректна или нет доверия. Возможно необходимо обновить корневой сертификат и перезагрузить компьютер. Либо необходимо переустановить КриптоАрм на более новую версию';
+          115: arrayResultsD[i] := 'Сертификат не квалифицирован';
         else arrayResultsD[i] := 'Статус не определён. Номер неизвестной ошибки ' + IntToStr(arrayResults[i]) + '.';
         end;
       end;
