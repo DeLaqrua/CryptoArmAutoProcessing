@@ -46,6 +46,12 @@ type
     saveDialogLog: TSaveDialog;
     editSearch: TEdit;
     labelSearch: TLabel;
+    LabelActPath: TLabel;
+    EditActPath: TEdit;
+    ButtonActPath: TButton;
+    LabelActMTRpath: TLabel;
+    EditActMTRpath: TEdit;
+    ButtonActMTRpath: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -92,12 +98,12 @@ type
                                                                                    //в которых лежит файл.
 
     function CreateProtocol(inputFileName: string;
-                             inputFileNameSignature: array of string;
-                             directoryFiles: string;
-                             directoryExportToProcessed: string;
-                             directoryExportToInvoice: string;
-                             directoryExportToInvoiceMTR: string;
-                             inputOriginalArchiveFileName: string): boolean;
+                            inputFileNameSignature: array of string;
+                            directoryFiles: string;
+                            directoryExportToProcessed: string;
+                            directoryExportToInvoice: string;
+                            directoryExportToInvoiceMTR: string;
+                            inputOriginalArchiveFileName: string): boolean;
 
     procedure CreateResponceFileToOutput(inputFileName, descriptionError: string);
 
@@ -139,7 +145,8 @@ var
   FormMain: TFormMain;
 
 var
-  DirectoryRoot, DirectoryErrors, DirectoryTFOMSErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR, DirectoryLog: string;
+  DirectoryRoot, DirectoryErrors, DirectoryTFOMSErrors, DirectoryProcessed, DirectoryOutput,
+  DirectoryInvoice, DirectoryInvoiceMTR, DirectoryAct, DirectoryActMTR, DirectoryLog: string;
   descriptionErrorArchive: string;
   InvoiceType: integer;
   protocolVerifyStatusResult: integer; //содержит два значения: CONFIRMED и NOT_CONFIRMED
@@ -154,6 +161,8 @@ const
 
   REGULAR_INVOICE = 1;
   MTR_INVOICE = 2;
+  REGULAR_ACT = 3;
+  MTR_ACT = 4;
 
   CONFIRMED = 1;
   NOT_CONFIRMED = 0;
@@ -199,6 +208,8 @@ begin
   DirectoryRoot := CorrectPath(EditPath.Text);
   DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
   DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+  DirectoryAct := CorrectPath(EditActPath.Text);
+  DirectoryActMTR := CorrectPath(EditActMTRpath.Text);
   DirectoryOutput := CorrectPath(EditOutput.Text);
 
   UpdateDirectories(DirectoryRoot);
@@ -233,15 +244,23 @@ begin
     DirectoryRoot := CorrectPath(EditPath.Text);
     DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
     DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+    DirectoryAct := CorrectPath(EditActPath.Text);
+    DirectoryActMTR := CorrectPath(EditActMTRpath.Text);
     DirectoryOutput := CorrectPath(EditOutput.Text);
     if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
       ShowMessage('Проверьте путь к директории для работы Автопроцессинга. Папки не существует')
     else
     if System.SysUtils.DirectoryExists(DirectoryInvoice) = False then
-      ShowMessage('Проверьте путь к директории с Счетами. Папки не существует')
+      ShowMessage('Проверьте путь к директории со Счетами. Папки не существует')
     else
     if System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False then
-      ShowMessage('Проверьте путь к директории с Счетами-МТР. Папки не существует')
+      ShowMessage('Проверьте путь к директории со Счетами-МТР. Папки не существует')
+    else
+    if System.SysUtils.DirectoryExists(DirectoryAct) = False then
+      ShowMessage('Проверьте путь к директории с Актами. Папки не существует')
+    else
+    if System.SysUtils.DirectoryExists(DirectoryActMTR) = False then
+      ShowMessage('Проверьте путь к директории с Актами-МТР. Папки не существует')
     else
     if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
       ShowMessage('Проверьте путь к директории для отправки Ответов. Папки не существует')
@@ -701,19 +720,36 @@ begin
   else
     InvoiceType := MTR_INVOICE;
 
+  if MatchesMask(inputArchiveFileName, 'CON*') or //MTP – по-русски
+     MatchesMask(inputArchiveFileName, 'RCON*') then
+    InvoiceType := REGULAR_ACT;
+
+  if MatchesMask(inputArchiveFileName, 'CON_*_МТР*') or //MTP – по-русски
+     MatchesMask(inputArchiveFileName, 'CON_*_MTP*') or //MTP – по-английски
+     MatchesMask(inputArchiveFileName, 'RCON_*_МТР*') or //MTP – по-русски
+     MatchesMask(inputArchiveFileName, 'RCON_*_MTP*') then //MTP – по-английски
+    InvoiceType := MTR_ACT;
+
   if InvoiceType = REGULAR_INVOICE then
-    begin
-      SMO := Copy(inputArchiveFileName, AnsiPos(MO, inputArchiveFileName)+7, 5);
-      DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + SMO + '\' +
+  begin
+    SMO := Copy(inputArchiveFileName, AnsiPos(MO, inputArchiveFileName)+7, 5);
+    DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + SMO + '\' +
                             StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
-      DirectoryToInvoice := ifFolderExistsRename(DirectoryToInvoice);
-    end
-  else
-    begin
-      DirectoryToInvoiceMTR := DirectoryInvoiceMTR + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
-                               StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
-      DirectoryToInvoiceMTR := ifFolderExistsRename(DirectoryToInvoiceMTR);
-    end;
+    DirectoryToInvoice := ifFolderExistsRename(DirectoryToInvoice);
+  end;
+  if InvoiceType = MTR_INVOICE then
+  begin
+    DirectoryToInvoiceMTR := DirectoryInvoiceMTR + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
+                             StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
+    DirectoryToInvoiceMTR := ifFolderExistsRename(DirectoryToInvoiceMTR);
+  end;
+  if InvoiceType = REGULAR_ACT then
+  begin
+    SMO := Copy(inputArchiveFileName, AnsiPos(MO, inputArchiveFileName)+7, 5);
+    DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + SMO + '\' +
+                          StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
+    DirectoryToInvoice := ifFolderExistsRename(DirectoryToInvoice);
+  end;
 
   //Создаём протокол
   IF CreateProtocol(inputNotSigFile, inputSigFilesArray, DirectoryFrom, DirectoryToProcessed, DirectoryToInvoice, DirectoryToInvoiceMTR, inputArchiveFileName) = True THEN
@@ -821,6 +857,8 @@ begin
      MatchesMask(inputFileName, 'SHUD_*_*_*.zip') or
      MatchesMask(inputFileName, 'SMP_*_*_*.zip') or
      MatchesMask(inputFileName, 'SHCP_*_*_основной.zip') or
+     MatchesMask(inputFileName, 'CON_*_*_*.zip') or
+     MatchesMask(inputFileName, 'RCON_*_*_*.zip') or
      MatchesMask(inputFileName, 'MSHO_*_МТР_*.zip') or //MTP – по-русски
      MatchesMask(inputFileName, 'MSHO_*_MTP_*.zip') or //MTP – по-английски
      MatchesMask(inputFileName, 'MSH_*_МТР_*.zip') or //MTP – по-русски
@@ -829,7 +867,8 @@ begin
      MatchesMask(inputFileName, 'MSMP_*_MTP_*.zip') or //MTP – по-английски
      MatchesMask(inputFileName, 'CON_*_МТР_*.zip') or //MTP – по-русски
      MatchesMask(inputFileName, 'CON_*_MTP_*.zip') or //MTP – по-английски
-      then
+     MatchesMask(inputFileName, 'RCON_*_МТР_*.zip') or //MTP – по-русски
+     MatchesMask(inputFileName, 'RCON_*_MTP_*.zip') then //MTP – по-английски
     begin
       Result := True;
     end;

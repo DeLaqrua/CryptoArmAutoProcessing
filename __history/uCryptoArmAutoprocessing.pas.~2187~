@@ -46,6 +46,12 @@ type
     saveDialogLog: TSaveDialog;
     editSearch: TEdit;
     labelSearch: TLabel;
+    LabelActPath: TLabel;
+    EditActPath: TEdit;
+    ButtonActPath: TButton;
+    LabelActMTRpath: TLabel;
+    EditActMTRpath: TEdit;
+    ButtonActMTRpath: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -70,6 +76,7 @@ type
     procedure ButtonOutputClick(Sender: TObject);
     procedure buttonSaveLogClick(Sender: TObject);
     procedure editSearchChange(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
 
   private
     { Private declarations }
@@ -91,12 +98,12 @@ type
                                                                                    //в которых лежит файл.
 
     function CreateProtocol(inputFileName: string;
-                             inputFileNameSignature: array of string;
-                             directoryFiles: string;
-                             directoryExportToProcessed: string;
-                             directoryExportToInvoice: string;
-                             directoryExportToInvoiceMTR: string;
-                             inputOriginalArchiveFileName: string): boolean;
+                            inputFileNameSignature: array of string;
+                            directoryFiles: string;
+                            directoryExportToProcessed: string;
+                            directoryExportToInvoice: string;
+                            directoryExportToInvoiceMTR: string;
+                            inputOriginalArchiveFileName: string): boolean;
 
     procedure CreateResponceFileToOutput(inputFileName, descriptionError: string);
 
@@ -112,6 +119,9 @@ type
                                                              //isSuccess Ц цвет текста «елЄный
                                                              //isInformation Ц цвет текста „Єрный
     procedure updateStatusBar;
+
+    procedure setFocusSearch;
+    procedure hotkey(var Message: TMessage); message WM_HOTKEY; //дл€ вызова процедуры setFocusSearch с помощью гор€чих клавиш
 
   end;
 
@@ -135,7 +145,8 @@ var
   FormMain: TFormMain;
 
 var
-  DirectoryRoot, DirectoryErrors, DirectoryTFOMSErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR, DirectoryLog: string;
+  DirectoryRoot, DirectoryErrors, DirectoryTFOMSErrors, DirectoryProcessed, DirectoryOutput,
+  DirectoryInvoice, DirectoryInvoiceMTR, DirectoryAct, DirectoryActMTR, DirectoryLog: string;
   descriptionErrorArchive: string;
   InvoiceType: integer;
   protocolVerifyStatusResult: integer; //содержит два значени€: CONFIRMED и NOT_CONFIRMED
@@ -150,6 +161,8 @@ const
 
   REGULAR_INVOICE = 1;
   MTR_INVOICE = 2;
+  REGULAR_ACT = 3;
+  MTR_ACT = 4;
 
   CONFIRMED = 1;
   NOT_CONFIRMED = 0;
@@ -195,6 +208,8 @@ begin
   DirectoryRoot := CorrectPath(EditPath.Text);
   DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
   DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+  DirectoryAct := CorrectPath(EditActPath.Text);
+  DirectoryActMTR := CorrectPath(EditActMTRpath.Text);
   DirectoryOutput := CorrectPath(EditOutput.Text);
 
   UpdateDirectories(DirectoryRoot);
@@ -208,6 +223,13 @@ begin
   statusError := 0;
   updateStatusBar;
 
+  RegisterHotKey(Handle, 0, MOD_CONTROL, $46); //регистрируем сочетание клавиш Ctrl+F
+
+end;
+
+procedure TFormMain.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  UnRegisterHotKey(Handle, 0); //затераем сочетание клавиш Ctrl+F
 end;
 
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
@@ -222,15 +244,23 @@ begin
     DirectoryRoot := CorrectPath(EditPath.Text);
     DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
     DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+    DirectoryAct := CorrectPath(EditActPath.Text);
+    DirectoryActMTR := CorrectPath(EditActMTRpath.Text);
     DirectoryOutput := CorrectPath(EditOutput.Text);
     if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
       ShowMessage('ѕроверьте путь к директории дл€ работы јвтопроцессинга. ѕапки не существует')
     else
     if System.SysUtils.DirectoryExists(DirectoryInvoice) = False then
-      ShowMessage('ѕроверьте путь к директории с —четами. ѕапки не существует')
+      ShowMessage('ѕроверьте путь к директории со —четами. ѕапки не существует')
     else
     if System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False then
-      ShowMessage('ѕроверьте путь к директории с —четами-ћ“–. ѕапки не существует')
+      ShowMessage('ѕроверьте путь к директории со —четами-ћ“–. ѕапки не существует')
+    else
+    if System.SysUtils.DirectoryExists(DirectoryAct) = False then
+      ShowMessage('ѕроверьте путь к директории с јктами. ѕапки не существует')
+    else
+    if System.SysUtils.DirectoryExists(DirectoryActMTR) = False then
+      ShowMessage('ѕроверьте путь к директории с јктами-ћ“–. ѕапки не существует')
     else
     if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
       ShowMessage('ѕроверьте путь к директории дл€ отправки ќтветов. ѕапки не существует')
@@ -650,7 +680,7 @@ begin
 end;
 
 procedure TFormMain.MoveFilesToProcessedAndOtherFolders(inputArchiveFileName: string; inputNotSigFile: string; inputSigFilesArray: array of string);
-var DirectoryFrom, DirectoryToProcessed, DirectoryToInvoice, DirectoryToInvoiceMTR, DirectoryToTFOMSErrors: string;
+var DirectoryFrom, DirectoryToProcessed, DirectoryToInvoice, DirectoryToInvoiceMTR, DirectoryToAct, DirectoryToActMTR, DirectoryToTFOMSErrors: string;
     fileDirectoryFrom, fileDirectoryToProcessed, fileDirectoryToInvoice, fileDirectoryToInvoiceMTR, fileDirectoryToTFOMSErrors: string;
     pointerFileDirectoryFrom, pointerFileDirectoryToProcessed, pointerFileDirectoryToInvoice, pointerFileDirectoryToInvoiceMTR, pointerFileDirectoryToTFOMSErrors: PWideChar;
     MO, SMO: string;
@@ -690,19 +720,43 @@ begin
   else
     InvoiceType := MTR_INVOICE;
 
+  if MatchesMask(inputArchiveFileName, 'CON*') or //MTP Ц по-русски
+     MatchesMask(inputArchiveFileName, 'RCON*') then
+    InvoiceType := REGULAR_ACT;
+
+  if MatchesMask(inputArchiveFileName, 'CON_*_ћ“–*') or //MTP Ц по-русски
+     MatchesMask(inputArchiveFileName, 'CON_*_MTP*') or //MTP Ц по-английски
+     MatchesMask(inputArchiveFileName, 'RCON_*_ћ“–*') or //MTP Ц по-русски
+     MatchesMask(inputArchiveFileName, 'RCON_*_MTP*') then //MTP Ц по-английски
+    InvoiceType := MTR_ACT;
+
   if InvoiceType = REGULAR_INVOICE then
-    begin
-      SMO := Copy(inputArchiveFileName, AnsiPos(MO, inputArchiveFileName)+7, 5);
-      DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + SMO + '\' +
+  begin
+    SMO := Copy(inputArchiveFileName, AnsiPos(MO, inputArchiveFileName)+7, 5);
+    DirectoryToInvoice := DirectoryInvoice + IntToStr(Year) + '\' + Month + '\' + SMO + '\' +
                             StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
-      DirectoryToInvoice := ifFolderExistsRename(DirectoryToInvoice);
-    end
-  else
-    begin
-      DirectoryToInvoiceMTR := DirectoryInvoiceMTR + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
-                               StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
-      DirectoryToInvoiceMTR := ifFolderExistsRename(DirectoryToInvoiceMTR);
-    end;
+    DirectoryToInvoice := ifFolderExistsRename(DirectoryToInvoice);
+  end;
+  if InvoiceType = MTR_INVOICE then
+  begin
+    DirectoryToInvoiceMTR := DirectoryInvoiceMTR + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
+                             StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
+    DirectoryToInvoiceMTR := ifFolderExistsRename(DirectoryToInvoiceMTR);
+  end;
+  if InvoiceType = REGULAR_ACT then
+  begin
+    SMO := Copy(inputArchiveFileName, AnsiPos(MO, inputArchiveFileName)+7, 5);
+    DirectoryToAct := DirectoryAct + IntToStr(Year) + '\' + Month + '\' + SMO + '\' +
+                      StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
+    DirectoryToAct := ifFolderExistsRename(DirectoryToAct);
+  end;
+  if InvoiceType = MTR_ACT then
+  begin
+    SMO := Copy(inputArchiveFileName, AnsiPos(MO, inputArchiveFileName)+7, 5);
+    DirectoryToActMTR := DirectoryActMTR + IntToStr(Year) + '\' + Month + '\' + SMO + '\' +
+                      StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
+    DirectoryToActMTR := ifFolderExistsRename(DirectoryToActMTR);
+  end;
 
   //—оздаЄм протокол
   IF CreateProtocol(inputNotSigFile, inputSigFilesArray, DirectoryFrom, DirectoryToProcessed, DirectoryToInvoice, DirectoryToInvoiceMTR, inputArchiveFileName) = True THEN
@@ -720,42 +774,42 @@ begin
       fileDirectoryFrom := DirectoryFrom + inputNotSigFile;
       pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
       if (InvoiceType = REGULAR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
-        begin
-          fileDirectoryToInvoice := DirectoryToInvoice + inputNotSigFile;
-          pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
-          CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
-        end;
+      begin
+        fileDirectoryToInvoice := DirectoryToInvoice + inputNotSigFile;
+        pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
+        CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
+      end;
       if (InvoiceType = MTR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
-        begin
-          fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputNotSigFile;
-          pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
-          CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoiceMTR, false);
-        end;
+      begin
+        fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputNotSigFile;
+        pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
+        CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoiceMTR, false);
+      end;
       fileDirectoryToProcessed := DirectoryToProcessed + inputNotSigFile;
       pointerFileDirectoryToProcessed := Addr(fileDirectoryToProcessed[1]);
       MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToProcessed);
 
       //Ц копируем sig-файлы в папку с счетами / ћ“–-счетами и переносим их в папку Processed
       For i := 0 to High(inputSigFilesArray) do
+      begin
+        fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[i];
+        pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+        if (InvoiceType = REGULAR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
         begin
-          fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[i];
-          pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-          if (InvoiceType = REGULAR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
-            begin
-              fileDirectoryToInvoice := DirectoryToInvoice + inputSigFilesArray[i];
-              pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
-              CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
-            end;
-          if (InvoiceType = MTR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
-            begin
-              fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputSigFilesArray[i];
-              pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
-              CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoiceMTR, false);
-            end;
-          fileDirectoryToProcessed := DirectoryToProcessed + inputSigFilesArray[i];
-          pointerFileDirectoryToProcessed := Addr(fileDirectoryToProcessed[1]);
-          MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToProcessed);
+          fileDirectoryToInvoice := DirectoryToInvoice + inputSigFilesArray[i];
+          pointerFileDirectoryToInvoice := Addr(fileDirectoryToInvoice[1]);
+          CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoice, false);
         end;
+        if (InvoiceType = MTR_INVOICE) and (protocolVerifyStatusResult = CONFIRMED) then
+        begin
+          fileDirectoryToInvoiceMTR := DirectoryToInvoiceMTR + inputSigFilesArray[i];
+          pointerFileDirectoryToInvoiceMTR := Addr(fileDirectoryToInvoiceMTR[1]);
+          CopyFile(pointerFileDirectoryFrom, pointerFileDirectoryToInvoiceMTR, false);
+        end;
+        fileDirectoryToProcessed := DirectoryToProcessed + inputSigFilesArray[i];
+        pointerFileDirectoryToProcessed := Addr(fileDirectoryToProcessed[1]);
+        MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToProcessed);
+      end;
     END
   ELSE //≈сли протокол не создалс€ из-за особенной ошибки, перемещаем файлы в папку "TFOMS Errors" дл€ рассмотрени€ —аше
     BEGIN
@@ -810,12 +864,18 @@ begin
      MatchesMask(inputFileName, 'SHUD_*_*_*.zip') or
      MatchesMask(inputFileName, 'SMP_*_*_*.zip') or
      MatchesMask(inputFileName, 'SHCP_*_*_основной.zip') or
-     MatchesMask(inputFileName, 'MSHO_*_MTP_*.zip') or //MTP Ц по-английски
+     MatchesMask(inputFileName, 'CON_*_*_*.zip') or
+     MatchesMask(inputFileName, 'RCON_*_*_*.zip') or
      MatchesMask(inputFileName, 'MSHO_*_ћ“–_*.zip') or //MTP Ц по-русски
-     MatchesMask(inputFileName, 'MSH_*_MTP_*.zip') or //MTP Ц по-английски
+     MatchesMask(inputFileName, 'MSHO_*_MTP_*.zip') or //MTP Ц по-английски
      MatchesMask(inputFileName, 'MSH_*_ћ“–_*.zip') or //MTP Ц по-русски
+     MatchesMask(inputFileName, 'MSH_*_MTP_*.zip') or //MTP Ц по-английски
+     MatchesMask(inputFileName, 'MSMP_*_ћ“–_*.zip') or //MTP Ц по-русски
      MatchesMask(inputFileName, 'MSMP_*_MTP_*.zip') or //MTP Ц по-английски
-     MatchesMask(inputFileName, 'MSMP_*_ћ“–_*.zip') then //MTP Ц по-русски
+     MatchesMask(inputFileName, 'CON_*_ћ“–_*.zip') or //MTP Ц по-русски
+     MatchesMask(inputFileName, 'CON_*_MTP_*.zip') or //MTP Ц по-английски
+     MatchesMask(inputFileName, 'RCON_*_ћ“–_*.zip') or //MTP Ц по-русски
+     MatchesMask(inputFileName, 'RCON_*_MTP_*.zip') then //MTP Ц по-английски
     begin
       Result := True;
     end;
@@ -900,34 +960,6 @@ begin
   ReWrite(responceTextFile);
   WriteLn(responceTextFile, descriptionError);
   CloseFile(responceTextFile);
-end;
-
-procedure TFormMain.editSearchChange(Sender: TObject);
-var formatText: CHARFORMAT2;
-    positionCursorFindText: integer;
-begin
-  positionCursorFindText := richEditLog.FindText(editSearch.Text, 0, length(richEditLog.Text), []);
-
-  if positionCursorFindText <> -1 then
-  begin
-    richEditLog.SelStart := positionCursorFindText;
-    richEditLog.SelLength := length(editSearch.Text);
-    FillChar(formatText, SizeOf(formatText), 0);
-    formatText.cbSize := SizeOf(formatText);
-    formatText.dwMask := CFM_BACKCOLOR;
-    formatText.crBackColor := clMoneyGreen;
-    richEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
-  end
-  else
-  begin
-    richEditLog.SelStart := 0;
-    richEditLog.SelLength := length(richEditLog.Text);
-    FillChar(formatText, SizeOf(formatText), 0);
-    formatText.cbSize := SizeOf(formatText);
-    formatText.dwMask := CFM_BACKCOLOR;
-    formatText.crBackColor := clWhite;
-    richEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
-  end;
 end;
 
 function TFormMain.ifFileExistsRename(inputFileName: string): string;
@@ -1160,6 +1192,45 @@ procedure TFormMain.SpinEditMinChange(Sender: TObject);
 begin
   if SpinEditMin.Text = '' then
     SpinEditMin.Text := '0';
+end;
+
+procedure TFormMain.editSearchChange(Sender: TObject);
+var formatText: CHARFORMAT2;
+    positionCursorFindText: integer;
+begin
+  //ћен€ем цвет фона букв в RichEdit на белый цвет
+  RichEditLog.SelStart := 0;
+  RichEditLog.SelLength := Length(richEditLog.Text);
+  FillChar(formatText, SizeOf(formatText), 0);
+  formatText.cbSize := SizeOf(formatText);
+  formatText.dwMask := CFM_BACKCOLOR;
+  formatText.crBackColor := clWhite;
+  RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
+
+  positionCursorFindText := RichEditLog.FindText(editSearch.Text, 0, length(richEditLog.Text), []); //—тавим курсор на начало найденного текста
+
+  if positionCursorFindText <> -1 then
+  begin
+    RichEditLog.SelStart := positionCursorFindText;
+    RichEditLog.SelLength := Length(editSearch.Text);
+    FillChar(formatText, SizeOf(formatText), 0);
+    formatText.cbSize := SizeOf(formatText);
+    formatText.dwMask := CFM_BACKCOLOR;
+    formatText.crBackColor := clMoneyGreen;
+    RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
+  end;
+
+  RichEditLog.SelLength := 0;
+end;
+
+procedure TFormMain.setFocusSearch;
+begin
+  editSearch.SetFocus;
+end;
+
+procedure TFormMain.hotkey;
+begin
+  setFocusSearch;
 end;
 
 procedure TFormMain.AddLog(inputString: string; LogType: integer); //LogType бывает:

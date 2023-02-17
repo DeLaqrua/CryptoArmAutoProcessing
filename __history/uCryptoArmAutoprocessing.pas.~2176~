@@ -46,6 +46,12 @@ type
     saveDialogLog: TSaveDialog;
     editSearch: TEdit;
     labelSearch: TLabel;
+    LabelActPath: TLabel;
+    EditActPath: TEdit;
+    ButtonActPath: TButton;
+    LabelActMTRpath: TLabel;
+    EditActMTRpath: TEdit;
+    ButtonActMTRpath: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -70,6 +76,7 @@ type
     procedure ButtonOutputClick(Sender: TObject);
     procedure buttonSaveLogClick(Sender: TObject);
     procedure editSearchChange(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
 
   private
     { Private declarations }
@@ -91,12 +98,12 @@ type
                                                                                    //в которых лежит файл.
 
     function CreateProtocol(inputFileName: string;
-                             inputFileNameSignature: array of string;
-                             directoryFiles: string;
-                             directoryExportToProcessed: string;
-                             directoryExportToInvoice: string;
-                             directoryExportToInvoiceMTR: string;
-                             inputOriginalArchiveFileName: string): boolean;
+                            inputFileNameSignature: array of string;
+                            directoryFiles: string;
+                            directoryExportToProcessed: string;
+                            directoryExportToInvoice: string;
+                            directoryExportToInvoiceMTR: string;
+                            inputOriginalArchiveFileName: string): boolean;
 
     procedure CreateResponceFileToOutput(inputFileName, descriptionError: string);
 
@@ -138,7 +145,8 @@ var
   FormMain: TFormMain;
 
 var
-  DirectoryRoot, DirectoryErrors, DirectoryTFOMSErrors, DirectoryProcessed, DirectoryOutput, DirectoryInvoice, DirectoryInvoiceMTR, DirectoryLog: string;
+  DirectoryRoot, DirectoryErrors, DirectoryTFOMSErrors, DirectoryProcessed, DirectoryOutput,
+  DirectoryInvoice, DirectoryInvoiceMTR, DirectoryAct, DirectoryActMTR, DirectoryLog: string;
   descriptionErrorArchive: string;
   InvoiceType: integer;
   protocolVerifyStatusResult: integer; //содержит два значени€: CONFIRMED и NOT_CONFIRMED
@@ -153,6 +161,8 @@ const
 
   REGULAR_INVOICE = 1;
   MTR_INVOICE = 2;
+  REGULAR_ACT = 3;
+  MTR_ACT = 4;
 
   CONFIRMED = 1;
   NOT_CONFIRMED = 0;
@@ -198,6 +208,8 @@ begin
   DirectoryRoot := CorrectPath(EditPath.Text);
   DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
   DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+  DirectoryAct := CorrectPath(EditActPath.Text);
+  DirectoryActMTR := CorrectPath(EditActMTRpath.Text);
   DirectoryOutput := CorrectPath(EditOutput.Text);
 
   UpdateDirectories(DirectoryRoot);
@@ -215,6 +227,11 @@ begin
 
 end;
 
+procedure TFormMain.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  UnRegisterHotKey(Handle, 0); //затераем сочетание клавиш Ctrl+F
+end;
+
 procedure TFormMain.ButtonManualProcessingClick(Sender: TObject);
 var SearchResult: TSearchRec;
 begin
@@ -227,15 +244,23 @@ begin
     DirectoryRoot := CorrectPath(EditPath.Text);
     DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
     DirectoryInvoiceMTR := CorrectPath(EditInvoiceMTRpath.Text);
+    DirectoryAct := CorrectPath(EditActPath.Text);
+    DirectoryActMTR := CorrectPath(EditActMTRpath.Text);
     DirectoryOutput := CorrectPath(EditOutput.Text);
     if System.SysUtils.DirectoryExists(DirectoryRoot) = False then
       ShowMessage('ѕроверьте путь к директории дл€ работы јвтопроцессинга. ѕапки не существует')
     else
     if System.SysUtils.DirectoryExists(DirectoryInvoice) = False then
-      ShowMessage('ѕроверьте путь к директории с —четами. ѕапки не существует')
+      ShowMessage('ѕроверьте путь к директории со —четами. ѕапки не существует')
     else
     if System.SysUtils.DirectoryExists(DirectoryInvoiceMTR) = False then
-      ShowMessage('ѕроверьте путь к директории с —четами-ћ“–. ѕапки не существует')
+      ShowMessage('ѕроверьте путь к директории со —четами-ћ“–. ѕапки не существует')
+    else
+    if System.SysUtils.DirectoryExists(DirectoryAct) = False then
+      ShowMessage('ѕроверьте путь к директории с јктами. ѕапки не существует')
+    else
+    if System.SysUtils.DirectoryExists(DirectoryActMTR) = False then
+      ShowMessage('ѕроверьте путь к директории с јктами-ћ“–. ѕапки не существует')
     else
     if System.SysUtils.DirectoryExists(DirectoryOutput) = False then
       ShowMessage('ѕроверьте путь к директории дл€ отправки ќтветов. ѕапки не существует')
@@ -695,6 +720,7 @@ begin
   else
     InvoiceType := MTR_INVOICE;
 
+  //“ут  ейс сделать вместо иф
   if InvoiceType = REGULAR_INVOICE then
     begin
       SMO := Copy(inputArchiveFileName, AnsiPos(MO, inputArchiveFileName)+7, 5);
@@ -815,12 +841,18 @@ begin
      MatchesMask(inputFileName, 'SHUD_*_*_*.zip') or
      MatchesMask(inputFileName, 'SMP_*_*_*.zip') or
      MatchesMask(inputFileName, 'SHCP_*_*_основной.zip') or
-     MatchesMask(inputFileName, 'MSHO_*_MTP_*.zip') or //MTP Ц по-английски
+     MatchesMask(inputFileName, 'CON_*_*_*.zip') or
+     MatchesMask(inputFileName, 'RCON_*_*_*.zip') or
      MatchesMask(inputFileName, 'MSHO_*_ћ“–_*.zip') or //MTP Ц по-русски
-     MatchesMask(inputFileName, 'MSH_*_MTP_*.zip') or //MTP Ц по-английски
+     MatchesMask(inputFileName, 'MSHO_*_MTP_*.zip') or //MTP Ц по-английски
      MatchesMask(inputFileName, 'MSH_*_ћ“–_*.zip') or //MTP Ц по-русски
+     MatchesMask(inputFileName, 'MSH_*_MTP_*.zip') or //MTP Ц по-английски
+     MatchesMask(inputFileName, 'MSMP_*_ћ“–_*.zip') or //MTP Ц по-русски
      MatchesMask(inputFileName, 'MSMP_*_MTP_*.zip') or //MTP Ц по-английски
-     MatchesMask(inputFileName, 'MSMP_*_ћ“–_*.zip') then //MTP Ц по-русски
+     MatchesMask(inputFileName, 'CON_*_ћ“–_*.zip') or //MTP Ц по-русски
+     MatchesMask(inputFileName, 'CON_*_MTP_*.zip') or //MTP Ц по-английски
+     MatchesMask(inputFileName, 'RCON_*_ћ“–_*.zip') or //MTP Ц по-русски
+     MatchesMask(inputFileName, 'RCON_*_MTP_*.zip') then //MTP Ц по-английски
     begin
       Result := True;
     end;
@@ -1173,8 +1205,10 @@ begin
   editSearch.SetFocus;
 end;
 
-procedure TFormMain.ho
-
+procedure TFormMain.hotkey;
+begin
+  setFocusSearch;
+end;
 
 procedure TFormMain.AddLog(inputString: string; LogType: integer); //LogType бывает:
                                                                    //isError Ц цвет текста  расный
