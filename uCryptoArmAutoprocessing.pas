@@ -187,27 +187,27 @@ begin
   Script := '';
 
   if FileExists(ExtractFilePath(ParamStr(0))+'VerifyScript.vbs') then
-    begin
-      AssignFile(ScriptFile, ExtractFilePath(ParamStr(0))+'VerifyScript.vbs');
-      Reset(ScriptFile);
+  begin
+    AssignFile(ScriptFile, ExtractFilePath(ParamStr(0))+'VerifyScript.vbs');
+    Reset(ScriptFile);
 
-      while not EOF(ScriptFile) do
-        begin
-          readln(ScriptFile, LineScript);
-          Script := Script + LineScript + #13#10;
-        end;
+    while not EOF(ScriptFile) do
+      begin
+        readln(ScriptFile, LineScript);
+        Script := Script + LineScript + #13#10;
+      end;
 
-      CloseFile(ScriptFile);
+    CloseFile(ScriptFile);
 
-      ScriptControlVB.Language := 'VBScript';
-      ScriptControlVB.AddCode(Script);
-    end
+    ScriptControlVB.Language := 'VBScript';
+    ScriptControlVB.AddCode(Script);
+  end
   else
-    begin
-      ShowMessage('Файл "VerifyScript.vbs" отсутствует в папке с программой. Без него программа не запустится.');
-      Application.Terminate;
-      Exit;
-    end;
+  begin
+    ShowMessage('Файл "VerifyScript.vbs" отсутствует в папке с программой. Без него программа не запустится.');
+    Application.Terminate;
+    Exit;
+  end;
 
   DirectoryRoot := CorrectPath(EditPath.Text);
   DirectoryInvoice := CorrectPath(EditInvoicePath.Text);
@@ -270,31 +270,31 @@ begin
       ShowMessage('Проверьте путь к директории для отправки Ответов. Папки не существует')
 
     else
+    begin
+
+      UpdateDirectories(DirectoryRoot);
+
+      SortErrorFiles;
+
+      if FindFirst(DirectoryRoot + '*.*', faNormal, SearchResult) = 0 then
       begin
-
-        UpdateDirectories(DirectoryRoot);
-
-        SortErrorFiles;
-
-        if FindFirst(DirectoryRoot + '*.*', faNormal, SearchResult) = 0 then
+        repeat
+          if CheckFileName(SearchResult.Name) and CheckErrorsWithinArchive(SearchResult.Name) then
           begin
-            repeat
-              if CheckFileName(SearchResult.Name) and CheckErrorsWithinArchive(SearchResult.Name) then
-                begin
-                  MoveFilesToErrors(SearchResult.Name);
-                  AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10, isError);
-                  statusTotal := statusTotal + 1;
-                  statusError := statusError + 1;
-                  updateStatusBar;
+            MoveFilesToErrors(SearchResult.Name);
+            AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionErrorArchive + #13#10, isError);
+            statusTotal := statusTotal + 1;
+            statusError := statusError + 1;
+            updateStatusBar;
 
-                  CreateResponceFileToOutput(SearchResult.Name, descriptionErrorArchive);
-                end
-              else Processed(SearchResult.Name);
-            until FindNext(SearchResult) <> 0;
-            FindClose(SearchResult);
-          end;
-
+            CreateResponceFileToOutput(SearchResult.Name, descriptionErrorArchive);
+          end
+          else Processed(SearchResult.Name);
+        until FindNext(SearchResult) <> 0;
+        FindClose(SearchResult);
       end;
+
+    end;
 
   finally
     ButtonManualProcessing.Enabled := True;
@@ -315,23 +315,23 @@ begin
 
     arrayIndex := 0;
     for i := 0 to Archive.Count-1 do
+    begin
+      if Not Archive.Item[i].IsFolder then
       begin
-        if Not Archive.Item[i].IsFolder then
-          begin
-            if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
-              begin
-                SetLength(SigFilesArray, arrayIndex + 1);
-                SigFilesArray[arrayIndex] := ExtractArchiveItemFileName(Archive.item[i].FileName);
-                arrayIndex := arrayIndex + 1;
-                Archive.Item[i].Extract(DirectoryRoot, ExtractArchiveItemFileName(Archive.item[i].FileName), '');
-              end
-            else
-              begin
-                NotSigFile := ExtractArchiveItemFileName(Archive.item[i].FileName);
-                Archive.Item[i].Extract(DirectoryRoot, ExtractArchiveItemFileName(Archive.item[i].FileName), '');
-              end;
-          end;
+        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
+        begin
+          SetLength(SigFilesArray, arrayIndex + 1);
+          SigFilesArray[arrayIndex] := ExtractArchiveItemFileName(Archive.item[i].FileName);
+          arrayIndex := arrayIndex + 1;
+          Archive.Item[i].Extract(DirectoryRoot, ExtractArchiveItemFileName(Archive.item[i].FileName), '');
+        end
+        else
+        begin
+          NotSigFile := ExtractArchiveItemFileName(Archive.item[i].FileName);
+          Archive.Item[i].Extract(DirectoryRoot, ExtractArchiveItemFileName(Archive.item[i].FileName), '');
+        end;
       end;
+    end;
 
   finally
     Archive.Free;
@@ -586,6 +586,7 @@ begin
         1 : arrayResultsD[i] := 'Успех';
         3 : arrayResultsD[i] := 'Подпись некорректна или к ней нет доверия';
         5 : arrayResultsD[i] := 'Истёк срок действия Сертификата';
+        6 : arrayResultsD[i] := 'Ошибка построения пути сертификации. Возможно отсутствует корневой сертификат';
         15 : arrayResultsD[i] := 'Подписи математически корректны, но нет полного доверия к одному или нескольким сертификатам подписи. Возможно необходимо обновить корневой сертификат или TSL через программу КриптоАрм (Настройки --> Режимы)';
         22 : arrayResultsD[i] := 'Сертификат отозван';
         23 : arrayResultsD[i] := 'Одна или несколько подписей некорректна или нет доверия. Возможно необходимо обновить корневой сертификат и перезагрузить компьютер. Либо необходимо переустановить КриптоАрм на более новую версию';
@@ -655,33 +656,33 @@ begin
     System.SysUtils.ForceDirectories(DirectoryErrors);
 
   if FindFirst(DirectoryRoot + '*.*', faNormal, SearchResult) = 0 then
-    begin
-      repeat
-        if (LowerCase(ExtractFileExt(SearchResult.Name)) <> '.zip') or
-           (CheckFileName(SearchResult.Name) = false) then
-          begin
-            MoveFilesToErrors(SearchResult.Name);
-            descriptionError := 'Неверное имя и/или расширение файла "' + SearchResult.Name + '"';
-            AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionError + #13#10, isError);
-            statusTotal := statusTotal + 1;
-            statusError := statusError + 1;
-            updateStatusBar;
+  begin
+    repeat
+      if (LowerCase(ExtractFileExt(SearchResult.Name)) <> '.zip') or
+         (CheckFileName(SearchResult.Name) = false) then
+      begin
+        MoveFilesToErrors(SearchResult.Name);
+        descriptionError := 'Неверное имя и/или расширение файла "' + SearchResult.Name + '"';
+        AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  ' + descriptionError + #13#10, isError);
+        statusTotal := statusTotal + 1;
+        statusError := statusError + 1;
+        updateStatusBar;
 
-            CreateResponceFileToOutput(SearchResult.Name, descriptionError + #13#10
-                                                          + 'Верные имена и расширения файлов должны соответствовать маскам (фигурные скобки убираются):' + #13#10
-                                                          + 'SH_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
-                                                          + 'SH3_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
-                                                          + 'SHO_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
-                                                          + 'SHUD_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
-                                                          + 'SMP_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
-                                                          + 'SHCP_{Код МО}_{Код СМО}_основной.zip' + #13#10
-                                                          + 'MSHO_{Код МО}_МТР_{основной/доплата}.zip' + #13#10
-                                                          + 'MSH_{Код МО}_МТР_{основной/доплата}.zip' + #13#10
-                                                          + 'MSMP_{Код МО}_МТР_{основной/доплата}.zip');
-          end;
-      until FindNext(SearchResult) <> 0;
-      FindClose(SearchResult);
-    end;
+        CreateResponceFileToOutput(SearchResult.Name, descriptionError + #13#10
+                                                      + 'Верные имена и расширения файлов должны соответствовать маскам (фигурные скобки убираются):' + #13#10
+                                                      + 'SH_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
+                                                      + 'SH3_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
+                                                      + 'SHO_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
+                                                      + 'SHUD_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
+                                                      + 'SMP_{Код МО}_{Код СМО}_{основной/доплата}.zip' + #13#10
+                                                      + 'SHCP_{Код МО}_{Код СМО}_основной.zip' + #13#10
+                                                      + 'MSHO_{Код МО}_МТР_{основной/доплата}.zip' + #13#10
+                                                      + 'MSH_{Код МО}_МТР_{основной/доплата}.zip' + #13#10
+                                                      + 'MSMP_{Код МО}_МТР_{основной/доплата}.zip');
+      end;
+    until FindNext(SearchResult) <> 0;
+    FindClose(SearchResult);
+  end;
 end;
 
 procedure TFormMain.MoveFilesToErrors(inputFileName: string);
@@ -887,13 +888,13 @@ begin
 
       //- переносим sig-файлы
       For i := 0 to High(inputSigFilesArray) do
-        begin
-          fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[i];
-          pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
-          fileDirectoryToTFOMSErrors := DirectoryToTFOMSErrors + inputSigFilesArray[i];
-          pointerFileDirectoryToTFOMSErrors := Addr(fileDirectoryToTFOMSErrors[1]);
-          MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToTFOMSErrors);
-        end;
+      begin
+        fileDirectoryFrom := DirectoryFrom + inputSigFilesArray[i];
+        pointerFileDirectoryFrom := Addr(fileDirectoryFrom[1]);
+        fileDirectoryToTFOMSErrors := DirectoryToTFOMSErrors + inputSigFilesArray[i];
+        pointerFileDirectoryToTFOMSErrors := Addr(fileDirectoryToTFOMSErrors[1]);
+        MoveFile(pointerFileDirectoryFrom, pointerFileDirectoryToTFOMSErrors);
+      end;
 
       AddLog(DateToStr(Now) + ' ' + TimeToStr(Now) + '  Файлы перенесены в папку "TFOMS Errors" для рассмотрения ошибок' + #13#10 + #13#10, isError);
     END;
@@ -943,50 +944,50 @@ begin
     Counter := 0;
     //Проверка на количество файлов, прилагаемых в zip-архиве для подписания. По регламенту в архиве должен быть 1 файл-счёт для подписания.
     for i := 0 to Archive.Count-1 do
+    begin
+      if Not Archive.Item[i].IsFolder then
       begin
-        if Not Archive.Item[i].IsFolder then
-          begin
-            if LowerCase(ExtractFileExt(Archive.item[i].FileName)) <> '.sig' then
-              Counter := Counter + 1;
-          end;
+        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) <> '.sig' then
+          Counter := Counter + 1;
       end;
+    end;
     if Counter > 1 then
-      begin
-        Result := True;
-        descriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" более одного файла-счёта для подписания.';
-      end;
+    begin
+      Result := True;
+      descriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" более одного файла-счёта для подписания.';
+    end;
     if Counter = 0 then
-      begin
-        Result := True;
-        descriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствует файл-счёт для подписания.';
-      end;
+    begin
+      Result := True;
+      descriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствует файл-счёт для подписания.';
+    end;
 
     //Проверка на количество подписей. Если в zip-архиве подписи отсутствуют, то в мусор.
     Counter := 0;
     for i := 0 to Archive.Count-1 do
-      begin
-        if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
-          counter := Counter + 1;
-      end;
+    begin
+      if LowerCase(ExtractFileExt(Archive.item[i].FileName)) = '.sig' then
+        counter := Counter + 1;
+    end;
     if Counter = 0 then
-      begin
-        Result := True;
-        descriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствуют файлы-подписи с расширением ".sig"';
-      end;
+    begin
+      Result := True;
+      descriptionErrorArchive := 'В zip-архиве "' + inputArchiveFileName + '" отсутствуют файлы-подписи с расширением ".sig"';
+    end;
 
     //Проверка на правильность имён файлов внутри zip-архива
     for i := 0 to Archive.Count-1 do
+    begin
+      if Not Archive.Item[i].IsFolder then
       begin
-        if Not Archive.Item[i].IsFolder then
-          begin
-            if ( LowerCase(ExtractFileExt(Archive.Item[i].FileName)) <> '.sig' ) and
-               ( Not MatchesMask(ExtractArchiveItemFileName(Archive.item[i].FileName), StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '*') ) then
-              begin
-                Result := True;
-                descriptionErrorArchive := 'Файл-счёт "' + ExtractArchiveItemFileName(Archive.Item[i].FileName) + '" внутри zip-архива "' + inputArchiveFileName + '" не соответствует его названию';
-              end;
-          end;
+        if ( LowerCase(ExtractFileExt(Archive.Item[i].FileName)) <> '.sig' ) and
+           ( Not MatchesMask(ExtractArchiveItemFileName(Archive.item[i].FileName), StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '*') ) then
+        begin
+          Result := True;
+          descriptionErrorArchive := 'Файл-счёт "' + ExtractArchiveItemFileName(Archive.Item[i].FileName) + '" внутри zip-архива "' + inputArchiveFileName + '" не соответствует его названию';
+        end;
       end;
+    end;
 
   finally
     Archive.Free;
@@ -1015,19 +1016,19 @@ begin
 
   counterName := 0;
   while FileExists(inputFileName) do
+  begin
+    counterName := counterName + 1;
+    if counterName = 1 then
     begin
-      counterName := counterName + 1;
-      if counterName = 1 then
-        begin
-          Insert(' (' + IntToStr(counterName) + ')', inputFileName, Length(inputFileName)-Length(ExtractFileExt(inputFileName))+1);
-          result := inputFileName;
-        end
-      else
-        begin
-          inputFileName := StringReplace(inputFileName, ' (' + IntToStr(counterName-1) + ')', ' (' + IntToStr(counterName) + ')', []);
-          result := inputFileName;
-        end;
+      Insert(' (' + IntToStr(counterName) + ')', inputFileName, Length(inputFileName)-Length(ExtractFileExt(inputFileName))+1);
+      result := inputFileName;
+    end
+    else
+    begin
+      inputFileName := StringReplace(inputFileName, ' (' + IntToStr(counterName-1) + ')', ' (' + IntToStr(counterName) + ')', []);
+      result := inputFileName;
     end;
+  end;
 end;
 
 function TFormMain.ifFolderExistsRename(inputFolderName: string): string;
@@ -1037,19 +1038,19 @@ begin
 
   counterName := 0;
   while System.SysUtils.DirectoryExists(inputFolderName) do
+  begin
+    counterName := counterName + 1;
+    if counterName = 1 then
     begin
-      counterName := counterName + 1;
-      if counterName = 1 then
-        begin
-          Insert(' (' + IntToStr(counterName) + ')', inputFolderName, Length(inputFolderName));
-          result := inputFolderName;
-        end
-      else
-        begin
-          inputFolderName := StringReplace(inputFolderName, ' (' + IntToStr(counterName-1) +')', ' (' + IntToStr(counterName) + ')', []);
-          result := inputFolderName;
-        end;
+      Insert(' (' + IntToStr(counterName) + ')', inputFolderName, Length(inputFolderName));
+      result := inputFolderName;
+    end
+    else
+    begin
+      inputFolderName := StringReplace(inputFolderName, ' (' + IntToStr(counterName-1) +')', ' (' + IntToStr(counterName) + ')', []);
+      result := inputFolderName;
     end;
+  end;
 
 end;
 
@@ -1058,19 +1059,19 @@ begin
   if inputDirectory = '' then
     Result := ''
   else
+  begin
+    inputDirectory := Trim(inputDirectory);
+
+    if Pos('/', inputDirectory) <> 0 then
     begin
-      inputDirectory := Trim(inputDirectory);
-
-      if Pos('/', inputDirectory) <> 0 then
-        begin
-          inputDirectory := StringReplace(inputDirectory, '/', '\', [rfReplaceAll]);
-        end;
-
-      if inputDirectory[length(inputDirectory)] <> '\' then
-        Result := inputDirectory + '\'
-      else
-        Result := inputDirectory;
+      inputDirectory := StringReplace(inputDirectory, '/', '\', [rfReplaceAll]);
     end;
+
+    if inputDirectory[length(inputDirectory)] <> '\' then
+      Result := inputDirectory + '\'
+    else
+      Result := inputDirectory;
+  end;
 end;
 
 function TFormMain.ExtractArchiveItemFileName(inputArchiveItemFileName: string): string;  //Внутри архива могут встречаться папки.
@@ -1107,17 +1108,17 @@ begin
   saveDialogLog.Filter := 'RTF-файл|*.rtf|Текстовый файл|*.txt';
 
   if saveDialogLog.FilterIndex = 1 then
-    begin
-      RichEditLog.PlainText := False; //Когда работаем с RTF необходимо ставить False,
-                                      //чтобы документ сохранялся с мета-данными (цвет, жирность текста и т.д.)
-      saveDialogLog.DefaultExt := 'rtf';
-    end
+  begin
+    RichEditLog.PlainText := False; //Когда работаем с RTF необходимо ставить False,
+                                    //чтобы документ сохранялся с мета-данными (цвет, жирность текста и т.д.)
+    saveDialogLog.DefaultExt := 'rtf';
+  end
   else
-    begin
-      RichEditLog.PlainText := True; //Когда работаем с TXT необходимо ставить True,
-                                     //чтобы в документ сохранялся только текст без мета-данных
-      saveDialogLog.DefaultExt := 'txt';
-    end;
+  begin
+    RichEditLog.PlainText := True; //Когда работаем с TXT необходимо ставить True,
+                                   //чтобы в документ сохранялся только текст без мета-данных
+    saveDialogLog.DefaultExt := 'txt';
+  end;
 
   if not saveDialogLog.Execute then
     exit
@@ -1170,13 +1171,13 @@ begin
      ( (SpinEditSec.Value = 0) and (SpinEditMin.Value = 0) ) then
     ShowMessage('Неверно указаны Минуты/Секунды')
   else
-    begin
-      TimerAutoProcessing.Interval := SpinEditMin.Value * 60000 + SpinEditSec.Value * 1000;
-      TimerAutoProcessing.Enabled := True;
+  begin
+    TimerAutoProcessing.Interval := SpinEditMin.Value * 60000 + SpinEditSec.Value * 1000;
+    TimerAutoProcessing.Enabled := True;
 
-      TimerAutoProcessingState.Enabled := True;
-      LabelAutoProcessingState.Caption := 'Автопроцессинг запущен';
-    end;
+    TimerAutoProcessingState.Enabled := True;
+    LabelAutoProcessingState.Caption := 'Автопроцессинг запущен';
+  end;
 end;
 
 procedure TFormMain.SpeedButtonStopClick(Sender: TObject);
@@ -1335,17 +1336,17 @@ begin
 
   AssignFile(logFile, logFileName);
   if FileExists(logFileName) = True then
-    begin
-      Append(logFile);
-      WriteLN(logFile, inputString);
-      CloseFile(logFile);
-    end
+  begin
+    Append(logFile);
+    WriteLN(logFile, inputString);
+    CloseFile(logFile);
+  end
   else
-    begin
-      ReWrite(logFile);
-      WriteLN(logFile, inputString);
-      CloseFile(logFile);
-    end;
+  begin
+    ReWrite(logFile);
+    WriteLN(logFile, inputString);
+    CloseFile(logFile);
+  end;
 end;
 
 procedure TFormMain.updateStatusBar;
