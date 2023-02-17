@@ -775,9 +775,8 @@ begin
   end;
   if InvoiceType = MTR_ACT then
   begin
-    SMO := Copy(inputArchiveFileName, AnsiPos(MO, inputArchiveFileName)+7, 5);
-    DirectoryToActMTR := DirectoryActMTR + IntToStr(Year) + '\' + Month + '\' + SMO + '\' +
-                      StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
+    DirectoryToActMTR := DirectoryActMTR + IntToStr(Year) + '\' + Month + '\' + MO + '\' +
+                         StringReplace(inputArchiveFileName, ExtractFileExt(inputArchiveFileName), '', [rfIgnoreCase]) + '\';
     DirectoryToActMTR := ifFolderExistsRename(DirectoryToActMTR);
   end;
 

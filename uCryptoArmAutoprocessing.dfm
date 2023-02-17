@@ -1069,7 +1069,6 @@ object FormMain: TFormMain
       item
         Width = 50
       end>
-    ExplicitTop = 881
   end
   object buttonSaveLog: TButton
     Left = 272
@@ -1086,7 +1085,6 @@ object FormMain: TFormMain
     ParentFont = False
     TabOrder = 14
     OnClick = buttonSaveLogClick
-    ExplicitTop = 840
   end
   object editSearch: TEdit
     Left = 536
