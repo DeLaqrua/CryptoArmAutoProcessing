@@ -5,7 +5,7 @@ object FormMain: TFormMain
   ClientHeight = 1003
   ClientWidth = 777
   Color = clBlack
-  Constraints.MinHeight = 600
+  Constraints.MinHeight = 700
   Constraints.MinWidth = 777
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWhite
@@ -1089,7 +1089,7 @@ object FormMain: TFormMain
   object editSearch: TEdit
     Left = 536
     Top = 487
-    Width = 213
+    Width = 170
     Height = 27
     Anchors = [akTop, akRight]
     Font.Charset = DEFAULT_CHARSET
@@ -1174,6 +1174,38 @@ object FormMain: TFormMain
     ShowHint = True
     TabOrder = 19
     OnClick = ButtonActMTRpathClick
+  end
+  object buttonSearchPrev: TButton
+    Left = 709
+    Top = 486
+    Width = 26
+    Height = 29
+    Anchors = [akTop, akRight]
+    Caption = #8593
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -19
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 20
+    OnClick = buttonSearchPrevClick
+  end
+  object buttonNext: TButton
+    Left = 737
+    Top = 486
+    Width = 26
+    Height = 29
+    Anchors = [akTop, akRight]
+    Caption = #8595
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -19
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 21
+    OnClick = buttonNextClick
   end
   object frxReportProtocolConfirmed: TfrxReport
     Tag = 21650

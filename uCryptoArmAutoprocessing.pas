@@ -52,6 +52,8 @@ type
     LabelActMTRpath: TLabel;
     EditActMTRpath: TEdit;
     ButtonActMTRpath: TButton;
+    buttonSearchPrev: TButton;
+    buttonNext: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonManualProcessingClick(Sender: TObject);
     procedure ButtonPathClick(Sender: TObject);
@@ -79,6 +81,8 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ButtonActPathClick(Sender: TObject);
     procedure ButtonActMTRpathClick(Sender: TObject);
+    procedure buttonSearchPrevClick(Sender: TObject);
+    procedure buttonNextClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -155,6 +159,7 @@ var
   InvoiceType: integer;
   protocolVerifyStatusResult: integer; //содержит два значения: CONFIRMED и NOT_CONFIRMED
   statusTotal, statusSignCorrect, statusSignUncorrect, statusError: integer;
+  positionSequenceFindText: array of integer;
 
 const
   SIGN_CORRECT = 1;
@@ -678,7 +683,11 @@ begin
                                                       + 'SHCP_{Код МО}_{Код СМО}_основной.zip' + #13#10
                                                       + 'MSHO_{Код МО}_МТР_{основной/доплата}.zip' + #13#10
                                                       + 'MSH_{Код МО}_МТР_{основной/доплата}.zip' + #13#10
-                                                      + 'MSMP_{Код МО}_МТР_{основной/доплата}.zip');
+                                                      + 'MSMP_{Код МО}_МТР_{основной/доплата}.zip' + #13#10
+                                                      + 'CON_{Код МО}_{Код СМО}_{Отчётный месяц в числовом виде}.zip' + #13#10
+                                                      + 'CON_{Код МО}_МТР_*{Отчётный месяц в числовом виде}.zip' + #13#10
+                                                      + 'RCON_{Код МО}_{Код СМО}_{Отчётный месяц в числовом виде}.zip' + #13#10
+                                                      + 'RCON_{Код МО}_МТР_*{Отчётный месяц в числовом виде}.zip');
       end;
     until FindNext(SearchResult) <> 0;
     FindClose(SearchResult);
@@ -1254,8 +1263,11 @@ end;
 
 procedure TFormMain.editSearchChange(Sender: TObject);
 var formatText: CHARFORMAT2;
-    positionCursorFindText: integer;
+    newPositionFindText: integer;
 begin
+  //Сбрасываем запомненных шагов Поиска
+  SetLength(positionSequenceFindText, 0);
+
   //Меняем цвет фона букв в RichEdit на белый цвет
   RichEditLog.SelStart := 0;
   RichEditLog.SelLength := Length(richEditLog.Text);
@@ -1265,11 +1277,14 @@ begin
   formatText.crBackColor := clWhite;
   RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
 
-  positionCursorFindText := RichEditLog.FindText(editSearch.Text, 0, length(richEditLog.Text), []); //Ставим курсор на начало найденного текста
+  newPositionFindText := RichEditLog.FindText(editSearch.Text, 0, length(richEditLog.Text), []); //Ставим курсор на начало найденного текста
 
-  if positionCursorFindText <> -1 then
+  if newPositionFindText <> -1 then // -1 = строка не найдена
   begin
-    RichEditLog.SelStart := positionCursorFindText;
+    SetLength(positionSequenceFindText, Length(positionSequenceFindText) + 1);
+    positionSequenceFindText[Length(positionSequenceFindText) - 1] := newPositionFindText;
+
+    RichEditLog.SelStart := newPositionFindText;
     RichEditLog.SelLength := Length(editSearch.Text);
     FillChar(formatText, SizeOf(formatText), 0);
     formatText.cbSize := SizeOf(formatText);
@@ -1279,6 +1294,83 @@ begin
   end;
 
   RichEditLog.SelLength := 0;
+end;
+
+procedure TFormMain.buttonSearchPrevClick(Sender: TObject);
+var formatText: CHARFORMAT2;
+    newPositionFindText: integer;
+begin
+  if editSearch.Text <> '' then  
+    if Length(positionSequenceFindText) > 1 then //Если существует всего 1 шаг поиска, от откатываться назад некуда
+    begin
+      newPositionFindText := RichEditLog.FindText( editSearch.Text,
+                                                   positionSequenceFindText[Length(positionSequenceFindText) - 1 - 1],
+                                                   Length(richEditLog.Text) - ( positionSequenceFindText[Length(positionSequenceFindText) - 1 - 1] + Length(editSearch.Text)),
+                                                   [] );
+
+      if newPositionFindText <> -1 then // -1 = строка не найдена
+      begin
+        SetLength(positionSequenceFindText, Length(positionSequenceFindText) - 1);
+
+        //Меняем цвет фона букв в RichEdit на белый цвет
+        RichEditLog.SelStart := 0;
+        RichEditLog.SelLength := Length(richEditLog.Text);
+        FillChar(formatText, SizeOf(formatText), 0);
+        formatText.cbSize := SizeOf(formatText);
+        formatText.dwMask := CFM_BACKCOLOR;
+        formatText.crBackColor := clWhite;
+        RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
+
+        RichEditLog.SelStart := newPositionFindText;
+        RichEditLog.SelLength := Length(editSearch.Text);
+        FillChar(formatText, SizeOf(formatText), 0);
+        formatText.cbSize := SizeOf(formatText);
+        formatText.dwMask := CFM_BACKCOLOR;
+        formatText.crBackColor := clMoneyGreen;
+        RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
+      end;
+
+      RichEditLog.SelLength := 0;
+    end;
+end;
+
+procedure TFormMain.buttonNextClick(Sender: TObject);
+var formatText: CHARFORMAT2;
+    newPositionFindText: integer;
+begin
+  if editSearch.Text <> '' then
+    if positionSequenceFindText[Length(positionSequenceFindText) - 1] + Length(editSearch.Text) <= Length(richEditLog.Text) - 1 then //Если поиск не выходит за пределы длины текста RichEditLog
+    begin
+      newPositionFindText := RichEditLog.FindText( editSearch.Text,
+                                                   positionSequenceFindText[Length(positionSequenceFindText) - 1] + Length(editSearch.Text),
+                                                   Length(richEditLog.Text) - ( positionSequenceFindText[Length(positionSequenceFindText) - 1] + Length(editSearch.Text)),
+                                                   [] );
+
+      if newPositionFindText <> -1 then // -1 = строка не найдена
+      begin
+        SetLength(positionSequenceFindText, Length(positionSequenceFindText) + 1);
+        positionSequenceFindText[Length(positionSequenceFindText) - 1] := newPositionFindText;
+
+        //Меняем цвет фона букв в RichEdit на белый цвет
+        RichEditLog.SelStart := 0;
+        RichEditLog.SelLength := Length(richEditLog.Text);
+        FillChar(formatText, SizeOf(formatText), 0);
+        formatText.cbSize := SizeOf(formatText);
+        formatText.dwMask := CFM_BACKCOLOR;
+        formatText.crBackColor := clWhite;
+        RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
+
+        RichEditLog.SelStart := newPositionFindText;
+        RichEditLog.SelLength := Length(editSearch.Text);
+        FillChar(formatText, SizeOf(formatText), 0);
+        formatText.cbSize := SizeOf(formatText);
+        formatText.dwMask := CFM_BACKCOLOR;
+        formatText.crBackColor := clMoneyGreen;
+        RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
+
+        RichEditLog.SelLength := 0;
+      end;
+    end;
 end;
 
 procedure TFormMain.setFocusSearch;
