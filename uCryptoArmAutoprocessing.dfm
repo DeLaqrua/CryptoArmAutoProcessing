@@ -1100,6 +1100,7 @@ object FormMain: TFormMain
     ParentFont = False
     TabOrder = 15
     OnChange = editSearchChange
+    OnKeyDown = editSearchKeyDown
   end
   object EditActPath: TEdit
     Left = 225

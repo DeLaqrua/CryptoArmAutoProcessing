@@ -83,6 +83,8 @@ type
     procedure ButtonActMTRpathClick(Sender: TObject);
     procedure buttonSearchPrevClick(Sender: TObject);
     procedure buttonNextClick(Sender: TObject);
+    procedure editSearchKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
 
   private
     { Private declarations }
@@ -1291,6 +1293,15 @@ begin
     formatText.dwMask := CFM_BACKCOLOR;
     formatText.crBackColor := clMoneyGreen;
     RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
+
+    //Перемещаем Скролл в место найденного текста
+    RichEditLog.SetFocus;
+    RichEditLog.Perform(EM_SCROLLCARET, 0, 0);
+    //Возращаем курсор обратно в Edit Поиска. Когда курсор возвращается с помощью SetFocus, автоматически выделяется весь текст Edit,
+    //поэтому убираем выделение и ставим курсор после последнего символа.
+    setFocusSearch;
+    editSearch.SelLength := 0;
+    editSearch.SelStart := Length(editSearch.Text);
   end;
 
   RichEditLog.SelLength := 0;
@@ -1328,10 +1339,16 @@ begin
         formatText.dwMask := CFM_BACKCOLOR;
         formatText.crBackColor := clMoneyGreen;
         RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
-      end;
 
-      RichEditLog.SelLength := 0;
+        //Перемещаем Скролл в место найденного текста
+        RichEditLog.SetFocus;
+        RichEditLog.Perform(EM_SCROLLCARET, 0, 0);
+
+        RichEditLog.SelLength := 0;
+      end;
     end;
+
+  setFocusSearch;
 end;
 
 procedure TFormMain.buttonNextClick(Sender: TObject);
@@ -1368,9 +1385,22 @@ begin
         formatText.crBackColor := clMoneyGreen;
         RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
 
+        //Перемещаем Скролл в место найденного текста
+        RichEditLog.SetFocus;
+        RichEditLog.Perform(EM_SCROLLCARET, 0, 0);
+
         RichEditLog.SelLength := 0;
       end;
     end;
+
+  setFocusSearch;
+end;
+
+procedure TFormMain.editSearchKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (Key = vk_return) then //Если нажата Enter, то <...>
+    buttonNextClick(Self);
 end;
 
 procedure TFormMain.setFocusSearch;
