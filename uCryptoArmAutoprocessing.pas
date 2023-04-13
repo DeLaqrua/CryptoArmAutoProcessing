@@ -1421,6 +1421,9 @@ var logFile: TextFile;
     logFileName: string;
     Month, Year, Day: string;
 begin
+  RichEditLog.SelStart := Length(RichEditLog.Text);
+  RichEditLog.SelLength := 0;
+
   case LogType of
     isError: begin
                RichEditLog.SelAttributes.Color := clRed;
