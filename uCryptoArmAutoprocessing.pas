@@ -133,6 +133,11 @@ type
     procedure setFocusSearch;
     procedure hotkey(var Message: TMessage); message WM_HOTKEY; //для вызова процедуры setFocusSearch с помощью горячих клавиш
 
+    function GetMyVersion: string; //Получить текущую Версию программы
+                                   //Поменять текущую версию прогрммы:
+                                   //- В проекте правой кнопкой по CryptoArmAutoProcessing.exe;
+                                   //- Version Info.
+
   end;
 
   TSignatureFile = class(TObject)
@@ -191,6 +196,8 @@ var ScriptFile: TextFile;
     Script, LineScript: String;
 begin
 
+  FormMain.Caption := 'КриптоАрм Автопроцессинг (v.' + GetMyVersion + ')';
+
   Script := '';
 
   if FileExists(ExtractFilePath(ParamStr(0))+'VerifyScript.vbs') then
@@ -236,6 +243,28 @@ begin
 
   RegisterHotKey(Handle, 0, MOD_CONTROL, $46); //регистрируем сочетание клавиш Ctrl+F
 
+end;
+
+function TFormMain.GetMyVersion: string;
+type
+  TVerInfo=packed record
+    Nevazhno: array[0..47] of byte; // ненужные нам 48 байт
+    Minor,Major,Build,Release: word; // а тут версия
+  end;
+var
+  s:TResourceStream;
+  v:TVerInfo;
+begin
+  result:='';
+  try
+    s:=TResourceStream.Create(HInstance,'#1',RT_VERSION); // достаём ресурс
+    if s.Size>0 then begin
+      s.Read(v,SizeOf(v)); // читаем нужные нам байты
+      result:=IntToStr(v.Major)+'.'+IntToStr(v.Minor)+'.'+ // вот и версия...
+              IntToStr(v.Release){+'.'+IntToStr(v.Build)};
+    end;
+  s.Free;
+  except; end;
 end;
 
 procedure TFormMain.FormClose(Sender: TObject; var Action: TCloseAction);

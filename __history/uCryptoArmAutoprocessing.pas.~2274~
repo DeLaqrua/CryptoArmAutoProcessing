@@ -83,6 +83,8 @@ type
     procedure ButtonActMTRpathClick(Sender: TObject);
     procedure buttonSearchPrevClick(Sender: TObject);
     procedure buttonNextClick(Sender: TObject);
+    procedure editSearchKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
 
   private
     { Private declarations }
@@ -130,6 +132,11 @@ type
 
     procedure setFocusSearch;
     procedure hotkey(var Message: TMessage); message WM_HOTKEY; //для вызова процедуры setFocusSearch с помощью горячих клавиш
+
+    function GetMyVersion:string; //Получить текущую Версию программы
+                                  //Поменять текущую версию прогрммы:
+                                  //- В проекте правой кнопкой по CryptoArmAutoProcessing.exe;
+                                  //- Version Info.
 
   end;
 
@@ -1291,6 +1298,15 @@ begin
     formatText.dwMask := CFM_BACKCOLOR;
     formatText.crBackColor := clMoneyGreen;
     RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
+
+    //Перемещаем Скролл в место найденного текста
+    RichEditLog.SetFocus;
+    RichEditLog.Perform(EM_SCROLLCARET, 0, 0);
+    //Возращаем курсор обратно в Edit Поиска. Когда курсор возвращается с помощью SetFocus, автоматически выделяется весь текст Edit,
+    //поэтому убираем выделение и ставим курсор после последнего символа.
+    setFocusSearch;
+    editSearch.SelLength := 0;
+    editSearch.SelStart := Length(editSearch.Text);
   end;
 
   RichEditLog.SelLength := 0;
@@ -1328,10 +1344,16 @@ begin
         formatText.dwMask := CFM_BACKCOLOR;
         formatText.crBackColor := clMoneyGreen;
         RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
-      end;
 
-      RichEditLog.SelLength := 0;
+        //Перемещаем Скролл в место найденного текста
+        RichEditLog.SetFocus;
+        RichEditLog.Perform(EM_SCROLLCARET, 0, 0);
+
+        RichEditLog.SelLength := 0;
+      end;
     end;
+
+  setFocusSearch;
 end;
 
 procedure TFormMain.buttonNextClick(Sender: TObject);
@@ -1375,6 +1397,15 @@ begin
         RichEditLog.SelLength := 0;
       end;
     end;
+
+  setFocusSearch;
+end;
+
+procedure TFormMain.editSearchKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (Key = vk_return) then //Если нажата Enter, то <...>
+    buttonNextClick(Self);
 end;
 
 procedure TFormMain.setFocusSearch;
@@ -1395,6 +1426,9 @@ var logFile: TextFile;
     logFileName: string;
     Month, Year, Day: string;
 begin
+  RichEditLog.SelStart := Length(RichEditLog.Text);
+  RichEditLog.SelLength := 0;
+
   case LogType of
     isError: begin
                RichEditLog.SelAttributes.Color := clRed;
