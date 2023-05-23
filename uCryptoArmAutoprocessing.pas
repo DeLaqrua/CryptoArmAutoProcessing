@@ -247,21 +247,22 @@ end;
 
 function TFormMain.GetMyVersion: string;
 type
-  TVerInfo=packed record
-    Nevazhno: array[0..47] of byte; // ненужные нам 48 байт
-    Minor,Major,Build,Release: word; // а тут верси€
+  TVerInfo = packed record
+    Nevazhno: array[0..47] of byte; //ненужные 48 байт
+    Minor, Major, Build, Release: word; //Release Ц количество дней, начина€ с 1 €нвар€ 2000 года (так по умолчанию в Delphi, по идее нужно считать дни с даты –елиза программы)
+                                        //Build Ц количество секунд, начина€ с 00:00, делЄнное на 2
   end;
 var
-  s:TResourceStream;
-  v:TVerInfo;
+  s: TResourceStream;
+  v: TVerInfo;
 begin
-  result:='';
+  result := '';
   try
-    s:=TResourceStream.Create(HInstance,'#1',RT_VERSION); // достаЄм ресурс
-    if s.Size>0 then begin
-      s.Read(v,SizeOf(v)); // читаем нужные нам байты
-      result:=IntToStr(v.Major)+'.'+IntToStr(v.Minor)+'.'+ // вот и верси€...
-              IntToStr(v.Release){+'.'+IntToStr(v.Build)};
+    s := TResourceStream.Create(HInstance, '#1', RT_VERSION); //достаЄм ресурс
+    if s.Size > 0 then begin
+      s.Read(v,SizeOf(v)); //читаем нужные байты
+      result := IntToStr(v.Major) + '.' + IntToStr(v.Minor) + '.' + //вот и верси€
+                IntToStr(v.Release){+'.'+IntToStr(v.Build)};
     end;
   s.Free;
   except; end;
@@ -1320,7 +1321,7 @@ begin
     FillChar(formatText, SizeOf(formatText), 0);
     formatText.cbSize := SizeOf(formatText);
     formatText.dwMask := CFM_BACKCOLOR;
-    formatText.crBackColor := clMoneyGreen;
+    formatText.crBackColor := RGB(254,193,6);
     RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
 
     //ѕеремещаем —кролл в место найденного текста
@@ -1366,7 +1367,7 @@ begin
         FillChar(formatText, SizeOf(formatText), 0);
         formatText.cbSize := SizeOf(formatText);
         formatText.dwMask := CFM_BACKCOLOR;
-        formatText.crBackColor := clMoneyGreen;
+        formatText.crBackColor := RGB(254,193,6);
         RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
 
         //ѕеремещаем —кролл в место найденного текста
@@ -1411,7 +1412,7 @@ begin
         FillChar(formatText, SizeOf(formatText), 0);
         formatText.cbSize := SizeOf(formatText);
         formatText.dwMask := CFM_BACKCOLOR;
-        formatText.crBackColor := clMoneyGreen;
+        formatText.crBackColor := RGB(254,193,6);
         RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
 
         //ѕеремещаем —кролл в место найденного текста
