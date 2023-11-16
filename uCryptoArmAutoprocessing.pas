@@ -718,7 +718,7 @@ begin
                                                       + 'MSMP_{Код МО}_МТР_{основной/доплата}.zip' + #13#10
                                                       + 'CON_{Код МО}_{Код СМО}_{Отчётный месяц в числовом виде}.zip' + #13#10
                                                       + 'CON_{Код МО}_МТР_*{Отчётный месяц в числовом виде}.zip' + #13#10
-                                                      + 'RCON_{Код МО}_{Код СМО}_{Отчётный месяц в числовом виде}.zip' + #13#10
+                                                      + 'RCON_{Код МО}_{Отчётный месяц в числовом виде}.zip' + #13#10
                                                       + 'RCON_{Код МО}_МТР_*{Отчётный месяц в числовом виде}.zip');
       end;
     until FindNext(SearchResult) <> 0;
@@ -952,7 +952,7 @@ begin
      MatchesMask(inputFileName, 'SMP_*_*_*.zip') or
      MatchesMask(inputFileName, 'SHCP_*_*_основной.zip') or
      MatchesMask(inputFileName, 'CON_*_*_*.zip') or
-     MatchesMask(inputFileName, 'RCON_*_*_*.zip') or
+     MatchesMask(inputFileName, 'RCON_*_*.zip') or
      MatchesMask(inputFileName, 'MSHO_*_МТР_*.zip') or //MTP – по-русски
      MatchesMask(inputFileName, 'MSHO_*_MTP_*.zip') or //MTP – по-английски
      MatchesMask(inputFileName, 'MSH_*_МТР_*.zip') or //MTP – по-русски
@@ -1385,7 +1385,8 @@ procedure TFormMain.buttonNextClick(Sender: TObject);
 var formatText: CHARFORMAT2;
     newPositionFindText: integer;
 begin
-  if editSearch.Text <> '' then
+  if (editSearch.Text <> '') and (AnsiPos(editSearch.Text, richEditLog.Text) <> 0) then
+  begin
     if positionSequenceFindText[Length(positionSequenceFindText) - 1] + Length(editSearch.Text) <= Length(richEditLog.Text) - 1 then //Если поиск не выходит за пределы длины текста RichEditLog
     begin
       newPositionFindText := RichEditLog.FindText( editSearch.Text,
@@ -1422,6 +1423,7 @@ begin
         RichEditLog.SelLength := 0;
       end;
     end;
+  end;
 
   setFocusSearch;
 end;

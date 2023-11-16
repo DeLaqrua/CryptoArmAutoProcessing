@@ -83,6 +83,8 @@ type
     procedure ButtonActMTRpathClick(Sender: TObject);
     procedure buttonSearchPrevClick(Sender: TObject);
     procedure buttonNextClick(Sender: TObject);
+    procedure editSearchKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
 
   private
     { Private declarations }
@@ -130,6 +132,11 @@ type
 
     procedure setFocusSearch;
     procedure hotkey(var Message: TMessage); message WM_HOTKEY; //для вызова процедуры setFocusSearch с помощью горячих клавиш
+
+    function GetMyVersion: string; //Получить текущую Версию программы
+                                   //Поменять текущую версию прогрммы:
+                                   //- В проекте правой кнопкой по CryptoArmAutoProcessing.exe;
+                                   //- Version Info.
 
   end;
 
@@ -189,6 +196,8 @@ var ScriptFile: TextFile;
     Script, LineScript: String;
 begin
 
+  FormMain.Caption := 'КриптоАрм Автопроцессинг (v.' + GetMyVersion + ')';
+
   Script := '';
 
   if FileExists(ExtractFilePath(ParamStr(0))+'VerifyScript.vbs') then
@@ -234,147 +243,29 @@ begin
 
   RegisterHotKey(Handle, 0, MOD_CONTROL, $46); //регистрируем сочетание клавиш Ctrl+F
 
+end;
 
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('544', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
-  AddLog('544', 2);
-  AddLog('123', 2);
-  AddLog('123', 2);
+function TFormMain.GetMyVersion: string;
+type
+  TVerInfo = packed record
+    Nevazhno: array[0..47] of byte; //ненужные 48 байт
+    Minor, Major, Build, Release: word; //Release – количество дней, начиная с 1 января 2000 года (так по умолчанию в Delphi, по идее нужно считать дни с даты Релиза программы)
+                                        //Build – количество секунд, начиная с 00:00, делённое на 2
+  end;
+var
+  s: TResourceStream;
+  v: TVerInfo;
+begin
+  result := '';
+  try
+    s := TResourceStream.Create(HInstance, '#1', RT_VERSION); //достаём ресурс
+    if s.Size > 0 then begin
+      s.Read(v,SizeOf(v)); //читаем нужные байты
+      result := IntToStr(v.Major) + '.' + IntToStr(v.Minor) + '.' + //вот и версия
+                IntToStr(v.Release){+'.'+IntToStr(v.Build)};
+    end;
+  s.Free;
+  except; end;
 end;
 
 procedure TFormMain.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -827,7 +718,7 @@ begin
                                                       + 'MSMP_{Код МО}_МТР_{основной/доплата}.zip' + #13#10
                                                       + 'CON_{Код МО}_{Код СМО}_{Отчётный месяц в числовом виде}.zip' + #13#10
                                                       + 'CON_{Код МО}_МТР_*{Отчётный месяц в числовом виде}.zip' + #13#10
-                                                      + 'RCON_{Код МО}_{Код СМО}_{Отчётный месяц в числовом виде}.zip' + #13#10
+                                                      + 'RCON_{Код МО}_{Отчётный месяц в числовом виде}.zip' + #13#10
                                                       + 'RCON_{Код МО}_МТР_*{Отчётный месяц в числовом виде}.zip');
       end;
     until FindNext(SearchResult) <> 0;
@@ -1061,7 +952,7 @@ begin
      MatchesMask(inputFileName, 'SMP_*_*_*.zip') or
      MatchesMask(inputFileName, 'SHCP_*_*_основной.zip') or
      MatchesMask(inputFileName, 'CON_*_*_*.zip') or
-     MatchesMask(inputFileName, 'RCON_*_*_*.zip') or
+     MatchesMask(inputFileName, 'RCON_*_*.zip') or
      MatchesMask(inputFileName, 'MSHO_*_МТР_*.zip') or //MTP – по-русски
      MatchesMask(inputFileName, 'MSHO_*_MTP_*.zip') or //MTP – по-английски
      MatchesMask(inputFileName, 'MSH_*_МТР_*.zip') or //MTP – по-русски
@@ -1430,13 +1321,17 @@ begin
     FillChar(formatText, SizeOf(formatText), 0);
     formatText.cbSize := SizeOf(formatText);
     formatText.dwMask := CFM_BACKCOLOR;
-    formatText.crBackColor := clMoneyGreen;
+    formatText.crBackColor := RGB(254,193,6);
     RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
 
     //Перемещаем Скролл в место найденного текста
     RichEditLog.SetFocus;
     RichEditLog.Perform(EM_SCROLLCARET, 0, 0);
-    editSearch.SetFocus;
+    //Возращаем курсор обратно в Edit Поиска. Когда курсор возвращается с помощью SetFocus, автоматически выделяется весь текст Edit,
+    //поэтому убираем выделение и ставим курсор после последнего символа.
+    setFocusSearch;
+    editSearch.SelLength := 0;
+    editSearch.SelStart := Length(editSearch.Text);
   end;
 
   RichEditLog.SelLength := 0;
@@ -1472,7 +1367,7 @@ begin
         FillChar(formatText, SizeOf(formatText), 0);
         formatText.cbSize := SizeOf(formatText);
         formatText.dwMask := CFM_BACKCOLOR;
-        formatText.crBackColor := clMoneyGreen;
+        formatText.crBackColor := RGB(254,193,6);
         RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
 
         //Перемещаем Скролл в место найденного текста
@@ -1482,6 +1377,8 @@ begin
         RichEditLog.SelLength := 0;
       end;
     end;
+
+  setFocusSearch;
 end;
 
 procedure TFormMain.buttonNextClick(Sender: TObject);
@@ -1515,7 +1412,7 @@ begin
         FillChar(formatText, SizeOf(formatText), 0);
         formatText.cbSize := SizeOf(formatText);
         formatText.dwMask := CFM_BACKCOLOR;
-        formatText.crBackColor := clMoneyGreen;
+        formatText.crBackColor := RGB(254,193,6);
         RichEditLog.Perform(EM_SETCHARFORMAT, SCF_SELECTION, Longint(@formatText));
 
         //Перемещаем Скролл в место найденного текста
@@ -1525,6 +1422,15 @@ begin
         RichEditLog.SelLength := 0;
       end;
     end;
+
+  setFocusSearch;
+end;
+
+procedure TFormMain.editSearchKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if (Key = vk_return) then //Если нажата Enter, то <...>
+    buttonNextClick(Self);
 end;
 
 procedure TFormMain.setFocusSearch;
@@ -1545,6 +1451,9 @@ var logFile: TextFile;
     logFileName: string;
     Month, Year, Day: string;
 begin
+  RichEditLog.SelStart := Length(RichEditLog.Text);
+  RichEditLog.SelLength := 0;
+
   case LogType of
     isError: begin
                RichEditLog.SelAttributes.Color := clRed;
